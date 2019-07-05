@@ -23,7 +23,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 
 //	private Class<?> componentOwnerClass = null;
 	private Class<?> relationshipOwnerClass = null;
-	private Object currOwner = null;
+	private ThreadLocal<Object> currOwnerTL = new ThreadLocal<>();
 	private BeanPropertyDefinition beanPropertyDefinition = null;
 	private boolean isPersistent;
 	private boolean isHibernateId;
@@ -56,7 +56,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 	}
 
 	public Object getCurrOwner() {
-		return currOwner;
+		return currOwnerTL.get();
 	}
 
 //	public Class<?> getComponentOwnerClass() {
@@ -106,11 +106,11 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 			if (this.jsHbManager.isStarted()) {
 				this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(this);
 			}
-			this.currOwner = bean;
+			this.currOwnerTL.set(bean);
 
 			super.serializeAsField(bean, gen, prov);
 		} finally {
-			this.currOwner = null;
+			this.currOwnerTL.set(null);
 			if (this.jsHbManager.isStarted()) {
 				JsHbBeanPropertyWriter propertyWriterPop = this.jsHbManager.getJsHbBeanPropertyWriterStepStack().pop();
 				if (propertyWriterPop != this) {
@@ -136,86 +136,24 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		if (originalClass != null && HibernateProxy.class.isAssignableFrom(originalClass.getRawClass())) {
 			return originalClass.getSuperClass();
 		} else {
-			return super.getType().getSuperClass();
+			return originalClass;
 		}
 	}
 
-	public void serializeAsFieldHibernateIdentifier(Object bean, JsonGenerator gen, SerializerProvider prov)
+	public void findFieldHibernateIdentifierValue(Object bean, SerializerProvider prov, JsHbBackendMetadatas backendMetadatas)
 			throws Exception {
 		try {
 			if (this.jsHbManager.isStarted()) {
 				this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(this);
 			}
-			this.currOwner = bean;
+			this.currOwnerTL.set(bean);
 
 			// inlined 'get()'
 			final Object value = (_accessorMethod == null) ? _field.get(bean) : _accessorMethod.invoke(bean);
 
-			// Null handling is bit different, check that first
-			if (value == null) {
-				if (_nullSerializer != null) {
-					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName());
-					_nullSerializer.serialize(null, gen, prov);
-					
-					if (logger.isTraceEnabled()) {
-						logger.trace(MessageFormat.format(
-								"serializeAsFieldHibernateIdentifier():\n" + " gen.writeFieldName(\"{0}\");\n"
-										+ " _nullSerializer.serialize(null, gen, prov); ",
-								this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName()));
-					}
-				}
-				return;
-			}
-			// then find serializer to use
-			JsonSerializer<Object> ser = _serializer;
-			if (ser == null) {
-				Class<?> cls = value.getClass();
-				PropertySerializerMap m = _dynamicSerializers;
-				ser = m.serializerFor(cls);
-				if (ser == null) {
-					ser = _findAndAddDynamic(m, cls, prov);
-				}
-			}
-			// and then see if we must suppress certain values (default, empty)
-			if (_suppressableValue != null) {
-				if (MARKER_FOR_EMPTY == _suppressableValue) {
-					if (ser.isEmpty(prov, value)) {
-						return;
-					}
-				} else if (_suppressableValue.equals(value)) {
-					return;
-				}
-			}
-			// For non-nulls: simple check for direct cycles
-			if (value == bean) {
-				// three choices: exception; handled by call; or pass-through
-				if (_handleSelfReference(bean, gen, prov, ser)) {
-					return;
-				}
-			}
-			gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName());
-			if (logger.isTraceEnabled()) {
-				logger.trace(MessageFormat.format(
-						"serializeAsFieldHibernateIdentifier():\n" + " gen.writeFieldName(\"{0}\");",
-						this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName()));
-			}
-			if (_typeSerializer == null) {
-				if (logger.isTraceEnabled()) {
-					logger.trace(MessageFormat.format("serializeAsFieldHibernateIdentifier():\n"
-							+ " ser.serialize(value, gen, prov);\n" + " ser: ''{0}''", ser));
-				}
-				ser.serialize(value, gen, prov);
-			} else {
-				if (logger.isTraceEnabled()) {
-					logger.trace(MessageFormat.format("serializeAsFieldHibernateIdentifier():\n"
-							+ " ser.serialize(value, gen, prov, _typeSerializer);\n" + " ser: ''{0}''\n"
-									+ " _typeSerializer: " + _typeSerializer, ser, _typeSerializer));
-				}
-				ser.serializeWithType(value, gen, prov, _typeSerializer);
-			}
-
+			backendMetadatas.setHibernateId(value);
 		} finally {
-			this.currOwner = null;
+			this.currOwnerTL.set(null);
 			if (this.jsHbManager.isStarted()) {
 				JsHbBeanPropertyWriter propertyWriterPop = this.jsHbManager.getJsHbBeanPropertyWriterStepStack().pop();
 				if (propertyWriterPop != this) {
@@ -224,6 +162,91 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 			}
 		}
 	}
+	
+//	public void serializeAsFieldHibernateIdentifier(Object bean, JsonGenerator gen, SerializerProvider prov)
+//			throws Exception {
+//		try {
+//			if (this.jsHbManager.isStarted()) {
+//				this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(this);
+//			}
+//			this.currOwner = bean;
+//
+//			// inlined 'get()'
+//			final Object value = (_accessorMethod == null) ? _field.get(bean) : _accessorMethod.invoke(bean);
+//
+//			// Null handling is bit different, check that first
+//			if (value == null) {
+//				if (_nullSerializer != null) {
+//					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName());
+//					_nullSerializer.serialize(null, gen, prov);
+//					
+//					if (logger.isTraceEnabled()) {
+//						logger.trace(MessageFormat.format(
+//								"serializeAsFieldHibernateIdentifier():\n" + " gen.writeFieldName(\"{0}\");\n"
+//										+ " _nullSerializer.serialize(null, gen, prov); ",
+//								this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName()));
+//					}
+//				}
+//				return;
+//			}
+//			// then find serializer to use
+//			JsonSerializer<Object> ser = _serializer;
+//			if (ser == null) {
+//				Class<?> cls = value.getClass();
+//				PropertySerializerMap m = _dynamicSerializers;
+//				ser = m.serializerFor(cls);
+//				if (ser == null) {
+//					ser = _findAndAddDynamic(m, cls, prov);
+//				}
+//			}
+//			// and then see if we must suppress certain values (default, empty)
+//			if (_suppressableValue != null) {
+//				if (MARKER_FOR_EMPTY == _suppressableValue) {
+//					if (ser.isEmpty(prov, value)) {
+//						return;
+//					}
+//				} else if (_suppressableValue.equals(value)) {
+//					return;
+//				}
+//			}
+//			// For non-nulls: simple check for direct cycles
+//			if (value == bean) {
+//				// three choices: exception; handled by call; or pass-through
+//				if (_handleSelfReference(bean, gen, prov, ser)) {
+//					return;
+//				}
+//			}
+//			gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName());
+//			if (logger.isTraceEnabled()) {
+//				logger.trace(MessageFormat.format(
+//						"serializeAsFieldHibernateIdentifier():\n" + " gen.writeFieldName(\"{0}\");",
+//						this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName()));
+//			}
+//			if (_typeSerializer == null) {
+//				if (logger.isTraceEnabled()) {
+//					logger.trace(MessageFormat.format("serializeAsFieldHibernateIdentifier():\n"
+//							+ " ser.serialize(value, gen, prov);\n" + " ser: ''{0}''", ser));
+//				}
+//				ser.serialize(value, gen, prov);
+//			} else {
+//				if (logger.isTraceEnabled()) {
+//					logger.trace(MessageFormat.format("serializeAsFieldHibernateIdentifier():\n"
+//							+ " ser.serialize(value, gen, prov, _typeSerializer);\n" + " ser: ''{0}''\n"
+//									+ " _typeSerializer: " + _typeSerializer, ser, _typeSerializer));
+//				}
+//				ser.serializeWithType(value, gen, prov, _typeSerializer);
+//			}
+//
+//		} finally {
+//			this.currOwner = null;
+//			if (this.jsHbManager.isStarted()) {
+//				JsHbBeanPropertyWriter propertyWriterPop = this.jsHbManager.getJsHbBeanPropertyWriterStepStack().pop();
+//				if (propertyWriterPop != this) {
+//					throw new RuntimeException("This should not happen");
+//				}
+//			}
+//		}
+//	}
 	
 	@Override
 	public String toString() {

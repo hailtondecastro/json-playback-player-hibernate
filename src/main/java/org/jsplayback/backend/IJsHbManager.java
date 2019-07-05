@@ -6,6 +6,7 @@ import java.util.Stack;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.jsplayback.backend.hibernate.EntityAndComponentTrackInfo;
+import org.jsplayback.backend.hibernate.JsHbBackendMetadatas;
 import org.jsplayback.backend.hibernate.JsHbBeanPropertyWriter;
 import org.jsplayback.backend.hibernate.JsHbJsonSerializer;
 import org.jsplayback.backend.hibernate.JsHbManager;
@@ -96,10 +97,12 @@ public interface IJsHbManager {
 
 	String getHibernateIdName(Class clazz);
 
-	Stack<JsHbJsonSerializer> getJsHbJsonSerializerStepStackTL();
+	Stack<JsHbJsonSerializer> getJsHbJsonSerializerStepStack();
 
 	IJsHbReplayable prepareReplayable(JsHbPlayback playback);
 
 	SignatureBean generateComponentSignature(EntityAndComponentTrackInfo entityAndComponentTrackInfo);
+
+	Stack<JsHbBackendMetadatas> getJsHbBackendMetadatasWritingStack();
 }
 /*gerando conflito*/

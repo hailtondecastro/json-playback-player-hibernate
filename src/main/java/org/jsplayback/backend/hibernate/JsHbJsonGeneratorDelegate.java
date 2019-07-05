@@ -59,31 +59,36 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 			this.jsHbManager.getIdByObjectMap().put(new IdentityRefKey(forValue), this.jsHbManager.getCurrId());
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
-						"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Injecting field \"{0}\": {1}",
-						this.jsHbManager.getJsHbConfig().getJsHbIdName(), this.jsHbManager.getCurrId()));
+						"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Setting \"{0}\": {1}",
+						"backendMetadatas.id", this.jsHbManager.getCurrId()));
 			}
-			this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdName());
-			this.writeNumber(this.jsHbManager.getCurrId());
+			JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+			backendMetadatas.setId(this.jsHbManager.getCurrId());
+//			this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdName());
+//			this.writeNumber(this.jsHbManager.getCurrId());
+			
 			if (this.jsHbManager.isPersistentClass(forValue.getClass()) && !this.jsHbManager.isNeverSigned(forValue.getClass())) {
 				SignatureBean signatureBean = this.jsHbManager.generateSignature(forValue);
 				String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
 				if (logger.isTraceEnabled()) {
 					logger.trace(MessageFormat.format(
-							"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is a persistent class. Injecting field \"{0}\": \"{1}\"",
-							this.jsHbManager.getJsHbConfig().getJsHbSignatureName(), signatureStr));
+							"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is a persistent class. Setting \"{0}\": \"{1}\"",
+							"backendMetadatas.signature", signatureStr));
 				}
-				this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
-				this.writeString(signatureStr);
+				backendMetadatas.setSignature(signatureStr);
+//				this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
+//				this.writeString(signatureStr);
 				if (this.jsHbManager.getJsHbBeanPropertyWriterStepStack().size() > 0) {
 					if (logger.isTraceEnabled()) {
 						logger.trace(MessageFormat.format(
-								"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is an associative class property. Injecting field \"{0}\": \"{1}\"",
-								this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName(), true));
+								"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is an associative class property. Setting \"{0}\": \"{1}\"",
+								"backendMetadatas.isAssociative", true));
 					}
-					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName());
-					this.writeBoolean(true);
+					backendMetadatas.setIsAssociative(true);
+//					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName());
+//					this.writeBoolean(true);
 				}
-				this.jsHbManager.getJsHbJsonSerializerStepStackTL().peek().writeHibernateId(forValue, this, serializers);
+				this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findHibernateId(forValue, this, serializers, backendMetadatas);
 			} else {
 				EntityAndComponentTrackInfo entityAndComponentTrackInfo = this.jsHbManager.getCurrentComponentTypeEntry();
 				if (entityAndComponentTrackInfo != null && !this.jsHbManager.isNeverSigned(forValue.getClass())) {
@@ -92,13 +97,13 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 					if (logger.isTraceEnabled()) {
 						if (logger.isTraceEnabled()) {
 							Map<String, Object> anyLogMap = new LinkedHashMap<>();
-							anyLogMap.put(this.jsHbManager.getJsHbConfig().getJsHbSignatureName(), signatureStr);
-							anyLogMap.put(this.jsHbManager.getJsHbConfig().getJsHbIsComponentName(), true);
+							anyLogMap.put("backendMetadatas.signature", signatureStr);
+							anyLogMap.put("backendMetadatas.isComponent", true);
 							String jsonLogMsg = this.generateJsonStringForLog(anyLogMap);
 							jsonLogMsg = jsonLogMsg.substring(1, jsonLogMsg.length() - 1);
 							String logMsg =
 								MessageFormat.format(
-									"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is a componnent class property. Injecting fields:\n"
+									"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is a componnent class property. Setting:\n"
 											+ "{0}",
 											jsonLogMsg
 									); 
@@ -106,23 +111,44 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 						}
 						
 					}
-					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
-					this.writeString(signatureStr);
-					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsComponentName());
-					this.writeBoolean(true);
-					this.jsHbManager.getJsHbJsonSerializerStepStackTL().peek().writeHibernateId(forValue, this, serializers);
+					backendMetadatas.setSignature(signatureStr);
+					backendMetadatas.setIsComponent(true);
+//					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
+//					this.writeString(signatureStr);
+//					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsComponentName());
+//					this.writeBoolean(true);
+					this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findHibernateId(forValue, this, serializers, backendMetadatas);
+					//this.jsHbManager.getJsHbJsonSerializerStepStackTL().peek().writeHibernateId(forValue, this, serializers);
 				} else {
-//					this.jsHbManager.currIdPlusPlus();
-//					this.jsHbManager.getObjectByIdMap().put(this.jsHbManager.getCurrId(), forValue);
-//					this.jsHbManager.getIdByObjectMap().put(new IdentityRefKey(forValue), this.jsHbManager.getCurrId());
-//					if (logger.isTraceEnabled()) {
-//						logger.trace(MessageFormat.format(
-//								"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Injecting field \"{0}\": {1}",
-//								this.jsHbManager.getJsHbConfig().getJsHbIdName(), this.jsHbManager.getCurrId()));
-//					}
-//					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdName());
-//					this.writeNumber(this.jsHbManager.getCurrId());
 				}
+			}
+			
+			
+			//I can be writing a JsHbbackendMetadatas.hibernateId  
+			if (forValue != null
+					&& this.jsHbManager.isComponent(forValue.getClass())
+					&& this.jsHbManager.getJsHbBackendMetadatasWritingStack().size() > 0
+					&& forValue == this.jsHbManager.getJsHbBackendMetadatasWritingStack().peek().getHibernateId()) {
+				backendMetadatas.setIsComponent(true);
+				backendMetadatas.setIsComponentHibernateId(true);
+			}
+			
+			try {
+				this.jsHbManager.getJsHbBackendMetadatasWritingStack().push(backendMetadatas);
+				this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbMetadatasName());
+				this.writeObject(backendMetadatas);				
+			} finally {
+				if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
+					JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+					if (backendMetadatasPoped != backendMetadatas) {
+						throw new RuntimeException("This should not happen");
+					}					
+				}
+			}
+			if (logger.isTraceEnabled()) {
+				logger.trace(MessageFormat.format(
+						"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Injecting field \"{0}\": {1}",
+						this.jsHbManager.getJsHbConfig().getJsHbMetadatasName(), backendMetadatas));
 			}
 		}
 			}
