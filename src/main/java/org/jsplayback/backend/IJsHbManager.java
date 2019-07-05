@@ -5,7 +5,7 @@ import java.util.Stack;
 
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-
+import org.jsplayback.backend.hibernate.EntityAndComponentTrackInfo;
 import org.jsplayback.backend.hibernate.JsHbBeanPropertyWriter;
 import org.jsplayback.backend.hibernate.JsHbJsonSerializer;
 import org.jsplayback.backend.hibernate.JsHbManager;
@@ -54,7 +54,7 @@ public interface IJsHbManager {
 
 	boolean isStarted();
 
-	boolean isPersistentClassOrComponent(Class clazz);
+//	boolean isPersistentClassOrComponent(Class clazz);
 
 	boolean isRelationship(Class<?> clazz, String fieldName);
 
@@ -72,10 +72,10 @@ public interface IJsHbManager {
 
 	<T> JsHbResultEntity<T> createResultEntity(T result);
 
-	boolean isComponent(Class<?> clazz, String fieldName);
+	boolean isComponent(Class<?> componentClass);
 
 	/**
-	 * Inicializa o Manager. Faz as cargas iniciais a partir a partir dos
+	 * Inicializa o Manager. Faz as cargas iniciais a partir dos
 	 * metadatas hibernate e de quaisquer outras informacoes necessarias. <br>
 	 * Eh chamado automaticamente no primeiro {@link #startSuperSync()} caso nao
 	 * tenha sido chamado ainda. Pode ser chamado novamente a qualquer momento.
@@ -89,10 +89,17 @@ public interface IJsHbManager {
 
 	Stack<JsHbBeanPropertyWriter> getJsHbBeanPropertyWriterStepStack();
 
+//	Stack<String> getCurrentCompositePathStack();
+//	Object getCurrentCompositeOwner();
+	
+	EntityAndComponentTrackInfo getCurrentComponentTypeEntry();
+
 	String getHibernateIdName(Class clazz);
 
 	Stack<JsHbJsonSerializer> getJsHbJsonSerializerStepStackTL();
 
 	IJsHbReplayable prepareReplayable(JsHbPlayback playback);
+
+	SignatureBean generateComponentSignature(EntityAndComponentTrackInfo entityAndComponentTrackInfo);
 }
 /*gerando conflito*/

@@ -208,11 +208,14 @@ public class JsHbPlaybackAction {
 						this.resolvedOwnerJavaClass = this.resolvedOwnerValue.getClass();
 					}
 				} else if (this.ownerCreationRefId != null) {
+					if (!creationRefMap.containsKey(this.ownerCreationRefId)) {
+						throw new RuntimeException(MessageFormat.format("There is no ''{0}'' action with this creation id\naction:\n{1}", JsHbPlaybackActionType.CREATE , this));
+					}
 					this.resolvedOwnerJavaClass = creationRefMap.get(this.ownerCreationRefId).getClass();
 				} else {
-					throw new RuntimeException("Situacao nao suportada");
+					throw new RuntimeException(MessageFormat.format("this.ownerCreationRefId != null. Not supported.\\n{0}", this));
 				}
-			} catch (Exception e) {
+			} catch (ClassNotFoundException e) {
 				throw new RuntimeException(MessageFormat.format("This should not happen\naction:\n{0}", this), e);
 			}
 		}

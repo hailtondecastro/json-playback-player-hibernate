@@ -63,5 +63,13 @@ public interface IJsHbConfig {
 	IJsHbConfig configObjectMapper(ObjectMapper objectMapper);
 
 	Set<Class> getNonLazybleClasses();
+
+	IJsHbConfig configJsHbIsComponentName(String jsHbIsComponentName);
+
+	String getJsHbIsComponentName();
+
+	String getJsHbIsAssociativeName();
+
+	IJsHbConfig setJsHbIsAssociativeName(String jsHbIsAssociativeName);
 }
 /*gerando conflito*/

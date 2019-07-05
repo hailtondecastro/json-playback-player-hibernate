@@ -23,6 +23,9 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 	private String jsHbIdRefName = "jsHbIdRef";
 	private String jsHbSignatureName = "jsHbSignature";
 	private String jsHbIsLazyUninitializedName = "jsHbIsLazyUninitialized";
+	private String jsHbIsComponentName = "jsHbIsComponent";
+	private String jsHbIsAssociativeName = "jsHbIsAssociative";
+	private String jsHbIsLazyPropertyName = "jsHbIsLazyProperty";
 	private String jsHbHibernateIdName = "jsHbHibernateId";
 	private Set<Class> neverSignedClasses = new HashSet<>();
 	private Set<Class> nonLazybleClasses = new HashSet<>();
@@ -31,6 +34,26 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 	private ObjectMapper objectMapper;
 	private IJsHbSignatureCrypto signatureCrypto;
 	private boolean serialiseBySignatureAllRelationship = false;
+
+	public String getJsHbIsLazyPropertyName() {
+		return jsHbIsLazyPropertyName;
+	}
+
+	public IJsHbConfig setJsHbIsLazyPropertyName(String jsHbIsLazyPropertyName) {
+		this.jsHbIsLazyPropertyName = jsHbIsLazyPropertyName;
+		return this;
+	}
+
+	@Override
+	public String getJsHbIsAssociativeName() {
+		return jsHbIsAssociativeName;
+	}
+
+	@Override
+	public IJsHbConfig setJsHbIsAssociativeName(String jsHbIsAssociativeName) {
+		this.jsHbIsAssociativeName = jsHbIsAssociativeName;
+		return this;
+	}
 
 	@Override
 	public ObjectMapper getObjectMapper() {
@@ -101,6 +124,17 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 	public IJsHbConfig configJsHbIdName(String jsHbIdName) {
 		this.jsHbIdName = jsHbIdName;
 		return this;
+	}
+
+	@Override
+	public IJsHbConfig configJsHbIsComponentName(String jsHbIsComponentName) {
+		this.jsHbIsComponentName = jsHbIsComponentName;
+		return this;
+	}
+	
+	@Override
+	public String getJsHbIsComponentName() {
+		return this.jsHbIsComponentName = jsHbIsComponentName;
 	}
 
 	@Override

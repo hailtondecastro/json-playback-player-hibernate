@@ -114,7 +114,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				boolean wasWritenByRefOrBySigne = this.mayByRefOrBySigneSerialize(value, gen, serializers);
 				if (!wasWritenByRefOrBySigne) {
 					if (logger.isTraceEnabled()) {
-						logger.trace("Not intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). !wasWritenByRefOrBySigne");
+						logger.trace("Not serialize by reference or By Signature or by reference. JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). !wasWritenByRefOrBySigne");
 					}
 					JsonGenerator newGen = gen;
 					if (!(gen instanceof JsHbJsonGeneratorDelegate)) {
@@ -149,7 +149,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 		// } else if (value instanceof HibernateProxy) {
 		// Class forValueClass = value.getClass().getSuperclass();
 		// unwrappedPojo = ((HibernateProxy)
-		// value).getHibernateLazyInitializer().gethibernate();
+		// value).getHibernateLazyInitializer().getImplementation();
 		// if (((HibernateProxy)
 		// value).getHibernateLazyInitializer().isUninitialized()) {
 		// generatorDelegate.currId++;
@@ -279,15 +279,19 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				gen.writeNumber(this.jsHbManager.getCurrId());
 				gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName());
 				gen.writeBoolean(true);
+				gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName());
+				gen.writeBoolean(true);
 				
 				if (logger.isTraceEnabled()) {
 					logger.trace(MessageFormat.format(
 							"mayWriteBySignatureRef(). Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider):\n"
 									+ " gen.writeStartObject();\n" + " gen.writeFieldName(\"{0}\");\n"
 									+ " gen.writeNumber({1});\n" + " gen.writeFieldName(\"{2}\");\n"
-									+ " gen.writeBoolean({3});",
+									+ " gen.writeBoolean({3});\n" + " gen.writeFieldName(\"{4}\");\n"
+									+ " gen.writeBoolean({5});",
 							this.jsHbManager.getJsHbConfig().getJsHbIdName(), this.jsHbManager.getCurrId(),
-							this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName(), true));
+							this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName(), true,
+							this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName(), true));
 				}
 				
 				if (this.jsHbManager.isPersistentClass(forValueClass)
@@ -343,6 +347,8 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				gen.writeStartObject();
 				gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName());
 				gen.writeBoolean(true);
+				gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName());
+				gen.writeBoolean(true);
 				SignatureBean signatureBean = this.jsHbManager.generateLazySignature(pcvalue);
 				String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
 				gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
@@ -352,11 +358,17 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				if (logger.isTraceEnabled()) {
 					Map<String, Object> anyLogMap = new LinkedHashMap<>();
 					anyLogMap.put(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName(), true);
+					anyLogMap.put(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName(), true);
 					anyLogMap.put(this.jsHbManager.getJsHbConfig().getJsHbSignatureName(), signatureStr);
-					logger.trace(MessageFormat.format(
-							"mayWriteBySignatureRef(). Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). wrinting:\n"
+					String jsonLogMsg = this.generateJsonStringForLog(anyLogMap);
+					jsonLogMsg = jsonLogMsg.substring(1, jsonLogMsg.length() - 1);
+					String logMsg =
+						MessageFormat.format(
+							"mayWriteBySignatureRef(). Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). Injecting fields:\n"
 									+ "{0}",
-							this.generateJsonStringForLog(anyLogMap)));
+									jsonLogMsg
+							); 
+					logger.trace(logMsg);
 				}
 				return true;
 			} else {
@@ -366,15 +378,22 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 			if (this.jsHbManager.getJsHbConfig().isSerialiseBySignatureAllRelationship()
 					&& this.jsHbManager.getJsHbBeanPropertyWriterStepStack().size() > 0
 					&& currPropertyWriter.getRelationshipOwnerClass() != null) {
+				//if (entityAndComponentTrackInfo != null) {
 				if (currPropertyWriter.getIsPersistent()) {
 					gen.writeStartObject();
 					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName());
 					gen.writeBoolean(true);
+					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName());
+					gen.writeBoolean(true);
 
-					SignatureBean signatureBean = this.jsHbManager.generateLazySignatureForRelashionship(
+					SignatureBean signatureBean = null;
+						
+					signatureBean = this.jsHbManager.generateLazySignatureForRelashionship(
 							currPropertyWriter.getCurrOwner().getClass(),
 							currPropertyWriter.getBeanPropertyDefinition().getInternalName(),
-							currPropertyWriter.getCurrOwner(), valueToSerialize);
+							currPropertyWriter.getCurrOwner(),
+							valueToSerialize);					
+					
 					String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
 					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
 					gen.writeString(signatureStr);
@@ -384,8 +403,10 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 								"mayWriteBySignatureRef(). Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider):\n"
 										+ " gen.writeStartObject();\n" + " gen.writeFieldName(\"{0}\");\n"
 										+ " gen.writeBoolean({1});\n" + " gen.writeFieldName(\"{2}\");\n"
-										+ " gen.writeString(3);",
+										+ " gen.writeBoolean({3});\n" + " gen.writeFieldName(\"{4}\");\n"
+										+ " gen.writeString(\"{5}\");",
 								this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName(), true,
+								this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName(), true,
 								this.jsHbManager.getJsHbConfig().getJsHbSignatureName(), signatureStr));
 					}
 					
@@ -405,6 +426,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 					gen.writeEndObject();
 					return true;
 				}
+			} else {
 			}
 			return false;
 		}
@@ -425,5 +447,3 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 		return "JsHbJsonSerializer for " + this.delegate;
 	}
 }
-/*gerando conflito*/
-/*gerando conflito*/

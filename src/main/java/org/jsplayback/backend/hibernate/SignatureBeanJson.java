@@ -10,6 +10,9 @@ import org.jsplayback.backend.SignatureBean;
 class SignatureBeanJson {
 	private String clazzName;
 	private String entityName;
+	private Boolean isColl;
+	private Boolean isAssoc;
+	private Boolean isComp;
 	/**
 	 * Se nulo eh a propria entidade, caso contrario eh o lazy de uma entidade.
 	 */
@@ -46,6 +49,23 @@ class SignatureBeanJson {
 	public void setRawKeyTypeNames(String[] rawKeyTypeNames) {
 		this.rawKeyTypeNames = rawKeyTypeNames;
 	}
-	
+	public Boolean getIsColl() {
+		return isColl;
+	}
+	public void setIsColl(Boolean isColl) {
+		this.isColl = isColl;
+	}
+	public Boolean getIsAssoc() {
+		return isAssoc;
+	}
+	public void setIsAssoc(Boolean isAssoc) {
+		this.isAssoc = isAssoc;
+	}
+	public Boolean getIsComp() {
+		return isComp;
+	}
+	public void setIsComp(Boolean isComp) {
+		this.isComp = isComp;
+	}
 }
 /*gerando conflito*/

@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,23 +30,21 @@ import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.BagType;
 import org.hibernate.type.CollectionType;
-import org.hibernate.type.ComponentType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.ListType;
 import org.hibernate.type.SetType;
 import org.hibernate.type.Type;
+import org.jsplayback.backend.IJsHbConfig;
+import org.jsplayback.backend.IJsHbManager;
+import org.jsplayback.backend.IJsHbReplayable;
+import org.jsplayback.backend.IdentityRefKey;
+import org.jsplayback.backend.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.jsplayback.backend.IJsHbConfig;
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.IJsHbReplayable;
-import org.jsplayback.backend.IdentityRefKey;
-import org.jsplayback.backend.SignatureBean;
 
 public class JsHbManager implements IJsHbManager {
 	private static Logger logger = LoggerFactory.getLogger(JsHbManager.class);
@@ -56,6 +56,9 @@ public class JsHbManager implements IJsHbManager {
 	ThreadLocal<IJsHbConfig> temporaryConfigurationTL = new ThreadLocal<IJsHbConfig>();
 	ThreadLocal<Stack<JsHbBeanPropertyWriter>> jsHbBeanPropertyWriterStepStackTL = new ThreadLocal<Stack<JsHbBeanPropertyWriter>>();
 	ThreadLocal<Stack<JsHbJsonSerializer>> JsHbJsonSerializerStepStackTL = new ThreadLocal<Stack<JsHbJsonSerializer>>(); 
+
+//	ThreadLocal<Stack<String>> currentCompositePathStackTL = new ThreadLocal<>();
+//	ThreadLocal<Object> currentCompositeOwner = new ThreadLocal<>();
 
 	@Override
 	public <T> JsHbResultEntity<T> createResultEntity(T result) {
@@ -77,7 +80,8 @@ public class JsHbManager implements IJsHbManager {
 		return this;
 	}
 
-	private Map<Class, CompositeType> compositiesMap = new HashMap<>();
+	private Map<HbComponentTypeEntry, CompositeType> compositiesMap = new HashMap<>();
+	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	private boolean initialed = false;
 
@@ -100,33 +104,81 @@ public class JsHbManager implements IJsHbManager {
 			ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(entityName);
 			
 			List<Type> allPrpsAndId = new ArrayList<>();
+			List<String> allPrpsAndIdNames = new ArrayList<>();
 			allPrpsAndId.addAll(Arrays.asList(classMetadata.getPropertyTypes()));
 			allPrpsAndId.add(classMetadata.getIdentifierType());
-			for (Type prpType : allPrpsAndId) {
+			allPrpsAndIdNames.addAll(Arrays.asList(classMetadata.getPropertyNames()));
+			allPrpsAndIdNames.add(classMetadata.getIdentifierPropertyName());
+			for (int i = 0; i < allPrpsAndId.size(); i++) {
+				Type prpType = allPrpsAndId.get(i);
+				String prpName = allPrpsAndIdNames.get(i);
 				if (prpType instanceof CompositeType) {
-					this.collectComponentsMapRecursive((CompositeType) prpType);
+					Stack<String> pathStack = new Stack<>();
+					pathStack.push(prpName);
+					this.collectComponentsMapRecursive(classMetadata, null, (CompositeType) prpType, pathStack);
 				}
 			}
 		}
+		for (HbComponentTypeEntry entry : this.compositiesMap.keySet()) {
+			Class<?> compositeClass = this.compositiesMap.get(entry).getReturnedClass();
+			this.compositiesSet.add(compositeClass);
+	}
 	}
 
-	private void collectComponentsMapRecursive(CompositeType compositeType) {
+	private String mountPathFromStack(Collection<String> pathStack) {
+		String pathResult = "";
+		String dotStr = "";
+		for (String pathItem : pathStack) {
+			pathResult += dotStr + pathItem;
+			dotStr = ".";
+		}
+		return pathResult;
+	}
+	
+	private void collectComponentsMapRecursive(ClassMetadata ownerRootClassMetadata, CompositeType ownerCompositeType, CompositeType compositeType, Stack<String> pathStack) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("Collecting CompositeType:{0}", compositeType));
 		}
-		if (!this.compositiesMap.containsKey(compositeType.getReturnedClass())) {
-			this.compositiesMap.put(compositeType.getReturnedClass(), compositeType);
-			for (Type subPrpType : compositeType.getSubtypes()) {
+		Class<?> ownerRootClass;
+		try {
+			ownerRootClass = Class.forName(ownerRootClassMetadata.getEntityName());
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(ownerRootClassMetadata.getEntityName() + " not supported.", e);
+		}
+		String pathFromStack = this.mountPathFromStack(pathStack);
+		HbComponentTypeEntry componentTypeFromRootEntry = new HbComponentTypeEntry(ownerRootClass, pathFromStack);
+		HbComponentTypeEntry componentTypeDirectEntry = null;
+		if (ownerCompositeType != null) {
+			componentTypeDirectEntry = new HbComponentTypeEntry(ownerCompositeType.getReturnedClass(), pathStack.peek());				
+		} else {
+			componentTypeDirectEntry = new HbComponentTypeEntry(ownerRootClass, pathFromStack);
+		}
+		if (!this.compositiesMap.containsKey(componentTypeDirectEntry)) {
+			if (!componentTypeDirectEntry.equals(componentTypeFromRootEntry)) {
+				this.compositiesMap.put(componentTypeFromRootEntry, compositeType);				
+			}
+			this.compositiesMap.put(componentTypeDirectEntry, compositeType);
+			
+			List<Type> allPrps = new ArrayList<>();
+			List<String> allPrpsNames = new ArrayList<>();
+			allPrps.addAll(Arrays.asList(compositeType.getSubtypes()));
+			allPrpsNames.addAll(Arrays.asList(compositeType.getPropertyNames()));
+			for (int i = 0; i < allPrps.size(); i++) {
+				Type subPrpType = allPrps.get(i);
+				String subPrpName = allPrpsNames.get(i);
+				
 				if (subPrpType instanceof CompositeType) {
 					if (logger.isTraceEnabled()) {
 						logger.trace(MessageFormat.format("Recursion on collect CompositeType: {0} -> {1}",
-								compositeType, subPrpType));
+								compositeType.getReturnedClass().getName(), subPrpName));
 					}
-					this.collectComponentsMapRecursive((CompositeType) subPrpType);
+					pathStack.push(subPrpName);
+					this.collectComponentsMapRecursive(ownerRootClassMetadata, compositeType, (CompositeType) subPrpType, pathStack);
 				}
 			}
 		} else {
-			CompositeType existingComponent = this.compositiesMap.get(compositeType.getReturnedClass());
+			//maybe it is deprecated!?
+			CompositeType existingComponent = this.compositiesMap.get(componentTypeFromRootEntry);
 			boolean isDifferent = false;
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format("Component already collected, verifying if the definition is the same: {0}", compositeType));
@@ -151,6 +203,7 @@ public class JsHbManager implements IJsHbManager {
 				throw new RuntimeException(MessageFormat.format("CompositeType's diferentes: {0}, {1}", existingComponent, compositeType));
 			}
 		}
+		pathStack.pop();
 	}
 
 	@Override
@@ -176,6 +229,9 @@ public class JsHbManager implements IJsHbManager {
 		signatureBeanJson.setRawKeyTypeNames(new String[rawValueList.size()]);
 		signatureBeanJson.setRawKeyValues(rawValueList.toArray(signatureBeanJson.getRawKeyValues()));
 		signatureBeanJson.setRawKeyTypeNames(rawTypeList.toArray(signatureBeanJson.getRawKeyTypeNames()));
+		signatureBeanJson.setIsAssoc(signatureBean.getIsAssoc());
+		signatureBeanJson.setIsColl(signatureBean.getIsColl());
+		signatureBeanJson.setIsComp(signatureBean.getIsComp());
 
 		String result = "FOO BAA";
 		if (this.jsHbConfig.getSignatureCrypto() != null) {
@@ -287,15 +343,19 @@ public class JsHbManager implements IJsHbManager {
 		}
 		signatureBean.setEntityName(signatureBeanJson.getEntityName());
 		signatureBean.setPropertyName(signatureBeanJson.getPropertyName());
+		signatureBean.setIsAssoc(signatureBeanJson.getIsAssoc());
+		signatureBean.setIsColl(signatureBeanJson.getIsColl());
+		signatureBean.setIsComp(signatureBeanJson.getIsComp());
+		
 		signatureBean.setSignature(signatureStr);
 		
 		return signatureBean;
 	}
 
-	private static Pattern rxCollectionRole = Pattern.compile("^(.*\\.)([^.]+)$");
 
 	@Override
 	public SignatureBean generateLazySignature(PersistentCollection persistentCollection) {
+		Pattern rxCollectionRole = Pattern.compile("^" + Pattern.quote(persistentCollection.getOwner().getClass().getName()) + "\\.(.*)");
 		// SessionImplementor ssImplementor = null;
 		// Class ownerClass = persistentCollection.getOwner().getClass();
 		//
@@ -310,11 +370,12 @@ public class JsHbManager implements IJsHbManager {
 		}
 
 		Class<?> ownerClass = persistentCollection.getOwner().getClass();
-		String fieldName = matcher.group(2);
+		String fieldName = matcher.group(1);
 		Object ownerValue = persistentCollection.getOwner();
 		Object fieldValue = persistentCollection;
 
 		SignatureBean signatureBean = this.generateLazySignatureForRelashionship(ownerClass, fieldName, ownerValue, fieldValue);
+		signatureBean.setIsColl(true);
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format(
 					"generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
@@ -361,6 +422,7 @@ public class JsHbManager implements IJsHbManager {
 		}
 
 		SignatureBean signatureBean = new SignatureBean();
+		signatureBean.setIsAssoc(true);
 		//AssociationType assType = (AssociationType) classMetadata.getPropertyType(fieldName);
 		AssociationType assType = (AssociationType) prpType;
 		Object idValue = null;
@@ -373,6 +435,7 @@ public class JsHbManager implements IJsHbManager {
 			idValue = collType.getKeyOfOwner(ownerValue,
 					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
 			signatureBean.setClazz(ownerClass);
+			signatureBean.setIsColl(true);
 			signatureBean.setPropertyName(fieldName);
 		} else {
 			classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(assType.getReturnedClass());
@@ -438,6 +501,14 @@ public class JsHbManager implements IJsHbManager {
 		return signatureBean;
 	}
 
+	@Override
+	public SignatureBean generateComponentSignature(EntityAndComponentTrackInfo entityAndComponentTrackInfo) {
+		SignatureBean signatureBean = this.generateSignature(entityAndComponentTrackInfo.getEntityOwner());
+		signatureBean.setPropertyName(entityAndComponentTrackInfo.getComponentTypeEntry().getPathFromOwner());
+		signatureBean.setIsComp(true);
+		return signatureBean;
+	}
+	
 	@Override
 	public SignatureBean generateSignature(Object nonHibernateProxy) {
 		if (nonHibernateProxy instanceof HibernateProxy) {
@@ -562,12 +633,12 @@ public class JsHbManager implements IJsHbManager {
 		return this.jsHbConfig.getNeverSignedClasses().contains(clazz);
 	}
 
-	@SuppressWarnings("rawtypes")
-	@Override
-	public boolean isPersistentClassOrComponent(Class clazz) {
-		return this.compositiesMap.containsKey(clazz)
-				|| this.jsHbConfig.getSessionFactory().getClassMetadata(clazz) != null;
-	}
+//	@SuppressWarnings("rawtypes")
+//	@Override
+//	public boolean isPersistentClassOrComponent(Class clazz) {
+//		return this.isComponent(clazz)
+//				|| this.jsHbConfig.getSessionFactory().getClassMetadata(clazz) != null;
+//	}
 	
 	@SuppressWarnings("rawtypes")
 	@Override
@@ -626,6 +697,8 @@ public class JsHbManager implements IJsHbManager {
 		this.idByObjectMapTL.set(new HashMap<IdentityRefKey, Long>());
 		this.jsHbBeanPropertyWriterStepStackTL.set(new Stack<JsHbBeanPropertyWriter>());
 		this.JsHbJsonSerializerStepStackTL.set(new Stack<JsHbJsonSerializer>());
+//		this.currentCompositeOwner.set(null);
+//		this.currentCompositePathStackTL.set(new Stack<>());
 	}
 
 	@Override
@@ -638,6 +711,8 @@ public class JsHbManager implements IJsHbManager {
 		this.idByObjectMapTL.set(null);
 		this.jsHbBeanPropertyWriterStepStackTL.set(null);
 		this.JsHbJsonSerializerStepStackTL.set(null);
+//		this.currentCompositeOwner.set(null);
+//		this.currentCompositePathStackTL.set(null);
 		
 		this.temporaryConfigurationTL.set(null);
 	}
@@ -699,23 +774,52 @@ public class JsHbManager implements IJsHbManager {
 		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(clazz);
 		CompositeType compositeType = null;
 		if (classMetadata == null) {
-			compositeType = this.compositiesMap.get(clazz);
+			HbComponentTypeEntry componentTypeEntry = new HbComponentTypeEntry(clazz, fieldName);
+			compositeType = this.compositiesMap.get(componentTypeEntry);
 			if (compositeType == null) {
 				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz);
 			}
 		}
 		Type prpType = null;
 		if (classMetadata != null) {
-			for (int i = 0; i < classMetadata.getPropertyNames().length; i++) {
-				String prpNameItem = classMetadata.getPropertyNames()[i];
+			boolean hasProperty = false;
+			if (fieldName.contains(".")) {
+				hasProperty = true;
+		} else {
+				String[] prpNames = classMetadata.getPropertyNames();
+				for (int i = 0; i < prpNames.length; i++) {
+					String prpNameItem = prpNames[i];
 				if (prpNameItem.equals(fieldName)) {
-					prpType = classMetadata.getPropertyTypes()[i];
+						hasProperty = true;
 					break;
 				}
+			}
+		}
+		
+			if (hasProperty) {
+				try {
+					prpType = classMetadata.getPropertyType(fieldName);					
+				} catch (HibernateException he) {
+					throw
+						new RuntimeException(
+							MessageFormat.format(
+								"This should not happen for property: {0}.{1}", 
+								classMetadata.getEntityName(),
+								fieldName),
+							he);
+				}
 			}			
+//			for (int i = 0; i < classMetadata.getPropertyNames().length; i++) {
+//				String prpNameItem = classMetadata.getPropertyNames()[i];
+//				if (prpNameItem.equals(fieldName)) {
+//					prpType = classMetadata.getPropertyTypes()[i];
+//					break;
+//				}
+//			}			
 		} else {
-			for (int i = 0; i < compositeType.getPropertyNames().length; i++) {
-				String prpNameItem = compositeType.getPropertyNames()[i];
+			String[] prpNames = compositeType.getPropertyNames();
+			for (int i = 0; i < prpNames.length; i++) {
+				String prpNameItem = prpNames[i];
 				if (prpNameItem.equals(fieldName)) {
 					prpType = compositeType.getSubtypes()[i];
 					break;
@@ -725,12 +829,12 @@ public class JsHbManager implements IJsHbManager {
 		
 		boolean resultBool = false;
 		if (prpType == null) {
-			resultBool = false;
+			resultBool =  false;
 		} else {
 			if (prpType instanceof AssociationType) {
-				resultBool = true;
+				resultBool =  true;
 			} else {
-				resultBool = false;
+				resultBool =  false;
 			}
 		}
 		
@@ -743,58 +847,60 @@ public class JsHbManager implements IJsHbManager {
 	}
 
 	@Override
-	public boolean isComponent(Class<?> clazz, String fieldName) {
-		if (clazz == null) {
-			throw new IllegalArgumentException("clazz can not be null");
-		}
-		if (fieldName == null || fieldName.trim().isEmpty()) {
-			throw new IllegalArgumentException("fieldName can not be null");
-		}
-		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(clazz);
-		CompositeType compositeType = null;
-		if (classMetadata == null) {
-			compositeType = this.compositiesMap.get(clazz);
-			if (compositeType == null) {
-				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz);
-			}
-		}
-		
-		Type prpType = null;
-		if (classMetadata != null) {
-			for (int i = 0; i < classMetadata.getPropertyNames().length; i++) {
-				String prpNameItem = classMetadata.getPropertyNames()[i];
-				if (prpNameItem.equals(fieldName)) {
-					prpType = classMetadata.getPropertyTypes()[i];
-					break;
-				}
-			}			
-		} else {
-			for (int i = 0; i < compositeType.getPropertyNames().length; i++) {
-				String prpNameItem = compositeType.getPropertyNames()[i];
-				if (prpNameItem.equals(fieldName)) {
-					prpType = compositeType.getSubtypes()[i];
-					break;
-				}
-			}
-		}
-		
-		boolean resultBool = false;
-		if (prpType == null) {
-			resultBool =  false;
-		} else {
-			if (prpType instanceof ComponentType) {
-				resultBool =  true;
-			} else {
-				resultBool =  false;
-			}
-		}
-		
-		if (logger.isTraceEnabled()) {
-			logger.trace(
-					MessageFormat.format("isComponent(). clazz: ''{0}''; fieldName: ''{1}''. return: {2}", clazz, fieldName, resultBool));
-		}
-		
-		return resultBool;
+	public boolean isComponent(Class<?> componentClass) {
+		return this.compositiesSet.contains(componentClass);
+//		if (clazz == null) {
+//			throw new IllegalArgumentException("clazz can not be null");
+//		}
+//		if (fieldName == null || fieldName.trim().isEmpty()) {
+//			throw new IllegalArgumentException("fieldName can not be null");
+//		}
+//		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(clazz);
+//		CompositeType compositeType = null;
+//		if (classMetadata == null) {
+//			HbComponentTypeEntry componentTypeEntry = new HbComponentTypeEntry(clazz, fieldName);
+//			compositeType = this.compositiesMap.get(componentTypeEntry);
+//			if (compositeType == null) {
+//				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz + ". Does this exception makes any sense?!");
+//			}
+//		}
+//		
+//		Type prpType = null;
+//		if (classMetadata != null) {
+//			for (int i = 0; i < classMetadata.getPropertyNames().length; i++) {
+//				String prpNameItem = classMetadata.getPropertyNames()[i];
+//				if (prpNameItem.equals(fieldName)) {
+//					prpType = classMetadata.getPropertyTypes()[i];
+//					break;
+//				}
+//			}			
+//		} else {
+//			for (int i = 0; i < compositeType.getPropertyNames().length; i++) {
+//				String prpNameItem = compositeType.getPropertyNames()[i];
+//				if (prpNameItem.equals(fieldName)) {
+//					prpType = compositeType.getSubtypes()[i];
+//					break;
+//				}
+//			}
+//		}
+//		
+//		boolean resultBool = false;
+//		if (prpType == null) {
+//			resultBool =  false;
+//		} else {
+//			if (prpType instanceof ComponentType) {
+//				resultBool =  true;
+//			} else {
+//				resultBool =  false;
+//			}
+//		}
+//		
+//		if (logger.isTraceEnabled()) {
+//			logger.trace(
+//					MessageFormat.format("isComponent(). clazz: ''{0}''; fieldName: ''{1}''. return: {2}", clazz, fieldName, resultBool));
+//		}
+//		
+//		return resultBool;
 	}
 
 	@Override
@@ -818,5 +924,47 @@ public class JsHbManager implements IJsHbManager {
 		}
 		return new JsHbReplayable().configJsHbManager(this).loadPlayback(playback);
 	}
+
+	@Override
+	public EntityAndComponentTrackInfo getCurrentComponentTypeEntry() {
+		List<String> pathList = new ArrayList<>();
+		Object lastEntityOwner = null;
+		for (JsHbBeanPropertyWriter jbHbBeanPropertyWriter : this.getJsHbBeanPropertyWriterStepStack()) {
+			if (jbHbBeanPropertyWriter.getCurrOwner() != null 
+					&& this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
+				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
+				pathList.clear();
+				pathList.add(jbHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName());
+			} else {
+				pathList.add(jbHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName());					
+			}
+		}
+		if (lastEntityOwner != null && pathList.size() > 0) {
+			String pathStr = this.mountPathFromStack(pathList);
+			HbComponentTypeEntry entry = new HbComponentTypeEntry(lastEntityOwner.getClass(), pathStr);
+			if (this.compositiesMap.containsKey(entry)) {
+				return
+						new EntityAndComponentTrackInfo(
+								lastEntityOwner,
+								new HbComponentTypeEntry(lastEntityOwner.getClass(), pathStr));				
+			} else {
+				return null;
+			}
+		} else {
+			return null;			
+		}
+	}
+
+//	@Override
+//	public Stack<String> getCurrentCompositePathStack() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	@Override
+//	public Object getCurrentCompositeOwner() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 }
 /*gerando conflito*/
