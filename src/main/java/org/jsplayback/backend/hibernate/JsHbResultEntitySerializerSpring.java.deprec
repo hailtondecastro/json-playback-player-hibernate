@@ -1,0 +1,15 @@
+package org.jsplayback.backend.implemantation;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jackson.JsonComponent;
+
+import org.jsplayback.backend.IJsHbManager;
+
+@JsonComponent
+public class JsHbResultEntitySerializerSpring extends JsHbResultEntitySerializer{
+
+	public JsHbResultEntitySerializerSpring(@Autowired IJsHbManager jsHbManager) {
+		this.configJsHbManager(jsHbManager);
+	}
+}
+/*gerando conflito*/

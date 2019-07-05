@@ -1,0 +1,164 @@
+package org.jsplayback.backend.implemantation;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.hibernate.collection.PersistentCollection;
+import org.hibernate.proxy.HibernateProxy;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.BeanSerializer;
+
+import org.jsplayback.backend.IJsHbHelper;
+import org.jsplayback.backend.IJsHbManager;
+import org.jsplayback.backend.IdentityRefKey;
+import org.jsplayback.backend.SignatureBean;
+
+public class JsHbHelper implements IJsHbHelper {
+
+	IJsHbManager jsHbManager;
+
+	public IJsHbHelper configJsHbManager(IJsHbManager jsHbManager) {
+		this.jsHbManager = jsHbManager;
+		return this;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.jsplayback.backend.implemantation.
+	 * IJsHbHelper#mayByRefOrLazySerialize(java.lang.Object,
+	 * com.fasterxml.jackson.core.JsonGenerator,
+	 * com.fasterxml.jackson.databind.SerializerProvider, java.lang.String)
+	 */
+
+
+	// private boolean mayWriteBySignatureRef(Object owasasner, Object
+	// valueToSerialize, JsonGenerator gen, SerializerProvider serializers,
+	// SerializableString fieldName) throws IOException {
+	// Object unwrappedvalue = valueToSerialize;
+	//
+	// if (valueToSerialize instanceof HibernateProxy) {
+	// Class forValueClass = valueToSerialize.getClass().getSuperclass();
+	// if
+	// (this.jsHbManager.getJsHbConfig().isSerialiseBySignatureAllRelationship()
+	// || ((HibernateProxy)
+	// valueToSerialize).getHibernateLazyInitializer().isUninitialized()) {
+	// if (fieldName != null) {
+	// gen.writeFieldName(fieldName);
+	// }
+	// gen.writeStartObject();
+	// this.jsHbManager.currIdPlusPlus();
+	// this.jsHbManager.getObjectByIdMap().put(this.jsHbManager.getCurrId(),
+	// valueToSerialize);
+	// this.jsHbManager.getIdByObjectMap().put(new
+	// IdentityRefKey(valueToSerialize), this.jsHbManager.getCurrId());
+	// gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdName());
+	// gen.writeNumber(this.jsHbManager.getCurrId());
+	// gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName());
+	// gen.writeBoolean(true);
+	// if (this.jsHbManager.isPersistentClass(forValueClass) &&
+	// !this.jsHbManager.isNeverSigned(forValueClass)) {
+	// SignatureBean signatureBean =
+	// this.jsHbManager.generateLazySignature((HibernateProxy)
+	// valueToSerialize);
+	// String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
+	// gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
+	// gen.writeString(signatureStr);
+	//
+	// Object objectId =
+	// this.jsHbManager.getHibernateObjectId(valueToSerialize);
+	// JsonSerializer idSerializer =
+	// serializers.findValueSerializer(objectId.getClass());
+	// JsonGenerator newGen = gen;
+	// if (!(gen instanceof JsHbJsonGeneratorDelegate)) {
+	// newGen = new
+	// JsHbJsonGeneratorDelegate(gen).configJsHbManager(this.jsHbManager);
+	// }
+	// newGen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName());
+	// idSerializer.serialize(objectId, newGen, serializers);
+	// }
+	// gen.writeEndObject();
+	// return true;
+	// } else {
+	//// unwrappedvalue =
+	// ((HibernateProxy)valueToSerialize).getHibernateLazyInitializer().gethibernate();
+	// if (this.jsHbManager.getIdByObjectMap().containsKey(new
+	// IdentityRefKey(valueToSerialize))) {
+	// if (fieldName != null) {
+	// gen.writeFieldName(fieldName);
+	// }
+	// gen.writeStartObject();
+	// gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdRefName());
+	// gen.writeNumber(this.jsHbManager.getIdByObjectMap().get(new
+	// IdentityRefKey(valueToSerialize)));
+	// gen.writeEndObject();
+	// return true;
+	// } else {
+	// return false;
+	// }
+	// }
+	// } else if (valueToSerialize instanceof PersistentCollection) {
+	// PersistentCollection pcvalue = (PersistentCollection) valueToSerialize;
+	// if
+	// (this.jsHbManager.getJsHbConfig().isSerialiseBySignatureAllRelationship()
+	// || !pcvalue.wasInitialized()) {
+	// if (fieldName != null) {
+	// gen.writeFieldName(fieldName);
+	// }
+	// gen.writeStartObject();
+	// gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName());
+	// gen.writeBoolean(true);
+	// SignatureBean signatureBean =
+	// this.jsHbManager.generateLazySignature(pcvalue);
+	// String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
+	// gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
+	// gen.writeString(signatureStr);
+	// return true;
+	// } else {
+	// return false;
+	// }
+	// } else {
+	// if (owner != null && fieldName != null
+	// &&
+	// this.jsHbManager.getJsHbConfig().isSerialiseBySignatureAllRelationship()
+	// && this.jsHbManager.isRelationship(owner.getClass(),
+	// fieldName.getValue())) {
+	// if (fieldName != null) {
+	// gen.writeFieldName(fieldName);
+	// }
+	// gen.writeStartObject();
+	// gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName());
+	// gen.writeBoolean(true);
+	// SignatureBean signatureBean =
+	// this.jsHbManager.generateLazySignatureForRelashionship(owner.getClass(),
+	// fieldName.getValue(), owner, valueToSerialize);
+	// String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
+	// gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
+	// gen.writeString(signatureStr);
+	// return true;
+	// }
+	// return false;
+	// }
+	// }
+
+
+
+	private void writeHbIdentFieldOnLayRef(Object valueToSerialize, JsHbBeanPropertyWriter currPropertyWriter,
+			JsonGenerator gen, SerializerProvider serializers, JsHbJsonSerializer jsHbJsonSerializer) {
+		JsonGenerator newGen = gen;
+		if (!(gen instanceof JsHbJsonGeneratorDelegate)) {
+			newGen = new JsHbJsonGeneratorDelegate(gen).configJsHbManager(this.jsHbManager);
+		}
+		try {
+			jsHbJsonSerializer.writeHibernateId(valueToSerialize, newGen, serializers);
+		} catch (Exception e) {
+			throw new RuntimeException("Isso nao deveria acontecer", e);
+		}
+	}
+}
+/*gerando conflito*/

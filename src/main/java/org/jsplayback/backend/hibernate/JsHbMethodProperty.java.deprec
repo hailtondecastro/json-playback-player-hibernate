@@ -1,0 +1,107 @@
+package org.jsplayback.backend.implemantation;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.PropertyMetadata;
+import com.fasterxml.jackson.databind.PropertyName;
+import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
+import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
+import com.fasterxml.jackson.databind.util.Annotations;
+
+public class JsHbMethodProperty extends SettableBeanProperty {
+
+	SettableBeanProperty wrapped = null;
+	
+	public JsHbMethodProperty(BeanPropertyDefinition propDef, JavaType type, TypeDeserializer typeDeser,
+			Annotations contextAnnotations) {
+		super(propDef, type, typeDeser, contextAnnotations);
+		// TODO Auto-generated constructor stub
+	}
+
+	public JsHbMethodProperty(PropertyName propName, JavaType type, PropertyMetadata metadata,
+			JsonDeserializer<Object> valueDeser) {
+		super(propName, type, metadata, valueDeser);
+		// TODO Auto-generated constructor stub
+	}
+
+	public JsHbMethodProperty(PropertyName propName, JavaType type, PropertyName wrapper, TypeDeserializer typeDeser,
+			Annotations contextAnnotations, PropertyMetadata metadata) {
+		super(propName, type, wrapper, typeDeser, contextAnnotations, metadata);
+		// TODO Auto-generated constructor stub
+	}
+
+	public JsHbMethodProperty(SettableBeanProperty src, JsonDeserializer<?> deser) {
+		super(src, deser);
+		// TODO Auto-generated constructor stub
+	}
+
+	public JsHbMethodProperty(SettableBeanProperty src, PropertyName newName) {
+		super(src, newName);
+		// TODO Auto-generated constructor stub
+	}
+
+	public JsHbMethodProperty(SettableBeanProperty src) {
+		super(src);
+		// TODO Auto-generated constructor stub
+	}
+
+	public SettableBeanProperty getWrapped() {
+		return wrapped;
+	}
+
+	public JsHbMethodProperty configWrapped(SettableBeanProperty wrapped) {
+		this.wrapped = wrapped;
+		return this;
+	}
+
+	@Override
+	public SettableBeanProperty withValueDeserializer(JsonDeserializer<?> deser) {
+		return new JsHbMethodProperty(this).configWrapped(this.getWrapped().withValueDeserializer(deser));
+	}
+
+	@Override
+	public SettableBeanProperty withName(PropertyName newName) {
+		// TODO Auto-generated method stub
+		return new JsHbMethodProperty(this, newName).configWrapped(this.getWrapped().withName(newName));
+	}
+
+	@Override
+	public AnnotatedMember getMember() {
+		return this.getWrapped().getMember();
+	}
+
+	@Override
+	public <A extends Annotation> A getAnnotation(Class<A> acls) {
+		return this.getWrapped().getAnnotation(acls);
+	}
+
+	@Override
+	public void deserializeAndSet(JsonParser p, DeserializationContext ctxt, Object instance) throws IOException {
+		this.getWrapped().deserializeAndSet(p, ctxt, instance);	
+	}
+
+	@Override
+	public Object deserializeSetAndReturn(JsonParser p, DeserializationContext ctxt, Object instance)
+			throws IOException {
+		return this.getWrapped().deserializeSetAndReturn(p, ctxt, instance);
+	}
+
+	@Override
+	public void set(Object instance, Object value) throws IOException {
+		this.getWrapped().set(instance, value);
+	}
+
+	@Override
+	public Object setAndReturn(Object instance, Object value) throws IOException {
+		return this.getWrapped().setAndReturn(instance, value);
+	}
+
+}
+/*gerando conflito*/

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="all" name="XMLConfigTest" packages="">
+  <Properties>
+    <Property name="filename">logfile.log</Property>
+    <Property name="base-dir">logs</Property>
+  </Properties>
+ 
+  <Appenders>
+    <Console
+    		name="Console">
+      <PatternLayout pattern="%d [%-8t] - %-5level - %c{-1} %m%n"/>
+    </Console>
+    <RollingFile
+		   	name="RollingFile"
+		   	fileName="${base-dir}/${filename}"
+		   	filePattern="${base-dir}/rolling/${filename}-%d{yyyy-MM-dd-HH}-%i.gz">
+    	<PatternLayout pattern="%d [%-8t] - %-5level - %c{-1} %m%n"/>
+    	<SizeBasedTriggeringPolicy size="100 MB"/>
+    	<DefaultRolloverStrategy>
+			<Delete basePath="${base-dir}/rolling" maxDepth="2">
+				<IfFileName glob="${filename}*">
+					<IfAccumulatedFileSize exceeds="5 GB"/>
+				</IfFileName>
+			</Delete>
+    	</DefaultRolloverStrategy>    	
+    </RollingFile>
+  </Appenders>
+ 
+  <Loggers>
+  <!-- 
+    <Logger name="br.gov.serpro" level="error">
+    </Logger>
+   -->
+    <!-- 
+    <Logger name="org.hibernate.SQL" level="debug">
+    </Logger>
+    <Logger name="org.hibernate.hql.antlr" level="trace">
+    </Logger>
+    <Logger name="org.hibernate.type" level="trace">
+    </Logger>
+    <Logger name="oracle" level="trace">
+    </Logger>
+    <Logger name="ucp" level="trace">
+    </Logger>
+    <Logger name="br.gov.serpro.webanalise.spring.boot.desenvonly.PreparedStatementWithExecPlan" level="trace">
+    </Logger>
+     -->
+ 
+ 
+    <Root level="warn">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="RollingFile"/>
+    </Root>
+  </Loggers>
+ 
+</Configuration>

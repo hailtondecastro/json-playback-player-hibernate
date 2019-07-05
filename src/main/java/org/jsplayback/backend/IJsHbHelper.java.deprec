@@ -1,0 +1,34 @@
+package org.jsplayback.backend;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import org.hibernate.collection.PersistentCollection;
+import org.hibernate.proxy.HibernateProxy;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.core.io.SerializedString;
+import com.fasterxml.jackson.databind.SerializerProvider;
+
+import org.jsplayback.backend.implemantation.JsHbJsonSerializer;
+
+public interface IJsHbHelper {
+
+	/**
+	 * Retorna null se poder ser escrito por referencia, retorna o objeto
+	 * original caso seja um {@link HibernateProxy} e um {@link ArrayList} se
+	 * for um {@link PersistentCollection}.
+	 * 
+	 * @param value
+	 * @param gen
+	 * @param serializers
+	 * @param jsHbJsonSerializer 
+	 * @param serializableString
+	 * @return
+	 * @throws IOException 
+	 */
+	boolean mayByRefOrBySigneSerialize(Object value, JsonGenerator gen, SerializerProvider serializers, JsHbJsonSerializer jsHbJsonSerializer) throws IOException;
+
+}
+/*gerando conflito*/

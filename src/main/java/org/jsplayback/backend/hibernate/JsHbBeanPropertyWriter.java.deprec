@@ -1,0 +1,356 @@
+package org.jsplayback.backend.implemantation;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+
+import org.hibernate.proxy.HibernateProxy;
+
+import com.fasterxml.jackson.annotation.JsonFormat.Value;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.PropertyMetadata;
+import com.fasterxml.jackson.databind.PropertyName;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.cfg.MapperConfig;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
+import com.fasterxml.jackson.databind.ser.BeanSerializer;
+import com.fasterxml.jackson.databind.type.SimpleType;
+import com.fasterxml.jackson.databind.util.NameTransformer;
+
+import org.jsplayback.backend.IJsHbManager;
+
+public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
+
+	private IJsHbManager jsHbManager;
+	
+	private Class<?> componentOwnerClass = null;
+	private Class<?> relationshipOwnerClass = null;
+	
+	public JsHbBeanPropertyWriter loadComponentOwnerClass(Class<?> componentOwnerClass) {
+		this.componentOwnerClass = componentOwnerClass;
+		return this;
+	}
+	
+	public JsHbBeanPropertyWriter loadRelationshipOwnerClass(Class<?> relationshipOwnerClass) {
+		this.relationshipOwnerClass = relationshipOwnerClass;
+		return this;
+	}
+
+	public JsHbBeanPropertyWriter configJsHbManager(IJsHbManager jsHbManager) {
+		this.jsHbManager = jsHbManager;
+		return this;
+	}
+	
+	BeanPropertyWriter delegate;
+	
+	JsHbBeanPropertyWriter(BeanPropertyWriter delegate) {
+		this.delegate = delegate;
+	}
+	
+	@Override
+	public BeanPropertyWriter rename(NameTransformer transformer) {
+		// TODO Auto-generated method stub
+		return this.delegate.rename(transformer);
+	}
+
+	@Override
+	public void assignTypeSerializer(TypeSerializer typeSer) {
+		// TODO Auto-generated method stub
+		this.delegate.assignTypeSerializer(typeSer);
+	}
+
+	@Override
+	public void assignSerializer(JsonSerializer<Object> ser) {
+		// TODO Auto-generated method stub
+		this.delegate.assignSerializer(ser);
+	}
+
+	@Override
+	public void assignNullSerializer(JsonSerializer<Object> nullSer) {
+		// TODO Auto-generated method stub
+		this.delegate.assignNullSerializer(nullSer);
+	}
+
+	@Override
+	public BeanPropertyWriter unwrappingWriter(NameTransformer unwrapper) {
+		// TODO Auto-generated method stub
+		return this.delegate.unwrappingWriter(unwrapper);
+	}
+
+	@Override
+	public void setNonTrivialBaseType(JavaType t) {
+		// TODO Auto-generated method stub
+		this.delegate.setNonTrivialBaseType(t);
+	}
+
+	@Override
+	public void fixAccess(SerializationConfig config) {
+		// TODO Auto-generated method stub
+		this.delegate.fixAccess(config);
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return this.delegate.getName();
+	}
+
+	@Override
+	public PropertyName getFullName() {
+		// TODO Auto-generated method stub
+		return this.delegate.getFullName();
+	}
+
+	@Override
+	public JavaType getType() {
+		// TODO Auto-generated method stub
+		return this.delegate.getType();
+	}
+
+	@Override
+	public PropertyName getWrapperName() {
+		// TODO Auto-generated method stub
+		return this.delegate.getWrapperName();
+	}
+
+	@Override
+	public <A extends Annotation> A getAnnotation(Class<A> acls) {
+		// TODO Auto-generated method stub
+		return this.delegate.getAnnotation(acls);
+	}
+
+	@Override
+	public <A extends Annotation> A getContextAnnotation(Class<A> acls) {
+		// TODO Auto-generated method stub
+		return this.delegate.getContextAnnotation(acls);
+	}
+
+	@Override
+	public AnnotatedMember getMember() {
+		// TODO Auto-generated method stub
+		return this.delegate.getMember();
+	}
+
+	@Override
+	public Object getInternalSetting(Object key) {
+		// TODO Auto-generated method stub
+		return this.delegate.getInternalSetting(key);
+	}
+
+	@Override
+	public Object setInternalSetting(Object key, Object value) {
+		// TODO Auto-generated method stub
+		return this.delegate.setInternalSetting(key, value);
+	}
+
+	@Override
+	public Object removeInternalSetting(Object key) {
+		// TODO Auto-generated method stub
+		return this.delegate.removeInternalSetting(key);
+	}
+
+	@Override
+	public SerializableString getSerializedName() {
+		// TODO Auto-generated method stub
+		return this.delegate.getSerializedName();
+	}
+
+	@Override
+	public boolean hasSerializer() {
+		// TODO Auto-generated method stub
+		return this.delegate.hasSerializer();
+	}
+
+	@Override
+	public boolean hasNullSerializer() {
+		// TODO Auto-generated method stub
+		return this.delegate.hasNullSerializer();
+	}
+
+	@Override
+	public TypeSerializer getTypeSerializer() {
+		// TODO Auto-generated method stub
+		return this.delegate.getTypeSerializer();
+	}
+
+	@Override
+	public boolean isUnwrapping() {
+		// TODO Auto-generated method stub
+		return this.delegate.isUnwrapping();
+	}
+
+	@Override
+	public boolean willSuppressNulls() {
+		// TODO Auto-generated method stub
+		return this.delegate.willSuppressNulls();
+	}
+
+	@Override
+	public boolean wouldConflictWithName(PropertyName name) {
+		// TODO Auto-generated method stub
+		return this.delegate.wouldConflictWithName(name);
+	}
+
+	@Override
+	public JsonSerializer<Object> getSerializer() {
+		// TODO Auto-generated method stub
+		return this.delegate.getSerializer();
+	}
+
+	@Override
+	public JavaType getSerializationType() {
+		// TODO Auto-generated method stub
+		return this.delegate.getSerializationType();
+	}
+
+	@Override
+	public Class<?> getRawSerializationType() {
+		// TODO Auto-generated method stub
+		return this.delegate.getRawSerializationType();
+	}
+
+	@Override
+	public Class<?> getPropertyType() {
+		Class originalClass = this.delegate.getPropertyType();
+		if (originalClass != null && HibernateProxy.class.isAssignableFrom(originalClass)) {
+			return originalClass.getSuperclass();
+		} else {
+			return this.delegate.getPropertyType();			
+		}
+	}
+
+	@Override
+	public Type getGenericPropertyType() {
+		// TODO Auto-generated method stub
+		return this.delegate.getGenericPropertyType();
+	}
+
+	@Override
+	public Class<?>[] getViews() {
+		// TODO Auto-generated method stub
+		return this.delegate.getViews();
+	}
+
+	private Boolean isPersistentClassOrComponent = null;
+	private Boolean isBean = null;	
+	
+	@Override
+	public void serializeAsField(Object bean, JsonGenerator gen, SerializerProvider prov) throws Exception {
+		
+		if (this.isPersistentClassOrComponent == null) {
+			this.isPersistentClassOrComponent = this.jsHbManager.isPersistentClassOrComponent(this.delegate.getType().getRawClass());
+		}
+		
+		if (this.isBean == null && this.delegate.getSerializer() != null) {
+			this.isBean = this.delegate.getSerializer() instanceof BeanSerializer || this.delegate.getSerializer() instanceof JsHbJsonSerializer;
+		}
+		
+		if (this.isBean != null && !this.isBean) {
+			this.delegate.serializeAsField(bean, gen, prov);
+		} else if (!this.jsHbManager.isStarted()) {
+			this.delegate.serializeAsField(bean, gen, prov);
+		} else if (this.delegate.get(bean) == null) {
+			this.delegate.serializeAsField(bean, gen, prov);
+		} else if (bean instanceof JsHbResultEntity) {
+			this.delegate.serializeAsField(bean, gen, prov);
+		} else {
+			boolean wasWritenByRefOrBySigne = this.jsHbManager.getHelper().mayByRefOrBySigneSerialize(bean, this.delegate.get(bean), gen, prov, this.delegate.getSerializedName());
+			if (!wasWritenByRefOrBySigne) {
+				JsonGenerator newGen = gen;
+				if (!(gen instanceof JsHbJsonGeneratorDelegate)) {
+					newGen = new JsHbJsonGeneratorDelegate(gen).configJsHbManager(this.jsHbManager);
+				}
+				//nao pode ser serializado por referencia ou lazy
+				this.delegate.serializeAsField(bean, newGen, prov);
+			}
+		}
+		//if (this.delegate.getSerializer() == null || !BeanSerializer.class.isAssignableFrom(this.delegate.getSerializer().getClass())) {
+		//this.delegate.serializeAsField(bean, gen, prov);
+		//	} else
+	}
+
+	@Override
+	public void serializeAsOmittedField(Object bean, JsonGenerator gen, SerializerProvider prov) throws Exception {
+		// TODO Auto-generated method stub
+		this.delegate.serializeAsOmittedField(bean, gen, prov);
+	}
+
+	@Override
+	public void serializeAsElement(Object bean, JsonGenerator gen, SerializerProvider prov) throws Exception {
+		// TODO Auto-generated method stub
+		this.delegate.serializeAsElement(bean, gen, prov);
+	}
+
+	@Override
+	public void serializeAsPlaceholder(Object bean, JsonGenerator gen, SerializerProvider prov) throws Exception {
+		// TODO Auto-generated method stub
+		this.delegate.serializeAsPlaceholder(bean, gen, prov);
+	}
+
+	@Override
+	public void depositSchemaProperty(JsonObjectFormatVisitor v, SerializerProvider provider)
+			throws JsonMappingException {
+		// TODO Auto-generated method stub
+		this.delegate.depositSchemaProperty(v, provider);
+	}
+
+	@Override
+	public void depositSchemaProperty(ObjectNode propertiesNode, SerializerProvider provider)
+			throws JsonMappingException {
+		// TODO Auto-generated method stub
+		this.delegate.depositSchemaProperty(propertiesNode, provider);
+	}
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return this.delegate.toString();
+	}
+
+	@Override
+	public <A extends Annotation> A findAnnotation(Class<A> acls) {
+		// TODO Auto-generated method stub
+		return this.delegate.findAnnotation(acls);
+	}
+
+	@Override
+	public boolean isRequired() {
+		// TODO Auto-generated method stub
+		return this.delegate.isRequired();
+	}
+
+	@Override
+	public PropertyMetadata getMetadata() {
+		// TODO Auto-generated method stub
+		return this.delegate.getMetadata();
+	}
+
+	@Override
+	public boolean isVirtual() {
+		// TODO Auto-generated method stub
+		return this.delegate.isVirtual();
+	}
+
+	@Override
+	public Value findPropertyFormat(MapperConfig<?> config, Class<?> baseType) {
+		// TODO Auto-generated method stub
+		return this.delegate.findPropertyFormat(config, baseType);
+	}
+
+	@Override
+	public com.fasterxml.jackson.annotation.JsonInclude.Value findPropertyInclusion(MapperConfig<?> config,
+			Class<?> baseType) {
+		// TODO Auto-generated method stub
+		return this.delegate.findPropertyInclusion(config, baseType);
+	}
+
+}
+/*gerando conflito*/
