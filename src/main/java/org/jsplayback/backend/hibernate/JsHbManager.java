@@ -328,16 +328,41 @@ public class JsHbManager implements IJsHbManager {
 	public SignatureBean generateLazySignatureForRelashionship(Class<?> ownerClass, String fieldName, Object ownerValue,
 			Object fieldValue) {
 		if (!this.isRelationship(ownerClass, fieldName)) {
-			throw new RuntimeException("Nao eh um relacionamento: " + ownerClass + "->" + fieldName);
+			throw new RuntimeException("This is not a relationship: " + ownerClass + "->" + fieldName);
 		}
 		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(ownerClass);
-		Type prpType = classMetadata.getPropertyType(fieldName);
+		
+		Type prpType = null;
+		if (classMetadata != null) {
+			prpType = classMetadata.getPropertyType(fieldName);
+		} else {
+			CompositeType componentType = this.compositiesMap.get(ownerClass);
+			if (componentType == null) {
+				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
+			}
+			
+			int prpIndex = -1;
+			String[] cpsTpArrPrps = componentType.getPropertyNames();
+			for (int i = 0; i < cpsTpArrPrps.length; i++) {
+				if (fieldName.equals(cpsTpArrPrps[i])) {
+					prpIndex = i;
+					break;
+				}
+			}			
+			if (prpIndex == -1) {
+				throw new RuntimeException("fieldName does not exists: " + ownerClass + "->" + fieldName);
+			}
+			
+			prpType = componentType.getSubtypes()[prpIndex];
+		}
+		
 		if (!(prpType instanceof AssociationType)) {
-			throw new RuntimeException("Tipo inesperado para " + ownerClass + "->" + fieldName + ": " + prpType);
+			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
 		}
 
 		SignatureBean signatureBean = new SignatureBean();
-		AssociationType assType = (AssociationType) classMetadata.getPropertyType(fieldName);
+		//AssociationType assType = (AssociationType) classMetadata.getPropertyType(fieldName);
+		AssociationType assType = (AssociationType) prpType;
 		Object idValue = null;
 		if (assType instanceof CollectionType) {
 			if (ownerValue == null) {
