@@ -55,7 +55,7 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 			this.jsHbManager.getIdByObjectMap().put(new IdentityRefKey(forValue), this.jsHbManager.getCurrId());
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
-						"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Injecting field \"{0}\": \"{1}\"",
+						"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Injecting field \"{0}\": {1}",
 						this.jsHbManager.getJsHbConfig().getJsHbIdName(), this.jsHbManager.getCurrId()));
 			}
 			this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdName());

@@ -285,7 +285,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 							"mayWriteBySignatureRef(). Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider):\n"
 									+ " gen.writeStartObject();\n" + " gen.writeFieldName(\"{0}\");\n"
 									+ " gen.writeNumber({1});\n" + " gen.writeFieldName(\"{2}\");\n"
-									+ " gen.writeBoolean(3);",
+									+ " gen.writeBoolean({3});",
 							this.jsHbManager.getJsHbConfig().getJsHbIdName(), this.jsHbManager.getCurrId(),
 							this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName(), true));
 				}
@@ -318,7 +318,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				return true;
 			} else {
 				// unwrappedvalue =
-				// ((HibernateProxy)valueToSerialize).getHibernateLazyInitializer().gethibernate();
+				// ((HibernateProxy)valueToSerialize).getHibernateLazyInitializer().getImplementation();
 				if (this.jsHbManager.getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
 					gen.writeStartObject();
 					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdRefName());
