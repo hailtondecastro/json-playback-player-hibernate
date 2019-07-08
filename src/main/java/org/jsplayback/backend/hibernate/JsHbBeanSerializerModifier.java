@@ -59,10 +59,11 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 			}
 
 			BeanPropertyWriter newBeanPropertyWriter = null;
-			if (this.jsHbManager.isPersistentClassOrComponent(beanClass)) {
-				if (this.jsHbManager.isComponent(beanClass, beanPropertyWriter.getName())) {
+			if (this.jsHbManager.isPersistentClass(beanClass) || this.jsHbManager.isComponent(beanClass)) {
+				if (this.jsHbManager.isComponent(beanClass)) {
 					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
-							.configJsHbManager(jsHbManager).loadComponentOwnerClass(beanClass)
+							.configJsHbManager(jsHbManager)
+//							.loadComponentOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsHibernateId(isHibernateId)
 							.loadIsPersistent(isPersistent);
 				} else if (this.jsHbManager.isRelationship(beanClass, beanPropertyWriter.getName())) {

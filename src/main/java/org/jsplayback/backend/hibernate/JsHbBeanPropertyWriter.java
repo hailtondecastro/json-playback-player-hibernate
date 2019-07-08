@@ -21,7 +21,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 
 	private IJsHbManager jsHbManager;
 
-	private Class<?> componentOwnerClass = null;
+//	private Class<?> componentOwnerClass = null;
 	private Class<?> relationshipOwnerClass = null;
 	private Object currOwner = null;
 	private BeanPropertyDefinition beanPropertyDefinition = null;
@@ -59,18 +59,18 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return currOwner;
 	}
 
-	public Class<?> getComponentOwnerClass() {
-		return componentOwnerClass;
-	}
+//	public Class<?> getComponentOwnerClass() {
+//		return componentOwnerClass;
+//	}
 
 	public Class<?> getRelationshipOwnerClass() {
 		return relationshipOwnerClass;
 	}
 
-	public JsHbBeanPropertyWriter loadComponentOwnerClass(Class<?> componentOwnerClass) {
-		this.componentOwnerClass = componentOwnerClass;
-		return this;
-	}
+//	public JsHbBeanPropertyWriter loadComponentOwnerClass(Class<?> componentOwnerClass) {
+//		this.componentOwnerClass = componentOwnerClass;
+//		return this;
+//	}
 
 	public JsHbBeanPropertyWriter loadRelationshipOwnerClass(Class<?> relationshipOwnerClass) {
 		this.relationshipOwnerClass = relationshipOwnerClass;
@@ -230,10 +230,10 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
         StringBuilder sb = new StringBuilder(40);
         sb
         	.append("JsHbBeanPropertyWriter with")
-        	.append("componentOwnerClass='").append(componentOwnerClass).append("'").append("', ")
-        	.append("relationshipOwnerClass='").append(relationshipOwnerClass).append("'").append("', ")
-        	.append("isPersistent=").append(isPersistent).append("").append("', ")
-        	.append("isHibernateId=").append(isHibernateId).append("").append("', ")
+//        	.append("componentOwnerClass='").append(componentOwnerClass).append("', ")
+        	.append("relationshipOwnerClass='").append(relationshipOwnerClass).append("', ")
+        	.append("isPersistent=").append(isPersistent).append(", ")
+        	.append("isHibernateId=").append(isHibernateId).append(", ")
         	.append("relationshipOwnerClass='").append(relationshipOwnerClass).append("'")
         	.append(" from original BeanPropertyWriter={ ").append(super.toString()).append(" }");
 		return sb.toString();

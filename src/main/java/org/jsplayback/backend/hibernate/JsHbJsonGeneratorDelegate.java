@@ -2,12 +2,16 @@ package org.jsplayback.backend.hibernate;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.JsonGeneratorDelegate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 import org.jsplayback.backend.IJsHbManager;
@@ -65,13 +69,71 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 				String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
 				if (logger.isTraceEnabled()) {
 					logger.trace(MessageFormat.format(
-							"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Injecting field \"{0}\": \"{1}\"",
+							"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is a persistent class. Injecting field \"{0}\": \"{1}\"",
 							this.jsHbManager.getJsHbConfig().getJsHbSignatureName(), signatureStr));
 				}
 				this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
 				this.writeString(signatureStr);
+				if (this.jsHbManager.getJsHbBeanPropertyWriterStepStack().size() > 0) {
+					if (logger.isTraceEnabled()) {
+						logger.trace(MessageFormat.format(
+								"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is an associative class property. Injecting field \"{0}\": \"{1}\"",
+								this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName(), true));
+					}
+					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName());
+					this.writeBoolean(true);
+				}
 				this.jsHbManager.getJsHbJsonSerializerStepStackTL().peek().writeHibernateId(forValue, this, serializers);
+			} else {
+				EntityAndComponentTrackInfo entityAndComponentTrackInfo = this.jsHbManager.getCurrentComponentTypeEntry();
+				if (entityAndComponentTrackInfo != null && !this.jsHbManager.isNeverSigned(forValue.getClass())) {
+					SignatureBean signatureBean = this.jsHbManager.generateComponentSignature(entityAndComponentTrackInfo);
+					String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
+					if (logger.isTraceEnabled()) {
+						if (logger.isTraceEnabled()) {
+							Map<String, Object> anyLogMap = new LinkedHashMap<>();
+							anyLogMap.put(this.jsHbManager.getJsHbConfig().getJsHbSignatureName(), signatureStr);
+							anyLogMap.put(this.jsHbManager.getJsHbConfig().getJsHbIsComponentName(), true);
+							String jsonLogMsg = this.generateJsonStringForLog(anyLogMap);
+							jsonLogMsg = jsonLogMsg.substring(1, jsonLogMsg.length() - 1);
+							String logMsg =
+								MessageFormat.format(
+									"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is a componnent class property. Injecting fields:\n"
+											+ "{0}",
+											jsonLogMsg
+									); 
+							logger.trace(logMsg);
+						}
+						
+					}
+					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
+					this.writeString(signatureStr);
+					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsComponentName());
+					this.writeBoolean(true);
+					this.jsHbManager.getJsHbJsonSerializerStepStackTL().peek().writeHibernateId(forValue, this, serializers);
+				} else {
+//					this.jsHbManager.currIdPlusPlus();
+//					this.jsHbManager.getObjectByIdMap().put(this.jsHbManager.getCurrId(), forValue);
+//					this.jsHbManager.getIdByObjectMap().put(new IdentityRefKey(forValue), this.jsHbManager.getCurrId());
+//					if (logger.isTraceEnabled()) {
+//						logger.trace(MessageFormat.format(
+//								"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Injecting field \"{0}\": {1}",
+//								this.jsHbManager.getJsHbConfig().getJsHbIdName(), this.jsHbManager.getCurrId()));
+//					}
+//					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdName());
+//					this.writeNumber(this.jsHbManager.getCurrId());
+				}
 			}
+		}
+			}
+	
+	@SuppressWarnings("rawtypes")
+	private String generateJsonStringForLog(Map anyMap) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(anyMap);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("This should not happen", e);
 		}
 	}
 }

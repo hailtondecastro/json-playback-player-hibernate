@@ -9,6 +9,9 @@ public class SignatureBean {
 	private String signature;
 	private Class<?> clazz;
 	private String entityName;
+	private Boolean isColl = false;
+	private Boolean isAssoc = false;
+	private Boolean isComp = false;
 	/**
 	 * Se nulo eh a propria entidade, caso contrario eh o lazy de uma entidade.
 	 */
@@ -44,7 +47,24 @@ public class SignatureBean {
 	public void setRawKeyValues(Object[] rawKeyValues) {
 		this.rawKeyValues = rawKeyValues;
 	}
-	
+	public Boolean getIsColl() {
+		return isColl;
+	}
+	public void setIsColl(Boolean isColl) {
+		this.isColl = isColl;
+	}
+	public Boolean getIsAssoc() {
+		return isAssoc;
+	}
+	public void setIsAssoc(Boolean isAssoc) {
+		this.isAssoc = isAssoc;
+	}
+	public Boolean getIsComp() {
+		return isComp;
+	}
+	public void setIsComp(Boolean isComp) {
+		this.isComp = isComp;
+	}
 	@Override
 	public String toString() {
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -55,6 +75,9 @@ public class SignatureBean {
 			thisAsMap.put("entityName",     this.getEntityName()  );
 			thisAsMap.put("propertyName",   this.getPropertyName());
 			thisAsMap.put("rawKeyValues",   this.getRawKeyValues());
+			thisAsMap.put("isAssoc",        this.getIsAssoc());
+			thisAsMap.put("isColl",         this.getIsColl());
+			thisAsMap.put("isComp",         this.getIsComp());
 			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(thisAsMap);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Isso nao deveria acontecer", e);
