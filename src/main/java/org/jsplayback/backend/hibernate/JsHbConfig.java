@@ -19,14 +19,15 @@ import org.jsplayback.backend.IJsHbSignatureCrypto;
 
 public class JsHbConfig implements IJsHbConfig, Cloneable {
 
-	private String jsHbIdName = "jsHbId";
-	private String jsHbIdRefName = "jsHbIdRef";
-	private String jsHbSignatureName = "jsHbSignature";
-	private String jsHbIsLazyUninitializedName = "jsHbIsLazyUninitialized";
-	private String jsHbIsComponentName = "jsHbIsComponent";
-	private String jsHbIsAssociativeName = "jsHbIsAssociative";
-	private String jsHbIsLazyPropertyName = "jsHbIsLazyProperty";
-	private String jsHbHibernateIdName = "jsHbHibernateId";
+//	private String jsHbIdName = "jsHbId";
+//	private String jsHbIdRefName = "jsHbIdRef";
+//	private String jsHbSignatureName = "jsHbSignature";
+//	private String jsHbIsLazyUninitializedName = "jsHbIsLazyUninitialized";
+//	private String jsHbIsComponentName = "jsHbIsComponent";
+//	private String jsHbIsAssociativeName = "jsHbIsAssociative";
+//	private String jsHbIsLazyPropertyName = "jsHbIsLazyProperty";
+//	private String jsHbHibernateIdName = "jsHbHibernateId";
+	private String jsHbMetadatasName = "$jsHbMetadatas$";
 	private Set<Class> neverSignedClasses = new HashSet<>();
 	private Set<Class> nonLazybleClasses = new HashSet<>();
 	private List<IJsHbGetBySignatureListener> listeners = new ArrayList<>();
@@ -35,25 +36,38 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 	private IJsHbSignatureCrypto signatureCrypto;
 	private boolean serialiseBySignatureAllRelationship = false;
 
-	public String getJsHbIsLazyPropertyName() {
-		return jsHbIsLazyPropertyName;
-	}
 
-	public IJsHbConfig setJsHbIsLazyPropertyName(String jsHbIsLazyPropertyName) {
-		this.jsHbIsLazyPropertyName = jsHbIsLazyPropertyName;
-		return this;
+	@Override
+	public String getJsHbMetadatasName() {
+		return jsHbMetadatasName;
 	}
 
 	@Override
-	public String getJsHbIsAssociativeName() {
-		return jsHbIsAssociativeName;
-	}
-
-	@Override
-	public IJsHbConfig setJsHbIsAssociativeName(String jsHbIsAssociativeName) {
-		this.jsHbIsAssociativeName = jsHbIsAssociativeName;
+	public IJsHbConfig configJsHbMetadatasName(String jsHbMetadatasName) {
+		this.jsHbMetadatasName = jsHbMetadatasName;
 		return this;
 	}
+
+//	public String getJsHbIsLazyPropertyName() {
+//		return jsHbIsLazyPropertyName;
+//	}
+//
+//	@Override
+//	public IJsHbConfig setJsHbIsLazyPropertyName(String jsHbIsLazyPropertyName) {
+//		this.jsHbIsLazyPropertyName = jsHbIsLazyPropertyName;
+//		return this;
+//	}
+//
+//	@Override
+//	public String getJsHbIsAssociativeName() {
+//		return jsHbIsAssociativeName;
+//	}
+//
+//	@Override
+//	public IJsHbConfig setJsHbIsAssociativeName(String jsHbIsAssociativeName) {
+//		this.jsHbIsAssociativeName = jsHbIsAssociativeName;
+//		return this;
+//	}
 
 	@Override
 	public ObjectMapper getObjectMapper() {
@@ -77,18 +91,18 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jsplayback.backend.hibernate.JsHbConfig
-	 * #configJsHbHibernateIdName(java.lang.String)
-	 */
-	@Override
-	public IJsHbConfig configJsHbHibernateIdName(String jsHbHibernateIdName) {
-		this.jsHbHibernateIdName = jsHbHibernateIdName;
-		return this;
-	}
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see
+//	 * br.gov.serpro.webanalise.business.jsHbSuperSync.implemantation.JsHbConfig
+//	 * #configJsHbHibernateIdName(java.lang.String)
+//	 */
+//	@Override
+//	public IJsHbConfig configJsHbHibernateIdName(String jsHbHibernateIdName) {
+//		this.jsHbHibernateIdName = jsHbHibernateIdName;
+//		return this;
+//	}
 
 	@Override
 	public IJsHbConfig configNeverSignedClasses(Set<Class> neverSignedClasses) {
@@ -96,11 +110,11 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 		return this;
 	}
 
-	@Override
-	public IJsHbConfig configJsHbSignatureName(String jsHbSignatureName) {
-		this.jsHbSignatureName = jsHbSignatureName;
-		return this;
-	}
+//	@Override
+//	public IJsHbConfig configJsHbSignatureName(String jsHbSignatureName) {
+//		this.jsHbSignatureName = jsHbSignatureName;
+//		return this;
+//	}
 
 	@Override
 	public IJsHbConfig configSessionFactory(SessionFactory sessionFactory) {
@@ -108,34 +122,34 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 		return this;
 	}
 
-	@Override
-	public IJsHbConfig configJsHbIsLazyUninitializedName(String jsHbIsLazyUninitializedName) {
-		this.jsHbIsLazyUninitializedName = jsHbIsLazyUninitializedName;
-		return this;
-	}
-
-	@Override
-	public IJsHbConfig configJsHbIdRefName(String jsHbIdRefName) {
-		this.jsHbIdRefName = jsHbIdRefName;
-		return this;
-	}
-
-	@Override
-	public IJsHbConfig configJsHbIdName(String jsHbIdName) {
-		this.jsHbIdName = jsHbIdName;
-		return this;
-	}
-
-	@Override
-	public IJsHbConfig configJsHbIsComponentName(String jsHbIsComponentName) {
-		this.jsHbIsComponentName = jsHbIsComponentName;
-		return this;
-	}
+//	@Override
+//	public IJsHbConfig configJsHbIsLazyUninitializedName(String jsHbIsLazyUninitializedName) {
+//		this.jsHbIsLazyUninitializedName = jsHbIsLazyUninitializedName;
+//		return this;
+//	}
+//
+//	@Override
+//	public IJsHbConfig configJsHbIdRefName(String jsHbIdRefName) {
+//		this.jsHbIdRefName = jsHbIdRefName;
+//		return this;
+//	}
 	
-	@Override
-	public String getJsHbIsComponentName() {
-		return this.jsHbIsComponentName = jsHbIsComponentName;
-	}
+//	@Override
+//	public IJsHbConfig configJsHbIdName(String jsHbIdName) {
+//		this.jsHbIdName = jsHbIdName;
+//		return this;
+//	}
+//
+//	@Override
+//	public IJsHbConfig configJsHbIsComponentName(String jsHbIsComponentName) {
+//		this.jsHbIsComponentName = jsHbIsComponentName;
+//		return this;
+//	}
+//	
+//	@Override
+//	public String getJsHbIsComponentName() {
+//		return this.jsHbIsComponentName = jsHbIsComponentName;
+//	}
 
 	@Override
 	public List<IJsHbGetBySignatureListener> getListeners() {
@@ -158,30 +172,30 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 		return this.neverSignedClasses;
 	}
 
-	@Override
-	public String getJsHbIdName() {
-		return jsHbIdName;
-	}
+//	@Override
+//	public String getJsHbIdName() {
+//		return jsHbIdName;
+//	}
+//
+//	@Override
+//	public String getJsHbIdRefName() {
+//		return jsHbIdRefName;
+//	}
+//
+//	@Override
+//	public String getJsHbSignatureName() {
+//		return jsHbSignatureName;
+//	}
+//
+//	@Override
+//	public String getJsHbIsLazyUninitializedName() {
+//		return jsHbIsLazyUninitializedName;
+//	}
 
-	@Override
-	public String getJsHbIdRefName() {
-		return jsHbIdRefName;
-	}
-
-	@Override
-	public String getJsHbSignatureName() {
-		return jsHbSignatureName;
-	}
-
-	@Override
-	public String getJsHbIsLazyUninitializedName() {
-		return jsHbIsLazyUninitializedName;
-	}
-
-	@Override
-	public String getJsHbHibernateIdName() {
-		return jsHbHibernateIdName;
-	}
+//	@Override
+//	public String getJsHbHibernateIdName() {
+//		return jsHbHibernateIdName;
+//	}
 
 	@Override
 	public Set<Class> getNonLazybleClasses() {
@@ -211,11 +225,12 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 			thisAsMap.put("sessionFactory", this.getSessionFactory() != null? this.getSessionFactory().getClass(): "null");
 			thisAsMap.put("signatureCrypto", this.getSignatureCrypto()!= null? this.getSignatureCrypto().getClass(): "null");
 			thisAsMap.put("neverSignedClasses", this.getNeverSignedClasses());
-			thisAsMap.put("jsHbIdName", this.getJsHbIdName());
-			thisAsMap.put("jsHbIdRefName", this.getJsHbIdRefName());
-			thisAsMap.put("jsHbSignatureName", this.getJsHbSignatureName());
-			thisAsMap.put("jsHbIsLazyUninitializedName", this.getJsHbIsLazyUninitializedName());
-			thisAsMap.put("jsHbHibernateIdName", this.getJsHbHibernateIdName());
+			thisAsMap.put("jsHbMetadatasName", this.getJsHbMetadatasName());
+//			thisAsMap.put("jsHbIdName", this.getJsHbIdName());
+//			thisAsMap.put("jsHbIdRefName", this.getJsHbIdRefName());
+//			thisAsMap.put("jsHbSignatureName", this.getJsHbSignatureName());
+//			thisAsMap.put("jsHbIsLazyUninitializedName", this.getJsHbIsLazyUninitializedName());
+//			thisAsMap.put("jsHbHibernateIdName", this.getJsHbHibernateIdName());
 			thisAsMap.put("nonLazybleClasses", this.getNonLazybleClasses());
 			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(thisAsMap);
 		} catch (JsonProcessingException e) {

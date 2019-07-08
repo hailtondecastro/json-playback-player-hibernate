@@ -28,29 +28,9 @@ public interface IJsHbConfig {
 	 */
 	Set<Class> getNeverSignedClasses();
 
-	String getJsHbIdName();
-
-	String getJsHbIdRefName();
-
-	String getJsHbSignatureName();
-
-	String getJsHbIsLazyUninitializedName();
-
-	String getJsHbHibernateIdName();
-
-	IJsHbConfig configJsHbHibernateIdName(String jsHbHibernateIdName);
-
 	IJsHbConfig configNeverSignedClasses(Set<Class> getNotLazyClasses);
 
-	IJsHbConfig configJsHbSignatureName(String jsHbSignatureName);
-
 	IJsHbConfig configSessionFactory(SessionFactory sessionFactory);
-
-	IJsHbConfig configJsHbIsLazyUninitializedName(String jsHbIsLazyUninitializedName);
-
-	IJsHbConfig configJsHbIdRefName(String jsHbIdRefName);
-
-	IJsHbConfig configJsHbIdName(String jsHbIdName);
 
 	IJsHbConfig configSerialiseBySignatureAllRelationship(boolean serialiseBySignatureAllRelationship);
 
@@ -64,12 +44,8 @@ public interface IJsHbConfig {
 
 	Set<Class> getNonLazybleClasses();
 
-	IJsHbConfig configJsHbIsComponentName(String jsHbIsComponentName);
+	String getJsHbMetadatasName();
 
-	String getJsHbIsComponentName();
-
-	String getJsHbIsAssociativeName();
-
-	IJsHbConfig setJsHbIsAssociativeName(String jsHbIsAssociativeName);
+	IJsHbConfig configJsHbMetadatasName(String jsHbMetadatasName);
 }
 /*gerando conflito*/

@@ -56,6 +56,7 @@ public class JsHbManager implements IJsHbManager {
 	ThreadLocal<IJsHbConfig> temporaryConfigurationTL = new ThreadLocal<IJsHbConfig>();
 	ThreadLocal<Stack<JsHbBeanPropertyWriter>> jsHbBeanPropertyWriterStepStackTL = new ThreadLocal<Stack<JsHbBeanPropertyWriter>>();
 	ThreadLocal<Stack<JsHbJsonSerializer>> JsHbJsonSerializerStepStackTL = new ThreadLocal<Stack<JsHbJsonSerializer>>(); 
+	ThreadLocal<Stack<JsHbBackendMetadatas>> jsHbBackendMetadatasWritingStackTL = new ThreadLocal<Stack<JsHbBackendMetadatas>>();
 
 //	ThreadLocal<Stack<String>> currentCompositePathStackTL = new ThreadLocal<>();
 //	ThreadLocal<Object> currentCompositeOwner = new ThreadLocal<>();
@@ -697,6 +698,7 @@ public class JsHbManager implements IJsHbManager {
 		this.idByObjectMapTL.set(new HashMap<IdentityRefKey, Long>());
 		this.jsHbBeanPropertyWriterStepStackTL.set(new Stack<JsHbBeanPropertyWriter>());
 		this.JsHbJsonSerializerStepStackTL.set(new Stack<JsHbJsonSerializer>());
+		this.jsHbBackendMetadatasWritingStackTL.set(new Stack<JsHbBackendMetadatas>());
 //		this.currentCompositeOwner.set(null);
 //		this.currentCompositePathStackTL.set(new Stack<>());
 	}
@@ -711,6 +713,7 @@ public class JsHbManager implements IJsHbManager {
 		this.idByObjectMapTL.set(null);
 		this.jsHbBeanPropertyWriterStepStackTL.set(null);
 		this.JsHbJsonSerializerStepStackTL.set(null);
+		this.jsHbBackendMetadatasWritingStackTL.set(null);
 //		this.currentCompositeOwner.set(null);
 //		this.currentCompositePathStackTL.set(null);
 		
@@ -741,8 +744,13 @@ public class JsHbManager implements IJsHbManager {
 	}
 	
 	@Override
-	public Stack<JsHbJsonSerializer> getJsHbJsonSerializerStepStackTL() {
+	public Stack<JsHbJsonSerializer> getJsHbJsonSerializerStepStack() {
 		return this.JsHbJsonSerializerStepStackTL.get();
+	}
+
+	@Override
+	public Stack<JsHbBackendMetadatas> getJsHbBackendMetadatasWritingStack() {
+		return jsHbBackendMetadatasWritingStackTL.get();
 	}
 
 	@Override
