@@ -1,10 +1,14 @@
 package org.jsplayback.backend.hibernate;
 
+import java.sql.Blob;
+import java.sql.Clob;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jsplayback.backend.IJsHbManager;
+import org.jsplayback.backend.JsHbLazyProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,8 +20,6 @@ import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.fasterxml.jackson.databind.type.CollectionType;
-
-import org.jsplayback.backend.IJsHbManager;
 
 public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 
@@ -51,6 +53,7 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 			Class prpClass = beanPropertyWriter.getType().getRawClass();
 			boolean isPersistent = this.jsHbManager.isPersistentClass(prpClass);
 			boolean isHibernateId = false;
+			boolean isMetadatasHibernateId = false;
 
 			if (beanClassIsPersistent) {
 				if (hibernateIdName.equals(prpDef.getInternalName())) {
@@ -58,28 +61,50 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 				}
 			}
 
+			if (prpDef.getAccessor().getDeclaringClass().equals(JsHbBackendMetadatas.class)
+					&& prpDef.getInternalName().equals("hibernateId")) {
+				isMetadatasHibernateId = true;
+			}
+
 			BeanPropertyWriter newBeanPropertyWriter = null;
 			if (this.jsHbManager.isPersistentClass(beanClass) || this.jsHbManager.isComponent(beanClass)) {
-				if (this.jsHbManager.isComponent(beanClass)) {
+				JsHbLazyProperty jsHbLazyProperty = beanPropertyWriter.getAnnotation(JsHbLazyProperty.class);
+				if (jsHbLazyProperty != null) {
+					if ((beanPropertyWriter.getType().getRawClass().isArray()
+							&& beanPropertyWriter.getType().getRawClass().getComponentType() == byte.class)
+							|| Blob.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())
+							|| String.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())
+							|| Clob.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())) {								
+					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
+							.configJsHbManager(jsHbManager)
+								.loadBeanPropertyDefinition(prpDef)
+								.loadJsHbLazyProperty(jsHbLazyProperty);
+					}
+				} else if (this.jsHbManager.isComponent(beanClass)) {
 					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
 							.configJsHbManager(jsHbManager)
 //							.loadComponentOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsHibernateId(isHibernateId)
-							.loadIsPersistent(isPersistent);
-				} else if (this.jsHbManager.isRelationship(beanClass, beanPropertyWriter.getName())) {
+							.loadIsPersistent(isPersistent)
+							.loadIsMetadatasHibernateId(isMetadatasHibernateId);
+				} else if (this.jsHbManager.isRelationship(beanClass, prpDef.getInternalName())) {
 					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
 							.configJsHbManager(jsHbManager).loadRelationshipOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
-							.loadIsHibernateId(isHibernateId);
+							.loadIsHibernateId(isHibernateId)
+							.loadIsMetadatasHibernateId(isMetadatasHibernateId);
+//					throw new RuntimeException("ISSO TA ERRADO. beanPropertyWriter.getName()?!?!?!");
 				} else {
-					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
-							.configJsHbManager(jsHbManager).loadBeanPropertyDefinition(prpDef)
-							.loadIsPersistent(isPersistent).loadIsHibernateId(isHibernateId);
+					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter).configJsHbManager(jsHbManager)
+							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
+							.loadIsHibernateId(isHibernateId)
+							.loadIsMetadatasHibernateId(isMetadatasHibernateId);
 				}
 			} else {
 				newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter).configJsHbManager(jsHbManager)
 						.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
-						.loadIsHibernateId(isHibernateId);
+						.loadIsHibernateId(isHibernateId)
+						.loadIsMetadatasHibernateId(isMetadatasHibernateId);
 			}
 			
 			if (newBeanPropertyWriter != null) {

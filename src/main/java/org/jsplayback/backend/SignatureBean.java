@@ -10,13 +10,22 @@ public class SignatureBean {
 	private Class<?> clazz;
 	private String entityName;
 	private Boolean isColl = false;
-	private Boolean isAssoc = false;
+//	private Boolean isAssoc = false;
 	private Boolean isComp = false;
+	private Boolean isLazyProperty = false;
 	/**
 	 * Se nulo eh a propria entidade, caso contrario eh o lazy de uma entidade.
 	 */
 	private String propertyName;
 	private Object[] rawKeyValues;
+	
+	
+	public Boolean getIsLazyProperty() {
+		return isLazyProperty;
+	}
+	public void setIsLazyProperty(Boolean isLazyProperty) {
+		this.isLazyProperty = isLazyProperty;
+	}
 	public String getSignature() {
 		return signature;
 	}
@@ -53,12 +62,12 @@ public class SignatureBean {
 	public void setIsColl(Boolean isColl) {
 		this.isColl = isColl;
 	}
-	public Boolean getIsAssoc() {
-		return isAssoc;
-	}
-	public void setIsAssoc(Boolean isAssoc) {
-		this.isAssoc = isAssoc;
-	}
+//	public Boolean getIsAssoc() {
+//		return isAssoc;
+//	}
+//	public void setIsAssoc(Boolean isAssoc) {
+//		this.isAssoc = isAssoc;
+//	}
 	public Boolean getIsComp() {
 		return isComp;
 	}
@@ -75,9 +84,10 @@ public class SignatureBean {
 			thisAsMap.put("entityName",     this.getEntityName()  );
 			thisAsMap.put("propertyName",   this.getPropertyName());
 			thisAsMap.put("rawKeyValues",   this.getRawKeyValues());
-			thisAsMap.put("isAssoc",        this.getIsAssoc());
+//			thisAsMap.put("isAssoc",        this.getIsAssoc());
 			thisAsMap.put("isColl",         this.getIsColl());
 			thisAsMap.put("isComp",         this.getIsComp());
+			thisAsMap.put("isLazyProperty",         this.getIsLazyProperty());
 			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(thisAsMap);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Isso nao deveria acontecer", e);

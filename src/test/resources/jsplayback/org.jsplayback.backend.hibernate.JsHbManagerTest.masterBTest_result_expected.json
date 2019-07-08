@@ -1,0 +1,73 @@
+{
+  "result" : {
+    "$jsHbMetadatas$" : {
+      "$iAmJsHbBackendMetadatas$" : true,
+      "$id$" : 1,
+      "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+      "$hibernateId$" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$id$" : 2,
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJjb21wSWQiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
+          "$isComponent$" : true,
+          "$isComponentHibernateId$" : true
+        },
+        "idA" : 1,
+        "idB" : 1
+      }
+    },
+    "compId" : {
+      "$jsHbMetadatas$" : {
+        "$iAmJsHbBackendMetadatas$" : true,
+        "$idRef$" : 2
+      }
+    },
+    "vcharA" : "MasterBEnt_REG01_REG01_VcharA",
+    "vcharB" : "MasterBEnt_REG01_REG01_VcharB",
+    "dateA" : "2019-01-01",
+    "datetimeA" : 1546315261000,
+    "blobA" : "TWFzdGVyQkVudF9SRUcwMV9CbG9iQQ==",
+    "blobB" : "TWFzdGVyQkVudF9SRUcwMV9CbG9iQg==",
+    "hbVersion" : 0,
+    "detailAEntCol" : {
+      "$jsHbMetadatas$" : {
+        "$iAmJsHbBackendMetadatas$" : true,
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb2xsIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBRW50Q29sIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+        "$isLazyUninitialized$" : true,
+        "$isAssociative$" : true
+      }
+    },
+    "masterBComp" : {
+      "$jsHbMetadatas$" : {
+        "$iAmJsHbBackendMetadatas$" : true,
+        "$id$" : 3,
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+        "$isComponent$" : true
+      },
+      "detailAEntCol" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb2xsIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcC5kZXRhaWxBRW50Q29sIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+          "$isLazyUninitialized$" : true,
+          "$isAssociative$" : true
+        }
+      },
+      "masterBCompComp" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$id$" : 4,
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcC5tYXN0ZXJCQ29tcENvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
+          "$isComponent$" : true
+        },
+        "detailAEntCol" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb2xsIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcC5tYXN0ZXJCQ29tcENvbXAuZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+            "$isLazyUninitialized$" : true,
+            "$isAssociative$" : true
+          }
+        }
+      }
+    }
+  }
+}

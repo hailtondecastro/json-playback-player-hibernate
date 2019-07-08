@@ -5,7 +5,7 @@ import java.util.Stack;
 
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsplayback.backend.hibernate.EntityAndComponentTrackInfo;
+import org.jsplayback.backend.hibernate.AssociationAndComponentTrackInfo;
 import org.jsplayback.backend.hibernate.JsHbBackendMetadatas;
 import org.jsplayback.backend.hibernate.JsHbBeanPropertyWriter;
 import org.jsplayback.backend.hibernate.JsHbJsonSerializer;
@@ -23,6 +23,21 @@ public interface IJsHbManager {
 	String serializeSignature(SignatureBean signatureBean);
 
 	SignatureBean deserializeSignature(String signatureStr);
+
+	/**
+	 * Return not null value if the property is annotatted with
+	 * {@link JsHbLazyProperty} for a
+	 * {@link IDirectRawWriterWrapper#getCallback()}.{@link IDirectRawWriter#write(java.io.OutputStream)}
+	 * call after set http header with {@link JsHbLazyProperty#contentTypePrefix()}.
+	 * {@link JsHbLazyProperty#charset()} must be added to content-type if
+	 * {@link JsHbLazyProperty#contentTypePrefix()} is "content-type: text/plain".
+	 * Example:
+	 * <code>directRawWriterWrapper.getJsHbLazyProperty().contentTypePrefix() + "; " + directRawWriterWrapper.getJsHbLazyProperty().charset()</code>
+	 * 
+	 * @param signature
+	 * @return
+	 */
+	IDirectRawWriterWrapper needDirectWrite(SignatureBean signature);
 
 	<T> T getBySignature(SignatureBean signature);
 
@@ -47,6 +62,10 @@ public interface IJsHbManager {
 
 	Map<Long, Object> getObjectByIdMap();
 
+	/**
+	 * Internal use.
+	 * @return
+	 */
 	Map<IdentityRefKey, Long> getIdByObjectMap();
 
 	Long getCurrId();
@@ -59,7 +78,7 @@ public interface IJsHbManager {
 
 	boolean isRelationship(Class<?> clazz, String fieldName);
 
-	SignatureBean generateLazySignatureForRelashionship(Class<?> ownerClass, String fieldName, Object ownerValue,
+	SignatureBean generateLazySignatureForCollRelashionship(Class<?> ownerClass, String fieldName, Object ownerValue,
 			Object fieldValue);
 
 	/**
@@ -76,11 +95,11 @@ public interface IJsHbManager {
 	boolean isComponent(Class<?> componentClass);
 
 	/**
-	 * Inicializa o Manager. Faz as cargas iniciais a partir dos
-	 * metadatas hibernate e de quaisquer outras informacoes necessarias. <br>
+	 * Inicializa o Manager. Faz as cargas iniciais a partir dos metadatas hibernate
+	 * e de quaisquer outras informacoes necessarias. <br>
 	 * Eh chamado automaticamente no primeiro {@link #startSuperSync()} caso nao
-	 * tenha sido chamado ainda. Pode ser chamado novamente a qualquer momento.
-	 * Nao eh thread safe.
+	 * tenha sido chamado ainda. Pode ser chamado novamente a qualquer momento. Nao
+	 * eh thread safe.
 	 * 
 	 * @return
 	 */
@@ -93,7 +112,7 @@ public interface IJsHbManager {
 //	Stack<String> getCurrentCompositePathStack();
 //	Object getCurrentCompositeOwner();
 	
-	EntityAndComponentTrackInfo getCurrentComponentTypeEntry();
+	AssociationAndComponentTrackInfo getCurrentAssociationAndComponentTrackInfo();
 
 	String getHibernateIdName(Class clazz);
 
@@ -101,8 +120,19 @@ public interface IJsHbManager {
 
 	IJsHbReplayable prepareReplayable(JsHbPlayback playback);
 
-	SignatureBean generateComponentSignature(EntityAndComponentTrackInfo entityAndComponentTrackInfo);
+	SignatureBean generateComponentSignature(AssociationAndComponentTrackInfo entityAndComponentTrackInfo);
 
 	Stack<JsHbBackendMetadatas> getJsHbBackendMetadatasWritingStack();
+
+	SignatureBean generateLazySignatureForJsHbLazyProperty(Class<?> ownerClass, String fieldName, Object ownerValue,
+			Object fieldValue);
+
+	IJsHbManager cloneWithNewConfiguration(IJsHbConfig newConfig);
+
+	String getCurrentPathFromLastEntity();
+
+	boolean isCurrentPathFromLastEntityAnEntityRelationship();
+
+	Map<IdentityRefKey, JsHbBackendMetadatas> getMetadatasCacheMap();
 }
 /*gerando conflito*/

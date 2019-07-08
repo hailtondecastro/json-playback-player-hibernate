@@ -5,6 +5,9 @@ import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.jsplayback.backend.IJsHbManager;
+import org.jsplayback.backend.IdentityRefKey;
+import org.jsplayback.backend.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +16,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.JsonGeneratorDelegate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.IdentityRefKey;
-import org.jsplayback.backend.SignatureBean;
 
 public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 	private static Logger logger = LoggerFactory.getLogger(JsHbJsonGeneratorDelegate.class);
@@ -90,9 +89,9 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 				}
 				this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findHibernateId(forValue, this, serializers, backendMetadatas);
 			} else {
-				EntityAndComponentTrackInfo entityAndComponentTrackInfo = this.jsHbManager.getCurrentComponentTypeEntry();
-				if (entityAndComponentTrackInfo != null && !this.jsHbManager.isNeverSigned(forValue.getClass())) {
-					SignatureBean signatureBean = this.jsHbManager.generateComponentSignature(entityAndComponentTrackInfo);
+				AssociationAndComponentTrackInfo aacTrackInfo = this.jsHbManager.getCurrentAssociationAndComponentTrackInfo();
+				if (aacTrackInfo != null && !this.jsHbManager.isNeverSigned(forValue.getClass())) {
+					SignatureBean signatureBean = this.jsHbManager.generateComponentSignature(aacTrackInfo);
 					String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
 					if (logger.isTraceEnabled()) {
 						if (logger.isTraceEnabled()) {
