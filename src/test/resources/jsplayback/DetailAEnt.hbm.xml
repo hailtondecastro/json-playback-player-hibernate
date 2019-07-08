@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class
+		name="org.jsplayback.backend.hibernate.entities.DetailAEnt"
+		table="DETAIL_A">
+
+		<composite-id name="compId" class="org.jsplayback.backend.hibernate.entities.DetailACompId">
+			<key-many-to-one name="masterA">
+				<column name="DTLA_MTRA_ID" sql-type="INTEGER"/>
+			</key-many-to-one>
+			<key-property name="subId">
+				<column name="DTLA_SUB_ID" sql-type="INTEGER"/>
+			</key-property>
+		</composite-id>
+		<version name="hbVersion">
+			<column name="DTLA_HB_VERSION" sql-type="INTEGER"/>
+		</version>	
+		
+		<property name="vcharA" type="java.lang.String">
+			<column name="DTLA_VCHAR_A" sql-type="VARCHAR(200)" length="200"/>
+		</property>
+		<property name="vcharB" type="java.lang.String">
+			<column name="DTLA_VCHAR_B" sql-type="VARCHAR(2000)" length="2000"/>
+		</property>
+		
+		
+		<component name="detailAComp" class="org.jsplayback.backend.hibernate.entities.DetailAComp">
+			<many-to-one name="masterB">
+				<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
+				<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
+			</many-to-one>
+			<property name="vcharA" type="java.lang.String">
+				<column name="DTLA_VCHAR_A_COMPONENT" sql-type="VARCHAR(200)" length="200"/>
+			</property>
+			<property name="vcharB" type="java.lang.String">
+				<column name="DTLA_VCHAR_B_COMPONENT" sql-type="VARCHAR(2000)" length="2000"/>
+			</property>			
+			<property name="blobA" type="materialized_blob">
+				<column name="DTLA_BLOB_A_COMPONENT" sql-type="BLOB"/>
+			</property>
+			<property name="blobB" type="blob">
+				<column name="DTLA_BLOB_B_COMPONENT" sql-type="BLOB"/>
+			</property>
+			
+			<component name="detailACompComp" class="org.jsplayback.backend.hibernate.entities.DetailACompComp">
+				<many-to-one name="masterB" insert="false" update="false">
+					<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
+					<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
+				</many-to-one>
+			</component>		
+		</component>
+		
+	</class>
+
+
+</hibernate-mapping>

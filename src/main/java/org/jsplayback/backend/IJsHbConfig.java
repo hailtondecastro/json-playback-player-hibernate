@@ -47,5 +47,9 @@ public interface IJsHbConfig {
 	String getJsHbMetadatasName();
 
 	IJsHbConfig configJsHbMetadatasName(String jsHbMetadatasName);
+
+	boolean isIgnoreAllJsHbLazyProperty();
+
+	IJsHbConfig configIgnoreAllJsHbLazyProperty(boolean ignoreAllJsHbLazyProperty);
 }
 /*gerando conflito*/

@@ -1,0 +1,228 @@
+{
+    "type": "database",
+    "name": "js-hb-super-sync",
+    "objects": [
+        {
+            "type": "table",
+            "database": null,
+            "name": "DETAIL_A",
+            "withoutRowId": true,
+            "ddl": "CREATE TABLE DETAIL_A (\n    DTLA_MTRA_ID             INTEGER        NOT NULL\n                                            REFERENCES MASTER_A (MTRA_ID),\n    DTLA_SUB_ID              INTEGER        NOT NULL,\n    DTLA_VCHAR_A             VARCHAR (200),\n    DTLA_VCHAR_B             VARCHAR (2000),\n    DTLA_MTRB_ID_A_COMPONENT INTEGER,\n    DTLA_MTRB_ID_B_COMPONENT INTEGER,\n    DTLA_VCHAR_A_COMPONENT   VARCHAR (200),\n    DTLA_VCHAR_B_COMPONENT   VARCHAR (2000),\n    DTLA_BLOB_A_COMPONENT    BLOB,\n    PRIMARY KEY (\n        DTLA_MTRA_ID,\n        DTLA_SUB_ID\n    ),\n    constraint DETAIL_A_MASTER_B_FK foreign key (DTLA_MTRB_ID_A_COMPONENT, DTLA_MTRB_ID_B_COMPONENT) references MASTER_B(MTRB_ID_A, MTRB_ID_B)\n)",
+            "columns": [
+                {
+                    "name": "DTLA_MTRA_ID",
+                    "type": "INTEGER",
+                    "constraints": [
+                        {
+                            "type": "NOT NULL",
+                            "definition": "NOT NULL\n                                            "
+                        },
+                        {
+                            "type": "FOREIGN KEY",
+                            "definition": "REFERENCES MASTER_A (MTRA_ID)"
+                        }
+                    ]
+                },
+                {
+                    "name": "DTLA_SUB_ID",
+                    "type": "INTEGER",
+                    "constraints": [
+                        {
+                            "type": "NOT NULL",
+                            "definition": "NOT NULL"
+                        }
+                    ]
+                },
+                {
+                    "name": "DTLA_VCHAR_A",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "DTLA_VCHAR_B",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "DTLA_MTRB_ID_A_COMPONENT",
+                    "type": "INTEGER"
+                },
+                {
+                    "name": "DTLA_MTRB_ID_B_COMPONENT",
+                    "type": "INTEGER"
+                },
+                {
+                    "name": "DTLA_VCHAR_A_COMPONENT",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "DTLA_VCHAR_B_COMPONENT",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "DTLA_BLOB_A_COMPONENT",
+                    "type": "BLOB"
+                }
+            ],
+            "constraints": [
+                {
+                    "type": "PRIMARY KEY",
+                    "definition": "PRIMARY KEY (\n        DTLA_MTRA_ID,\n        DTLA_SUB_ID\n    )"
+                },
+                {
+                    "type": "FOREIGN KEY",
+                    "definition": "foreign key (DTLA_MTRB_ID_A_COMPONENT, DTLA_MTRB_ID_B_COMPONENT) references MASTER_B(MTRB_ID_A, MTRB_ID_B)\n"
+                }
+            ],
+            "rows": [
+                [
+                    1,
+                    1,
+                    "REG1_DTLA_VCHAR_A",
+                    "REG2_DTLA_VCHAR_A",
+                    1,
+                    1,
+                    "REG1_DTLA_VCHAR_A_COMPONENT",
+                    "REG1_DTLA_VCHAR_B_COMPONENT",
+                    "REG1_DTLA_BLOB_A"
+                ]
+            ]
+        },
+        {
+            "type": "table",
+            "database": null,
+            "name": "MASTER_A",
+            "withoutRowId": true,
+            "ddl": "CREATE TABLE MASTER_A (MTRA_ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, MTRA_VCHAR_A VARCHAR (200), MTRA_VCHAR_B VARCHAR (10000), MTRA_DATE_A DATE, MTRA_DATETIME_A DATETIME, MTRA_BLOB_A BLOB, MTRA_BLOB_B BLOB)",
+            "columns": [
+                {
+                    "name": "MTRA_ID",
+                    "type": "INTEGER",
+                    "constraints": [
+                        {
+                            "type": "NOT NULL",
+                            "definition": "NOT NULL "
+                        },
+                        {
+                            "type": "PRIMARY KEY",
+                            "definition": "PRIMARY KEY AUTOINCREMENT"
+                        }
+                    ]
+                },
+                {
+                    "name": "MTRA_VCHAR_A",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "MTRA_VCHAR_B",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "MTRA_DATE_A",
+                    "type": "DATE"
+                },
+                {
+                    "name": "MTRA_DATETIME_A",
+                    "type": "DATETIME"
+                },
+                {
+                    "name": "MTRA_BLOB_A",
+                    "type": "BLOB"
+                },
+                {
+                    "name": "MTRA_BLOB_B",
+                    "type": "BLOB"
+                }
+            ],
+            "rows": [
+                [
+                    1,
+                    "REG1_MTRA_VCHAR_A",
+                    "REG1_TRA_VCHAR_B",
+                    "2019-01-01",
+                    "2019-01-01 01:00:00",
+                    "REG1_MTRA_BLOB_A",
+                    "REG1_MTRA_BLOB_B"
+                ],
+                [
+                    2,
+                    "REG1_MTRA_BLOB_AREG2_MTRA_VCHAR_A",
+                    "REG2_TRA_VCHAR_B",
+                    "2019-01-02",
+                    "2019-01-02 02:00:00",
+                    "REG2_MTRA_BLOB_A",
+                    "REG2_MTRA_BLOB_B"
+                ]
+            ]
+        },
+        {
+            "type": "table",
+            "database": null,
+            "name": "MASTER_B",
+            "withoutRowId": true,
+            "ddl": "CREATE TABLE MASTER_B (MTRB_ID_A INTEGER NOT NULL, MTRB_ID_B INTEGER NOT NULL, MTRB_VCHAR_A VARCHAR (200), MTRB_VCHAR_B VARCHAR (10000), MTRB_DATE_A DATE, MTRB_DATETIME_A DATETIME, MTRB_BLOB_A BLOB, MTRB_BLOB_B BLOB, PRIMARY KEY (MTRB_ID_A, MTRB_ID_B))",
+            "columns": [
+                {
+                    "name": "MTRB_ID_A",
+                    "type": "INTEGER",
+                    "constraints": [
+                        {
+                            "type": "NOT NULL",
+                            "definition": "NOT NULL"
+                        }
+                    ]
+                },
+                {
+                    "name": "MTRB_ID_B",
+                    "type": "INTEGER",
+                    "constraints": [
+                        {
+                            "type": "NOT NULL",
+                            "definition": "NOT NULL"
+                        }
+                    ]
+                },
+                {
+                    "name": "MTRB_VCHAR_A",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "MTRB_VCHAR_B",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "MTRB_DATE_A",
+                    "type": "DATE"
+                },
+                {
+                    "name": "MTRB_DATETIME_A",
+                    "type": "DATETIME"
+                },
+                {
+                    "name": "MTRB_BLOB_A",
+                    "type": "BLOB"
+                },
+                {
+                    "name": "MTRB_BLOB_B",
+                    "type": "BLOB"
+                }
+            ],
+            "constraints": [
+                {
+                    "type": "PRIMARY KEY",
+                    "definition": "PRIMARY KEY (MTRB_ID_A, MTRB_ID_B)"
+                }
+            ],
+            "rows": [
+                [
+                    1,
+                    1,
+                    "REG1_MTRB_VCHAR_A",
+                    "REG2_MTRB_VCHAR_A",
+                    "2000-01-01",
+                    "2000-01-01 00:00:00",
+                    "REG1_MTRB_BLOB_A",
+                    "REG1_MTRB_BLOB_B"
+                ]
+            ]
+        }
+    ]
+}

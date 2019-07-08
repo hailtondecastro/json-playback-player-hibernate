@@ -1,11 +1,20 @@
 package org.jsplayback.backend.hibernate;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.CharBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
+import java.nio.charset.Charset;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -13,7 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +30,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.hibernate.HibernateException;
 import org.hibernate.collection.PersistentCollection;
@@ -28,23 +38,28 @@ import org.hibernate.engine.SessionImplementor;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.AssociationType;
-import org.hibernate.type.BagType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
-import org.hibernate.type.ListType;
-import org.hibernate.type.SetType;
+import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
+import org.jsplayback.backend.IDirectRawWriter;
+import org.jsplayback.backend.IDirectRawWriterWrapper;
 import org.jsplayback.backend.IJsHbConfig;
 import org.jsplayback.backend.IJsHbManager;
 import org.jsplayback.backend.IJsHbReplayable;
 import org.jsplayback.backend.IdentityRefKey;
+import org.jsplayback.backend.JsHbLazyProperty;
 import org.jsplayback.backend.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.BeanSerializer;
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 public class JsHbManager implements IJsHbManager {
 	private static Logger logger = LoggerFactory.getLogger(JsHbManager.class);
@@ -53,6 +68,7 @@ public class JsHbManager implements IJsHbManager {
 	ThreadLocal<Long> currIdTL = new ThreadLocal<Long>();
 	ThreadLocal<Map<Long, Object>> objectByIdMapTL = new ThreadLocal<>();
 	ThreadLocal<Map<IdentityRefKey, Long>> idByObjectMapTL = new ThreadLocal<>();
+	ThreadLocal<Map<IdentityRefKey, JsHbBackendMetadatas>> metadatasCacheMapTL = new ThreadLocal<>();
 	ThreadLocal<IJsHbConfig> temporaryConfigurationTL = new ThreadLocal<IJsHbConfig>();
 	ThreadLocal<Stack<JsHbBeanPropertyWriter>> jsHbBeanPropertyWriterStepStackTL = new ThreadLocal<Stack<JsHbBeanPropertyWriter>>();
 	ThreadLocal<Stack<JsHbJsonSerializer>> JsHbJsonSerializerStepStackTL = new ThreadLocal<Stack<JsHbJsonSerializer>>(); 
@@ -64,7 +80,8 @@ public class JsHbManager implements IJsHbManager {
 	@Override
 	public <T> JsHbResultEntity<T> createResultEntity(T result) {
 		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format("createResultEntity for {0}", result != null? result.getClass(): "null"));
+			logger.trace(
+					MessageFormat.format("createResultEntity for {0}", result != null ? result.getClass() : "null"));
 		}
 		return new JsHbResultEntity<T>(result).configJsHbManager(this);
 	}
@@ -81,7 +98,7 @@ public class JsHbManager implements IJsHbManager {
 		return this;
 	}
 
-	private Map<HbComponentTypeEntry, CompositeType> compositiesMap = new HashMap<>();
+	private Map<AssociationAndComponentPathKey, AssociationAndComponentPath> associationAndCompositiesMap = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	private boolean initialed = false;
@@ -91,19 +108,26 @@ public class JsHbManager implements IJsHbManager {
 		if (logger.isDebugEnabled()) {
 			logger.debug("init()");
 		}
-		this.compositiesMap.clear();
-		this.collectComponentsMap();
+		this.associationAndCompositiesMap.clear();
+		this.collectAssociationAndCompositiesMap();
 		this.initialed = true;
 		return this;
 	}
 
-	private void collectComponentsMap() {
+	private void collectAssociationAndCompositiesMap() {
 		if (logger.isDebugEnabled()) {
-			logger.debug("collectComponentsMap()");
+			logger.debug("collectAssociationAndCompositiesMap()");
 		}
 		for (String entityName : this.jsHbConfig.getSessionFactory().getAllClassMetadata().keySet()) {
 			ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(entityName);
 			
+			Class<?> ownerRootClass;
+			try {
+				ownerRootClass = Class.forName(classMetadata.getEntityName());
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(classMetadata.getEntityName() + " not supported.", e);
+			}
+
 			List<Type> allPrpsAndId = new ArrayList<>();
 			List<String> allPrpsAndIdNames = new ArrayList<>();
 			allPrpsAndId.addAll(Arrays.asList(classMetadata.getPropertyTypes()));
@@ -113,16 +137,48 @@ public class JsHbManager implements IJsHbManager {
 			for (int i = 0; i < allPrpsAndId.size(); i++) {
 				Type prpType = allPrpsAndId.get(i);
 				String prpName = allPrpsAndIdNames.get(i);
+				AssociationAndComponentPathKey aacKeyFromRoot;
 				if (prpType instanceof CompositeType) {
 					Stack<String> pathStack = new Stack<>();
+					Stack<CompositeType> compositeTypePathStack = new Stack<>();
 					pathStack.push(prpName);
-					this.collectComponentsMapRecursive(classMetadata, null, (CompositeType) prpType, pathStack);
+					this.collectAssociationAndCompositiesMapRecursive(classMetadata, null, (CompositeType) prpType,
+							pathStack, compositeTypePathStack);
+				} else if (prpType instanceof EntityType) {
+					EntityType entityType = (EntityType) prpType;
+
+					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
+
+					AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
+					relEacPath.setAacKey(aacKeyFromRoot);
+					relEacPath.setCompositeTypePath(new CompositeType[] {});
+					relEacPath.setCompType(null);
+					relEacPath.setRelEntity(entityType);
+					relEacPath.setCollType(null);
+					relEacPath.setCompositePrpPath(new String[] {});
+					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
+				} else if (prpType instanceof CollectionType) {
+					CollectionType collType = (CollectionType) prpType;
+
+					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
+
+					AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
+					relEacPath.setAacKey(aacKeyFromRoot);
+					relEacPath.setCompositeTypePath(new CompositeType[] {});
+					relEacPath.setCompType(null);
+					relEacPath.setRelEntity(null);
+					relEacPath.setCollType(collType);
+					relEacPath.setCompositePrpPath(new String[] {});
+					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
 				}
 			}
 		}
-		for (HbComponentTypeEntry entry : this.compositiesMap.keySet()) {
-			Class<?> compositeClass = this.compositiesMap.get(entry).getReturnedClass();
+		for (AssociationAndComponentPathKey key : this.associationAndCompositiesMap.keySet()) {
+			AssociationAndComponentPath aacPath = this.associationAndCompositiesMap.get(key);
+			if (aacPath.getCompType() != null) {
+				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getCompType().getReturnedClass();
 			this.compositiesSet.add(compositeClass);
+	}
 	}
 	}
 
@@ -136,7 +192,9 @@ public class JsHbManager implements IJsHbManager {
 		return pathResult;
 	}
 	
-	private void collectComponentsMapRecursive(ClassMetadata ownerRootClassMetadata, CompositeType ownerCompositeType, CompositeType compositeType, Stack<String> pathStack) {
+	private void collectAssociationAndCompositiesMapRecursive(ClassMetadata ownerRootClassMetadata,
+			CompositeType ownerCompositeType, CompositeType compositeType, Stack<String> pathStack,
+			Stack<CompositeType> compositeTypePathStack) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("Collecting CompositeType:{0}", compositeType));
 		}
@@ -147,18 +205,37 @@ public class JsHbManager implements IJsHbManager {
 			throw new RuntimeException(ownerRootClassMetadata.getEntityName() + " not supported.", e);
 		}
 		String pathFromStack = this.mountPathFromStack(pathStack);
-		HbComponentTypeEntry componentTypeFromRootEntry = new HbComponentTypeEntry(ownerRootClass, pathFromStack);
-		HbComponentTypeEntry componentTypeDirectEntry = null;
-		if (ownerCompositeType != null) {
-			componentTypeDirectEntry = new HbComponentTypeEntry(ownerCompositeType.getReturnedClass(), pathStack.peek());				
-		} else {
-			componentTypeDirectEntry = new HbComponentTypeEntry(ownerRootClass, pathFromStack);
-		}
-		if (!this.compositiesMap.containsKey(componentTypeDirectEntry)) {
-			if (!componentTypeDirectEntry.equals(componentTypeFromRootEntry)) {
-				this.compositiesMap.put(componentTypeFromRootEntry, compositeType);				
-			}
-			this.compositiesMap.put(componentTypeDirectEntry, compositeType);
+		AssociationAndComponentPathKey aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass,
+				pathFromStack);
+//		AssociationAndComponentPathKey aacKeyDirect = null;
+//		if (ownerCompositeType != null) {
+//			aacKeyDirect = new AssociationAndComponentPathKey(ownerCompositeType.getReturnedClass(), pathStack.peek());				
+//		} else {
+//			aacKeyDirect = new AssociationAndComponentPathKey(ownerRootClass, pathFromStack);
+//		}
+//		if (!this.associationAndCompositiesMap.containsKey(aacKeyDirect)) {
+		if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
+//			if (!aacKeyDirect.equals(aacKeyFromRoot)) {
+//				AssociationAndComponentPath aacPathFromRoot = new AssociationAndComponentPath();
+//				aacPathFromRoot.setAacKey(aacKeyDirect);
+//				aacPathFromRoot.setCompositePrpPath(pathStack.toArray(new String[pathStack.size()]));
+//				aacPathFromRoot.setCompositeTypePath(compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
+//				aacPathFromRoot.setCompType(compositeType);
+//				aacPathFromRoot.setRelEntity(null);
+//				aacPathFromRoot.setCollType(null);
+//				
+//				this.associationAndCompositiesMap.put(aacKeyFromRoot, aacPathFromRoot);				
+//			}
+			AssociationAndComponentPath aacPath = new AssociationAndComponentPath();
+//			aacPath.setAacKey(aacKeyDirect);
+			aacPath.setAacKey(aacKeyFromRoot);
+			aacPath.setCompositeTypePath(new CompositeType[] { compositeType });
+			aacPath.setCompType(compositeType);
+			aacPath.setRelEntity(null);
+			aacPath.setCollType(null);
+			aacPath.setCompositePrpPath(new String[] { pathStack.peek() });
+//			this.associationAndCompositiesMap.put(aacKeyDirect, aacPath);
+			this.associationAndCompositiesMap.put(aacKeyFromRoot, aacPath);
 			
 			List<Type> allPrps = new ArrayList<>();
 			List<String> allPrpsNames = new ArrayList<>();
@@ -174,15 +251,89 @@ public class JsHbManager implements IJsHbManager {
 								compositeType.getReturnedClass().getName(), subPrpName));
 					}
 					pathStack.push(subPrpName);
-					this.collectComponentsMapRecursive(ownerRootClassMetadata, compositeType, (CompositeType) subPrpType, pathStack);
+					compositeTypePathStack.push((CompositeType) subPrpType);
+					this.collectAssociationAndCompositiesMapRecursive(ownerRootClassMetadata, compositeType,
+							(CompositeType) subPrpType, pathStack, compositeTypePathStack);
+				} else if (subPrpType instanceof EntityType) {
+					EntityType entityType = (EntityType) subPrpType;
+					Stack<String> pathStackRelation = new Stack<String>();
+					pathStackRelation.addAll(pathStack);
+					pathStackRelation.push(subPrpName);
+					String pathStackRelationStr = this.mountPathFromStack(pathStackRelation);
+
+//					if (ownerCompositeType != null) {		
+//						aacKeyDirect = new AssociationAndComponentPathKey(ownerCompositeType.getReturnedClass(), subPrpName);
+//					} else {
+//						aacKeyDirect = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
+//					}					
+					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
+
+					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
+//					if (!this.associationAndCompositiesMap.containsKey(aacKeyDirect)) {
+//						if (!aacKeyDirect.equals(aacKeyFromRoot)) {
+						AssociationAndComponentPath relEacPathFromRoot = new AssociationAndComponentPath();
+						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
+						relEacPathFromRoot.setCompositeTypePath(
+								compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
+						relEacPathFromRoot.setCompType(null);
+						relEacPathFromRoot.setRelEntity(entityType);
+						relEacPathFromRoot.setCollType(null);
+						relEacPathFromRoot.setCompositePrpPath(pathStack.toArray(new String[pathStack.size()]));
+						this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPathFromRoot);
+//						}
+//						AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
+//						relEacPath.setAacKey(aacKeyDirect);
+//						relEacPath.setCompositeTypePath(new CompositeType[]{compositeType});
+//						relEacPath.setCompType(null);
+//						relEacPath.setRelEntity(entityType);
+//						relEacPath.setCollType(null);
+//						relEacPath.setCompositePrpPath(new String[]{subPrpName});
+//						this.associationAndCompositiesMap.put(aacKeyDirect, relEacPath);
+				}
+				} else if (subPrpType instanceof CollectionType) {
+					CollectionType collType = (CollectionType) subPrpType;
+					Stack<String> pathStackRelation = new Stack<String>();
+					pathStackRelation.addAll(pathStack);
+					pathStackRelation.push(subPrpName);
+					String pathStackRelationStr = this.mountPathFromStack(pathStackRelation);
+
+//					if (ownerCompositeType != null) {		
+//						aacKeyDirect = new AssociationAndComponentPathKey(ownerCompositeType.getReturnedClass(), subPrpName);
+//					} else {
+//						aacKeyDirect = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
+//					}					
+					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
+					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
+//						if (!this.associationAndCompositiesMap.containsKey(aacKeyDirect)) {
+//						if (!aacKeyDirect.equals(aacKeyFromRoot)) {
+						AssociationAndComponentPath relEacPathFromRoot = new AssociationAndComponentPath();
+						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
+						relEacPathFromRoot.setCompositeTypePath(
+								compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
+						relEacPathFromRoot.setCompType(null);
+						relEacPathFromRoot.setRelEntity(null);
+						relEacPathFromRoot.setCollType(collType);
+						relEacPathFromRoot.setCompositePrpPath(pathStack.toArray(new String[pathStack.size()]));
+						this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPathFromRoot);
+//						}
+//						AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
+//						relEacPath.setAacKey(aacKeyDirect);
+//						relEacPath.setCompositeTypePath(new CompositeType[]{compositeType});
+//						relEacPath.setCompType(null);
+//						relEacPath.setRelEntity(null);
+//						relEacPath.setCollType(collType);
+//						relEacPath.setCompositePrpPath(new String[]{subPrpName});
+//						this.associationAndCompositiesMap.put(aacKeyDirect, relEacPath);
+					}
 				}
 			}
 		} else {
 			//maybe it is deprecated!?
-			CompositeType existingComponent = this.compositiesMap.get(componentTypeFromRootEntry);
+			CompositeType existingComponent = this.associationAndCompositiesMap.get(aacKeyFromRoot).getCompType();
 			boolean isDifferent = false;
 			if (logger.isTraceEnabled()) {
-				logger.trace(MessageFormat.format("Component already collected, verifying if the definition is the same: {0}", compositeType));
+				logger.trace(MessageFormat.format(
+						"Component already collected, verifying if the definition is the same: {0}", compositeType));
 			}
 			if (existingComponent.getSubtypes().length == compositeType.getSubtypes().length) {
 				for (int i = 0; i < compositeType.getSubtypes().length; i++) {
@@ -201,10 +352,14 @@ public class JsHbManager implements IJsHbManager {
 				isDifferent = true;
 			}
 			if (isDifferent) {
-				throw new RuntimeException(MessageFormat.format("CompositeType's diferentes: {0}, {1}", existingComponent, compositeType));
+				throw new RuntimeException(
+						MessageFormat.format("CompositeType's diferentes: {0}, {1}", existingComponent, compositeType));
 			}
 		}
 		pathStack.pop();
+		if (ownerCompositeType != null) {
+			compositeTypePathStack.pop();
+		}
 	}
 
 	@Override
@@ -224,13 +379,13 @@ public class JsHbManager implements IJsHbManager {
 		}
 
 		signatureBeanJson.setClazzName(signatureBean.getClazz().getName());
-		signatureBeanJson.setEntityName(signatureBean.getEntityName());
+//		signatureBeanJson.setEntityName(signatureBean.getEntityName());
 		signatureBeanJson.setPropertyName(signatureBean.getPropertyName());
 		signatureBeanJson.setRawKeyValues(new String[rawValueList.size()]);
 		signatureBeanJson.setRawKeyTypeNames(new String[rawValueList.size()]);
 		signatureBeanJson.setRawKeyValues(rawValueList.toArray(signatureBeanJson.getRawKeyValues()));
 		signatureBeanJson.setRawKeyTypeNames(rawTypeList.toArray(signatureBeanJson.getRawKeyTypeNames()));
-		signatureBeanJson.setIsAssoc(signatureBean.getIsAssoc());
+//		signatureBeanJson.setIsAssoc(signatureBean.getIsAssoc());
 		signatureBeanJson.setIsColl(signatureBean.getIsColl());
 		signatureBeanJson.setIsComp(signatureBean.getIsComp());
 
@@ -240,6 +395,7 @@ public class JsHbManager implements IJsHbManager {
 		}
 
 		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.setSerializationInclusion(Include.NON_DEFAULT);
 		StringWriter writer = new StringWriter();
 		try {
 			objectMapper.writeValue(writer, signatureBeanJson);
@@ -342,9 +498,9 @@ public class JsHbManager implements IJsHbManager {
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
-		signatureBean.setEntityName(signatureBeanJson.getEntityName());
+		signatureBean.setEntityName(signatureBeanJson.getClazzName());
 		signatureBean.setPropertyName(signatureBeanJson.getPropertyName());
-		signatureBean.setIsAssoc(signatureBeanJson.getIsAssoc());
+//		signatureBean.setIsAssoc(signatureBeanJson.getIsAssoc());
 		signatureBean.setIsColl(signatureBeanJson.getIsColl());
 		signatureBean.setIsComp(signatureBeanJson.getIsComp());
 		
@@ -356,7 +512,8 @@ public class JsHbManager implements IJsHbManager {
 
 	@Override
 	public SignatureBean generateLazySignature(PersistentCollection persistentCollection) {
-		Pattern rxCollectionRole = Pattern.compile("^" + Pattern.quote(persistentCollection.getOwner().getClass().getName()) + "\\.(.*)");
+		Pattern rxCollectionRole = Pattern
+				.compile("^" + Pattern.quote(persistentCollection.getOwner().getClass().getName()) + "\\.(.*)");
 		// SessionImplementor ssImplementor = null;
 		// Class ownerClass = persistentCollection.getOwner().getClass();
 		//
@@ -375,11 +532,11 @@ public class JsHbManager implements IJsHbManager {
 		Object ownerValue = persistentCollection.getOwner();
 		Object fieldValue = persistentCollection;
 
-		SignatureBean signatureBean = this.generateLazySignatureForRelashionship(ownerClass, fieldName, ownerValue, fieldValue);
+		SignatureBean signatureBean = this.generateLazySignatureForCollRelashionship(ownerClass, fieldName, ownerValue,
+				fieldValue);
 		signatureBean.setIsColl(true);
 		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format(
-					"generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
+			logger.trace(MessageFormat.format("generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
 					signatureBean));
 		}
 		
@@ -387,8 +544,8 @@ public class JsHbManager implements IJsHbManager {
 	}
 
 	@Override
-	public SignatureBean generateLazySignatureForRelashionship(Class<?> ownerClass, String fieldName, Object ownerValue,
-			Object fieldValue) {
+	public SignatureBean generateLazySignatureForCollRelashionship(Class<?> ownerClass, String fieldName,
+			Object ownerValue, Object fieldValue) {
 		if (!this.isRelationship(ownerClass, fieldName)) {
 			throw new RuntimeException("This is not a relationship: " + ownerClass + "->" + fieldName);
 		}
@@ -398,7 +555,10 @@ public class JsHbManager implements IJsHbManager {
 		if (classMetadata != null) {
 			prpType = classMetadata.getPropertyType(fieldName);
 		} else {
-			CompositeType componentType = this.compositiesMap.get(ownerClass);
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, fieldName);
+			logger.warn(
+					"########## NAO ESTOU CERTO SOBRE ISSO:\nCompositeType componentType = this.compositiesMap.get(key).getCompType();");
+			CompositeType componentType = this.associationAndCompositiesMap.get(aacKey).getCompType();
 			if (componentType == null) {
 				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
 			}
@@ -422,48 +582,111 @@ public class JsHbManager implements IJsHbManager {
 			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
 		}
 
-		SignatureBean signatureBean = new SignatureBean();
-		signatureBean.setIsAssoc(true);
-		//AssociationType assType = (AssociationType) classMetadata.getPropertyType(fieldName);
+		SignatureBean signatureBean = null;
+		// AssociationType assType = (AssociationType)
+		// classMetadata.getPropertyType(fieldName);
 		AssociationType assType = (AssociationType) prpType;
 		Object idValue = null;
 		if (assType instanceof CollectionType) {
+			if (ownerValue instanceof HibernateProxy) {
+				signatureBean = this.generateLazySignature((HibernateProxy) ownerValue);
+			} else {
+				signatureBean = this.generateSignature(ownerValue);
+			}
+//			signatureBean.setIsAssoc(true);
 			if (ownerValue == null) {
 				throw new IllegalArgumentException(
 						"ownerValue can not be null em caso de CollectionType: " + ownerClass + "->" + fieldName);
 			}
-			CollectionType collType = (CollectionType) assType;
-			idValue = collType.getKeyOfOwner(ownerValue,
-					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+			// if collection is not loaded "collType.getKeyOfOwner" is inconsistent (null)
+			// on hb-3
+//			CollectionType collType = (CollectionType) assType;
+//			idValue = collType.getKeyOfOwner(ownerValue,
+//					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
 			signatureBean.setClazz(ownerClass);
 			signatureBean.setIsColl(true);
 			signatureBean.setPropertyName(fieldName);
 		} else {
-			classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(assType.getReturnedClass());
-			idValue = classMetadata.getIdentifier(fieldValue,
-					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
-			signatureBean.setClazz(assType.getReturnedClass());
+			if (fieldValue instanceof HibernateProxy) {
+				signatureBean = this.generateLazySignature((HibernateProxy) fieldValue);
+			} else {
+				signatureBean = this.generateSignature(fieldValue);
 		}
-		signatureBean.setEntityName(classMetadata.getEntityName());
 
-		JsHbStatment jsHbStatment = new JsHbStatment();
+			// This will cause two signatures for the same instance!?!?!?!?
+			// signatureBean.setIsAssoc(true);
 
-		Type hbIdType = classMetadata.getIdentifierType();
-		try {
-			hbIdType.nullSafeSet(jsHbStatment, idValue, 0,
-					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
-		} catch (HibernateException e) {
-			throw new RuntimeException("This should not happen", e);
-		} catch (SQLException e) {
-			throw new RuntimeException("This should not happen", e);
+//			classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(assType.getReturnedClass());
+//			idValue = classMetadata.getIdentifier(fieldValue,
+//					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+//			signatureBean.setClazz(assType.getReturnedClass());
 		}
-		signatureBean.setRawKeyValues(jsHbStatment.getInternalValues());
+		// signatureBean.setEntityName(classMetadata.getEntityName());
+
+//		JsHbStatment jsHbStatment = new JsHbStatment();
+
+//		Type hbIdType = classMetadata.getIdentifierType();
+//		try {
+//			hbIdType.nullSafeSet(jsHbStatment, idValue, 0,
+//					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+//		} catch (HibernateException e) {
+//			throw new RuntimeException("This should not happen", e);
+//		} catch (SQLException e) {
+//			throw new RuntimeException("This should not happen", e);
+//		}
+//		signatureBean.setRawKeyValues(jsHbStatment.getInternalValues());
 		
 		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format(
-					"generateLazySignatureForRelashionship().signatureBean:\n{0}",
-					signatureBean));
+			logger.trace(
+					MessageFormat.format("generateLazySignatureForRelashionship().signatureBean:\n{0}", signatureBean));
 		}
+
+		return signatureBean;
+	}
+
+	@Override
+	public SignatureBean generateLazySignatureForJsHbLazyProperty(Class<?> ownerClass, String fieldName,
+			Object ownerValue, Object fieldValue) {
+		if (fieldValue instanceof byte[] || fieldValue instanceof Blob || fieldValue instanceof String
+				|| fieldValue instanceof Clob) {
+			// nothing
+		} else {
+			throw new RuntimeException("fieldValue type does not support JsHbLazyProperty: " + fieldValue.getClass());
+		}
+		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(ownerClass);
+
+		Type prpType = null;
+		if (classMetadata != null) {
+			prpType = classMetadata.getPropertyType(fieldName);
+		} else {
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, fieldName);
+			CompositeType componentType = this.associationAndCompositiesMap.get(aacKey).getCompType();
+			if (componentType == null) {
+				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
+			}
+
+			int prpIndex = -1;
+			String[] cpsTpArrPrps = componentType.getPropertyNames();
+			for (int i = 0; i < cpsTpArrPrps.length; i++) {
+				if (fieldName.equals(cpsTpArrPrps[i])) {
+					prpIndex = i;
+					break;
+				}
+			}
+			if (prpIndex == -1) {
+				throw new RuntimeException("fieldName does not exists: " + ownerClass + "->" + fieldName);
+			}
+
+			prpType = componentType.getSubtypes()[prpIndex];
+		}
+
+		if (prpType instanceof AssociationType) {
+			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
+		}
+
+		SignatureBean signatureBean = this.generateSignature(ownerValue);
+		signatureBean.setIsLazyProperty(true);
+		signatureBean.setPropertyName(fieldName);
 		
 		return signatureBean;
 	}
@@ -494,8 +717,7 @@ public class JsHbManager implements IJsHbManager {
 		signatureBean.setRawKeyValues(jsHbStatment.getInternalValues());
 		
 		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format(
-					"generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
+			logger.trace(MessageFormat.format("generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
 					signatureBean));
 		}
 		
@@ -503,9 +725,10 @@ public class JsHbManager implements IJsHbManager {
 	}
 
 	@Override
-	public SignatureBean generateComponentSignature(EntityAndComponentTrackInfo entityAndComponentTrackInfo) {
+	public SignatureBean generateComponentSignature(AssociationAndComponentTrackInfo entityAndComponentTrackInfo) {
 		SignatureBean signatureBean = this.generateSignature(entityAndComponentTrackInfo.getEntityOwner());
-		signatureBean.setPropertyName(entityAndComponentTrackInfo.getComponentTypeEntry().getPathFromOwner());
+		signatureBean.setPropertyName(
+				entityAndComponentTrackInfo.getEntityAndComponentPath().getAacKey().getPathFromOwner());
 		signatureBean.setIsComp(true);
 		return signatureBean;
 	}
@@ -539,8 +762,7 @@ public class JsHbManager implements IJsHbManager {
 		signatureBean.setRawKeyValues(jsHbStatment.getInternalValues());
 		
 		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format(
-					"generateSignature(Object nonHibernateProxy). signatureBean:\n{0}",
+			logger.trace(MessageFormat.format("generateSignature(Object nonHibernateProxy). signatureBean:\n{0}",
 					signatureBean));
 		}
 		
@@ -550,8 +772,7 @@ public class JsHbManager implements IJsHbManager {
 	@Override
 	public <T> T getBySignature(SignatureBean signature) {
 		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format("getBySignature(). Begin. \nsignatureBean:\n{0}",
-					signature));
+			logger.trace(MessageFormat.format("getBySignature(). Begin. \nsignatureBean:\n{0}", signature));
 		}
 		
 		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(signature.getClazz());
@@ -559,8 +780,7 @@ public class JsHbManager implements IJsHbManager {
 		Type hbIdType = classMetadata.getIdentifierType();
 
 		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''",
-					hbIdType));
+			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''", hbIdType));
 		}
 		
 //		Serializable idValue = (Serializable) hbIdType.resolve(signature.getRawKeyValues(),
@@ -588,36 +808,41 @@ public class JsHbManager implements IJsHbManager {
 
 		Type propertyType = null;
 		if (signature.getPropertyName() != null) {
-			// significa que eh uma collection, mas no futuro podera ser tambem uma propriedade lazy, como um blob por exemplo!
-			Type prpType = classMetadata.getPropertyType(signature.getPropertyName());
-			if (logger.isWarnEnabled()) {
-				logger.warn(MessageFormat
-						.format("getBySignature(). propery Type: ''{0}''. We are inferring this is an 'one to many'"
-								+ " relationship because propertyName is not null, on the"
-								+ " future this will not be always true, there will exists"
-								+ " non collection lazy properties like Blob's for instance.", prpType));
+//			// significa que eh uma collection, mas no futuro podera ser tambem uma
+//			// propriedade lazy, como um blob por exemplo!
+//			Type prpType = classMetadata.getPropertyType(signature.getPropertyName());
+//			if (logger.isWarnEnabled()) {
+//				logger.warn(MessageFormat
+//						.format("getBySignature(). propery Type: ''{0}''. We are inferring this is an 'one to many'"
+//								+ " relationship because propertyName is not null, on the"
+//								+ " future this will not be always true, there will exists"
+//								+ " non collection lazy properties like Blob's for instance.", prpType));
+//			}
+//			Collection resultColl = null;
+//			if (prpType instanceof CollectionType) {
+//				if (prpType instanceof SetType) {
+//					resultColl = new LinkedHashSet<>();
+//				} else if (prpType instanceof ListType) {
+//					throw new RuntimeException("Not supported. prpType: " + prpType);
+//				} else if (prpType instanceof BagType) {
+//					throw new RuntimeException("Not supported. prpType: " + prpType);
+//				} else {
+//					throw new RuntimeException("This should not happen. prpType: " + prpType);
+//				}
+//			} else {
+//				throw new RuntimeException("This should not happen. prpType: " + prpType);
+//			}
+//			Collection persistentCollection = (Collection) classMetadata.getPropertyValue(owner,
+//					signature.getPropertyName(),
+//					this.jsHbConfig.getSessionFactory().getCurrentSession().getEntityMode());
+//			for (Object item : persistentCollection) {
+//				resultColl.add(item);
+//			}
+			try {
+				result = PropertyUtils.getNestedProperty(owner, signature.getPropertyName());
+			} catch (Exception e) {
+				throw new RuntimeException("This should not happen for property");				
 			}
-			Collection resultColl = null;
-			if (prpType instanceof CollectionType) {
-				if (prpType instanceof SetType) {
-					resultColl = new LinkedHashSet<>();
-				} else if (prpType instanceof ListType) {
-					throw new RuntimeException("Not supported. prpType: " + prpType);
-				} else if (prpType instanceof BagType) {
-					throw new RuntimeException("Not supported. prpType: " + prpType);
-				} else {
-					throw new RuntimeException("This should not happen. prpType: " + prpType);
-				}
-			} else {
-				throw new RuntimeException("This should not happen. prpType: " + prpType);
-			}
-			Collection persistentCollection = (Collection) classMetadata.getPropertyValue(owner,
-					signature.getPropertyName(),
-					this.jsHbConfig.getSessionFactory().getCurrentSession().getEntityMode());
-			for (Object item : persistentCollection) {
-				resultColl.add(item);
-			}
-			result = resultColl;
 		}
 		
 		if (logger.isTraceEnabled()) {
@@ -696,6 +921,7 @@ public class JsHbManager implements IJsHbManager {
 		this.currIdTL.set(0L);
 		this.objectByIdMapTL.set(new HashMap<Long, Object>());
 		this.idByObjectMapTL.set(new HashMap<IdentityRefKey, Long>());
+		this.metadatasCacheMapTL.set(new HashMap<>());
 		this.jsHbBeanPropertyWriterStepStackTL.set(new Stack<JsHbBeanPropertyWriter>());
 		this.JsHbJsonSerializerStepStackTL.set(new Stack<JsHbJsonSerializer>());
 		this.jsHbBackendMetadatasWritingStackTL.set(new Stack<JsHbBackendMetadatas>());
@@ -711,6 +937,7 @@ public class JsHbManager implements IJsHbManager {
 		this.currIdTL.set(null);
 		this.objectByIdMapTL.set(null);
 		this.idByObjectMapTL.set(null);
+		this.metadatasCacheMapTL.set(null);
 		this.jsHbBeanPropertyWriterStepStackTL.set(null);
 		this.JsHbJsonSerializerStepStackTL.set(null);
 		this.jsHbBackendMetadatasWritingStackTL.set(null);
@@ -738,6 +965,12 @@ public class JsHbManager implements IJsHbManager {
 		return this.idByObjectMapTL.get();
 	}
 	
+	@Override
+	public Map<IdentityRefKey, JsHbBackendMetadatas> getMetadatasCacheMap() {
+		this.validateStarted();
+		return this.metadatasCacheMapTL.get();
+	}
+
 	@Override
 	public Stack<JsHbBeanPropertyWriter> getJsHbBeanPropertyWriterStepStack() {
 		return this.jsHbBeanPropertyWriterStepStackTL.get();
@@ -782,8 +1015,8 @@ public class JsHbManager implements IJsHbManager {
 		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(clazz);
 		CompositeType compositeType = null;
 		if (classMetadata == null) {
-			HbComponentTypeEntry componentTypeEntry = new HbComponentTypeEntry(clazz, fieldName);
-			compositeType = this.compositiesMap.get(componentTypeEntry);
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(clazz, fieldName);
+			compositeType = this.associationAndCompositiesMap.get(aacKey).getCompType();
 			if (compositeType == null) {
 				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz);
 			}
@@ -808,13 +1041,8 @@ public class JsHbManager implements IJsHbManager {
 				try {
 					prpType = classMetadata.getPropertyType(fieldName);					
 				} catch (HibernateException he) {
-					throw
-						new RuntimeException(
-							MessageFormat.format(
-								"This should not happen for property: {0}.{1}", 
-								classMetadata.getEntityName(),
-								fieldName),
-							he);
+					throw new RuntimeException(MessageFormat.format("This should not happen for property: {0}.{1}",
+							classMetadata.getEntityName(), fieldName), he);
 				}
 			}			
 //			for (int i = 0; i < classMetadata.getPropertyNames().length; i++) {
@@ -847,8 +1075,8 @@ public class JsHbManager implements IJsHbManager {
 		}
 		
 		if (logger.isTraceEnabled()) {
-			logger.trace(
-					MessageFormat.format("isRelationship(). clazz: ''{0}''; fieldName: ''{1}''. return: ", clazz, fieldName, resultBool));
+			logger.trace(MessageFormat.format("isRelationship(). clazz: ''{0}''; fieldName: ''{1}''. return: ", clazz,
+					fieldName, resultBool));
 		}
 		
 		return resultBool;
@@ -914,29 +1142,51 @@ public class JsHbManager implements IJsHbManager {
 	@Override
 	public IJsHbManager overwriteConfigurationTemporarily(IJsHbConfig newConfig) {
 		if (logger.isTraceEnabled()) {
-			logger.trace(
-					MessageFormat.format("overwriteConfigurationTemporarily(). newConfig:\n {0}'", newConfig));
+			logger.trace(MessageFormat.format("overwriteConfigurationTemporarily(). newConfig:\n {0}'", newConfig));
 		}
 		this.temporaryConfigurationTL.set(newConfig);
 		return this;
 	}
 	
 	@Override
+	public IJsHbManager cloneWithNewConfiguration(IJsHbConfig newConfig) {
+		if (logger.isTraceEnabled()) {
+			logger.trace(MessageFormat.format("cloneWithNewConfiguration(). newConfig:\n {0}'", newConfig));
+		}
+		IJsHbManager jsHbManagerCloned = new JsHbManager();
+		jsHbManagerCloned = jsHbManagerCloned.configure(newConfig);
+		return jsHbManagerCloned;
+	}
+
+	@Override
 	public IJsHbReplayable prepareReplayable(JsHbPlayback playback) {
 //		throw new RuntimeException("");
 //		this.temporaryConfigurationTL.set(newConfig);
 //		return null;
 		if (logger.isTraceEnabled()) {
-			logger.trace(
-					MessageFormat.format("prepareReplayable(). playback:\n {0}'", playback));
+			logger.trace(MessageFormat.format("prepareReplayable(). playback:\n {0}'", playback));
 		}
 		return new JsHbReplayable().configJsHbManager(this).loadPlayback(playback);
 	}
 
 	@Override
-	public EntityAndComponentTrackInfo getCurrentComponentTypeEntry() {
+	public AssociationAndComponentTrackInfo getCurrentAssociationAndComponentTrackInfo() {
 		List<String> pathList = new ArrayList<>();
 		Object lastEntityOwner = null;
+		Stack<JsHbJsonSerializer> serStepTackLocal = new Stack<>();
+		serStepTackLocal.addAll(this.JsHbJsonSerializerStepStackTL.get());
+		// ignoring last one
+		serStepTackLocal.pop();
+		for (JsHbJsonSerializer jsHbJsonSerializer : serStepTackLocal) {
+			Object currBean = jsHbJsonSerializer.getCurrSerializationBean();
+			if (currBean instanceof JsHbBackendMetadatas) {
+				currBean = ((JsHbBackendMetadatas) currBean).getOriginalHibernateIdOwner();
+			}
+			if (jsHbJsonSerializer.getCurrSerializationBean() != null && this.isPersistentClass(currBean.getClass())) {
+				lastEntityOwner = currBean;
+			}
+		}
+
 		for (JsHbBeanPropertyWriter jbHbBeanPropertyWriter : this.getJsHbBeanPropertyWriterStepStack()) {
 			if (jbHbBeanPropertyWriter.getCurrOwner() != null 
 					&& this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
@@ -949,18 +1199,164 @@ public class JsHbManager implements IJsHbManager {
 		}
 		if (lastEntityOwner != null && pathList.size() > 0) {
 			String pathStr = this.mountPathFromStack(pathList);
-			HbComponentTypeEntry entry = new HbComponentTypeEntry(lastEntityOwner.getClass(), pathStr);
-			if (this.compositiesMap.containsKey(entry)) {
-				return
-						new EntityAndComponentTrackInfo(
-								lastEntityOwner,
-								new HbComponentTypeEntry(lastEntityOwner.getClass(), pathStr));				
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
+					pathStr);
+			if (this.associationAndCompositiesMap.containsKey(aacKey)) {
+				AssociationAndComponentTrackInfo trackInfo = new AssociationAndComponentTrackInfo();
+				trackInfo.setEntityOwner(lastEntityOwner);
+				trackInfo.setEntityAndComponentPath(this.associationAndCompositiesMap.get(aacKey));
+				return trackInfo;
 			} else {
 				return null;
 			}
 		} else {
 			return null;			
 		}
+	}
+
+	@Override
+	public String getCurrentPathFromLastEntity() {
+		List<String> pathList = new ArrayList<>();
+		Object lastEntityOwner = null;
+		for (JsHbBeanPropertyWriter jbHbBeanPropertyWriter : this.getJsHbBeanPropertyWriterStepStack()) {
+			if (this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
+				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
+				pathList.clear();
+				pathList.add(jbHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName());
+			} else {
+				pathList.add(jbHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName());
+			}
+		}
+		String pathStr = null;
+		if (lastEntityOwner != null && pathList.size() > 0) {
+			pathStr = this.mountPathFromStack(pathList);
+		}
+		return pathStr;
+	}
+
+	@Override
+	public boolean isCurrentPathFromLastEntityAnEntityRelationship() {
+		List<String> pathList = new ArrayList<>();
+		Object lastEntityOwner = null;
+		for (JsHbBeanPropertyWriter jbHbBeanPropertyWriter : this.getJsHbBeanPropertyWriterStepStack()) {
+			if (this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
+				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
+				pathList.clear();
+				pathList.add(jbHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName());
+			} else {
+				pathList.add(jbHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName());
+			}
+		}
+		String pathStr = null;
+		if (lastEntityOwner != null && pathList.size() > 0) {
+			pathStr = this.mountPathFromStack(pathList);
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
+					pathStr);
+			AssociationAndComponentPath entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
+			if (entityAndComponentPath != null) {
+				if (entityAndComponentPath.getRelEntity() != null) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public IDirectRawWriterWrapper needDirectWrite(SignatureBean signature) {
+		JsonSerializer<Object> jsonSerializer = null;
+		try {
+			jsonSerializer = this.jsHbConfig.getObjectMapper().getSerializerProvider()
+					.findValueSerializer(signature.getClazz());
+		} catch (JsonMappingException e) {
+			throw new RuntimeException("This should not happen", e);
+		}
+		if (jsonSerializer instanceof BeanSerializer) {
+			BeanSerializer beanSerializer = (BeanSerializer) jsonSerializer;
+			Iterator<PropertyWriter> iterator = beanSerializer.properties();
+			final Object objectToRawWrite = this.getBySignature(signature);
+			while (iterator.hasNext()) {
+				PropertyWriter propertyWriter = (PropertyWriter) iterator.next();
+				if (propertyWriter instanceof JsHbBeanPropertyWriter) {
+					JsHbBeanPropertyWriter jsHbBeanPropertyWriter = (JsHbBeanPropertyWriter) propertyWriter;
+					if (jsHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName()
+							.equals(signature.getPropertyName())) {
+						final JsHbLazyProperty jsHbLazyPropertyAnn = jsHbBeanPropertyWriter
+								.getAnnotation(JsHbLazyProperty.class);
+						if (jsHbLazyPropertyAnn != null && jsHbLazyPropertyAnn.directRawWrite()) {
+							return new IDirectRawWriterWrapper() {
+
+								@Override
+								public JsHbLazyProperty getJsHbLazyProperty() {
+									return jsHbLazyPropertyAnn;
+								}
+
+								@Override
+								public IDirectRawWriter getCallback() {
+									return new IDirectRawWriter() {
+
+										@Override
+										public void write(OutputStream outputStream) throws IOException, SQLException {
+											if (objectToRawWrite == null) {
+												// nothing
+											} else if (objectToRawWrite instanceof Blob) {
+												Blob blob = (Blob) objectToRawWrite;
+												byte[] buffer = new byte[jsHbLazyPropertyAnn.bufferSize()];
+												int offset = 0;
+												int latReadedCount = 0;
+												InputStream inputStream = blob.getBinaryStream();
+												do {
+													latReadedCount = inputStream.read(buffer, offset, buffer.length);
+													offset = offset + latReadedCount;
+													if (latReadedCount > 0) {
+														outputStream.write(buffer, 0, latReadedCount);
+													}
+												} while (latReadedCount > 0);
+												outputStream.flush();
+
+											} else if (objectToRawWrite instanceof Clob) {
+												Clob clob = (Clob) objectToRawWrite;
+												int latReadedCount = 0;
+												Charset charset = Charset.forName(jsHbLazyPropertyAnn.charset());
+												CharBuffer charBuffer = CharBuffer
+														.allocate(jsHbLazyPropertyAnn.bufferSize());
+
+												Reader r = clob.getCharacterStream();
+												WritableByteChannel channel = Channels.newChannel(outputStream);
+												do {
+													latReadedCount = r.read(charBuffer);
+													if (latReadedCount > 0) {
+														channel.write(charset.encode(charBuffer));
+													}
+												} while (latReadedCount > 0);
+												outputStream.flush();
+											} else if (objectToRawWrite instanceof byte[]) {
+												byte[] byteArr = (byte[]) objectToRawWrite;
+												outputStream.write(byteArr, 0, byteArr.length);
+												outputStream.flush();
+											} else if (objectToRawWrite instanceof String) {
+												String str = (String) objectToRawWrite;
+												Charset charset = Charset.forName(jsHbLazyPropertyAnn.charset());
+												WritableByteChannel channel = Channels.newChannel(outputStream);
+												channel.write(charset.encode(str));
+												outputStream.flush();
+											} else {
+												throw new RuntimeException(
+														"Only Blob, Clob, byte[] or String supported by 'direct OutputStream write. Not supported type: "
+																+ objectToRawWrite.getClass().getName());
+											}
+										}
+									};
+								}
+							};
+						}
+					}
+				}
+			}
+		} else {
+			throw new RuntimeException("This should not happen");
+		}
+		return null;
 	}
 
 //	@Override

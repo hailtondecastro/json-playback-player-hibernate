@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class
+		name="org.jsplayback.backend.hibernate.entities.MasterBEnt"
+		table="MASTER_B">
+
+		<composite-id name="compId" class="org.jsplayback.backend.hibernate.entities.MasterBCompId">
+			<key-property name="idA">
+				<column name="MTRB_ID_A" sql-type="INTEGER"/>
+			</key-property>
+			<key-property name="idB">
+				<column name="MTRB_ID_B" sql-type="INTEGER"/>
+			</key-property>
+		</composite-id>
+		<version name="hbVersion">
+			<column name="MTRB_HB_VERSION" sql-type="INTEGER"/>
+		</version>		
+
+		<property name="vcharA" type="java.lang.String">
+			<column name="MTRB_VCHAR_A" sql-type="VARCHAR(200)" length="200"/>
+		</property>
+		<property name="vcharB" type="java.lang.String">
+			<column name="MTRB_VCHAR_B" sql-type="VARCHAR(2000)" length="2000"/>
+		</property>
+		<property name="dateA" type="date">
+			<column name="MTRB_DATE_A" sql-type="DATE"/>
+		</property>
+		<property name="datetimeA" type="timestamp">
+			<column name="MTRB_DATETIME_A" sql-type="TIMESTAMP"/>
+		</property>
+		<property name="blobA" type="materialized_blob">
+			<column name="MTRB_BLOB_A" sql-type="BLOB"/>
+		</property>
+		<property name="blobB" type="blob">
+			<column name="MTRB_BLOB_B" sql-type="BLOB"/>
+		</property>		
+		<set name="detailAEntCol" inverse="true" cascade="none" fetch="select" order-by="DTLA_SUB_ID">
+			<key>
+				<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
+				<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
+			</key>
+			<one-to-many class="org.jsplayback.backend.hibernate.entities.DetailAEnt"/>
+		</set>
+		
+		<component name="masterBComp" class="org.jsplayback.backend.hibernate.entities.MasterBComp">
+			<set name="detailAEntCol" inverse="true" cascade="none" fetch="select" order-by="DTLA_SUB_ID">
+				<key>
+					<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
+					<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
+				</key>
+				<one-to-many class="org.jsplayback.backend.hibernate.entities.DetailAEnt"/>
+			</set>
+			<component name="masterBCompComp" class="org.jsplayback.backend.hibernate.entities.MasterBCompComp">
+				<set name="detailAEntCol" inverse="true" cascade="none" fetch="select" order-by="DTLA_SUB_ID">
+					<key>
+						<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
+						<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
+					</key>
+					<one-to-many class="org.jsplayback.backend.hibernate.entities.DetailAEnt"/>
+				</set>
+			</component>
+		</component>
+	</class>
+
+
+</hibernate-mapping>
