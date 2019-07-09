@@ -41,6 +41,7 @@ import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Classe de configuracao base para todas (por enquanto) outras classes de
@@ -181,6 +182,8 @@ public class TestServiceConfigBase {
 		ObjectMapper mapperOriginal = mappingJackson2HttpMessageConverter.getObjectMapper();
 		ObjectMapper mapperNovo = builder.build();
 		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(new JsHbBasicClassIntrospector()));
+//		mapperNovo.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+//		mapperNovo.enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
 		if (mapperOriginal != mapperNovo) {
 			logger.warn("(mapperOriginal != mapperNovo) apos org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.build()");
 		}
