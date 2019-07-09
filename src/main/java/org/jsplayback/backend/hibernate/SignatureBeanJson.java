@@ -9,10 +9,12 @@ import org.jsplayback.backend.SignatureBean;
  */
 class SignatureBeanJson {
 	private String clazzName;
-	private String entityName;
-	private Boolean isColl;
-	private Boolean isAssoc;
-	private Boolean isComp;
+//	private String entityName;
+	private Boolean isColl = false;
+//	private Boolean isAssoc = false;
+	private Boolean isComp = false;
+	private Boolean isLazyProperty = false;
+	
 	/**
 	 * Se nulo eh a propria entidade, caso contrario eh o lazy de uma entidade.
 	 */
@@ -25,12 +27,12 @@ class SignatureBeanJson {
 	public void setClazzName(String clazzName) {
 		this.clazzName = clazzName;
 	}
-	public String getEntityName() {
-		return entityName;
-	}
-	public void setEntityName(String entityName) {
-		this.entityName = entityName;
-	}
+//	public String getEntityName() {
+//		return entityName;
+//	}
+//	public void setEntityName(String entityName) {
+//		this.entityName = entityName;
+//	}
 	public String getPropertyName() {
 		return propertyName;
 	}
@@ -55,17 +57,25 @@ class SignatureBeanJson {
 	public void setIsColl(Boolean isColl) {
 		this.isColl = isColl;
 	}
-	public Boolean getIsAssoc() {
-		return isAssoc;
-	}
-	public void setIsAssoc(Boolean isAssoc) {
-		this.isAssoc = isAssoc;
-	}
+//	public Boolean getIsAssoc() {
+//		return isAssoc;
+//	}
+//	public void setIsAssoc(Boolean isAssoc) {
+//		this.isAssoc = isAssoc;
+//	}
 	public Boolean getIsComp() {
 		return isComp;
 	}
 	public void setIsComp(Boolean isComp) {
 		this.isComp = isComp;
 	}
+	public Boolean getIsLazyProperty() {
+		return isLazyProperty;
+	}
+	public void setIsLazyProperty(Boolean isLazyProperty) {
+		this.isLazyProperty = isLazyProperty;
+	}
+	
+	
 }
 /*gerando conflito*/

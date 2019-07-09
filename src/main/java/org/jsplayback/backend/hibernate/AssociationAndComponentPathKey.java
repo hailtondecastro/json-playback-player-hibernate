@@ -5,11 +5,18 @@ import java.util.LinkedHashMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class HbComponentTypeEntry {
+/**
+ * Key for components and components relations by path from owner entity.<br>
+ * Internal use! 
+ * 
+ * @author Hailton
+ *
+ */
+public class AssociationAndComponentPathKey {
 	private Class<?> entityRootOrComponentClassOwner;
 	private String pathFromOwner;
 
-	public HbComponentTypeEntry(Class<?> entityRootOrComponentClassOwner, String pathFromOwner) {
+	public AssociationAndComponentPathKey(Class<?> entityRootOrComponentClassOwner, String pathFromOwner) {
 		super();
 		this.entityRootOrComponentClassOwner = entityRootOrComponentClassOwner;
 		this.pathFromOwner = pathFromOwner;
@@ -30,8 +37,8 @@ public class HbComponentTypeEntry {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof HbComponentTypeEntry) {
-			HbComponentTypeEntry entryObj = (HbComponentTypeEntry) obj;
+		if (obj instanceof AssociationAndComponentPathKey) {
+			AssociationAndComponentPathKey entryObj = (AssociationAndComponentPathKey) obj;
 			return this.entityRootOrComponentClassOwner.equals(entryObj.getEntityClassRootOwner());
 		} else {
 			return false;

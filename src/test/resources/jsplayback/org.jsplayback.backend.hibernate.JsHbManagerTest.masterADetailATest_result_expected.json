@@ -1,0 +1,237 @@
+{
+  "result" : {
+    "$jsHbMetadatas$" : {
+      "$iAmJsHbBackendMetadatas$" : true,
+      "$id$" : 1,
+      "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJBRW50IiwicmF3S2V5VmFsdWVzIjpbIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIl19",
+      "$hibernateId$" : 1
+    },
+    "id" : 1,
+    "vcharA" : "MasterAEnt_REG01_REG01_VcharA",
+    "vcharB" : "MasterAEnt_REG01_REG01_VcharB",
+    "dateA" : "2019-01-01",
+    "datetimeA" : 1546315261000,
+    "blobA" : "TWFzdGVyQUVudF9SRUcwMV9CbG9iQQ==",
+    "blobB" : "TWFzdGVyQUVudF9SRUcwMV9CbG9iQg==",
+    "hbVersion" : 0,
+    "detailAEntCol" : [ {
+      "$jsHbMetadatas$" : {
+        "$iAmJsHbBackendMetadatas$" : true,
+        "$id$" : 2,
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwicmF3S2V5VmFsdWVzIjpbIjEiLCIwIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+        "$isAssociative$" : true,
+        "$hibernateId$" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$id$" : 3,
+            "$isComponent$" : true,
+            "$isComponentHibernateId$" : true
+          },
+          "masterA" : {
+            "$jsHbMetadatas$" : {
+              "$iAmJsHbBackendMetadatas$" : true,
+              "$idRef$" : 1
+            }
+          },
+          "subId" : 0
+        }
+      },
+      "compId" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$idRef$" : 3
+        }
+      },
+      "hbVersion" : 1,
+      "detailAComp" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$id$" : 4,
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMCJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+          "$isComponent$" : true
+        },
+        "masterB" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$id$" : 5,
+            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+            "$isLazyUninitialized$" : true,
+            "$isAssociative$" : true,
+            "$hibernateId$" : {
+              "$jsHbMetadatas$" : {
+                "$iAmJsHbBackendMetadatas$" : true,
+                "$id$" : 6,
+                "$isComponent$" : true,
+                "$isComponentHibernateId$" : true
+              },
+              "idA" : 1,
+              "idB" : 1
+            }
+          }
+        },
+        "detailACompComp" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$id$" : 7,
+            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBQ29tcC5kZXRhaWxBQ29tcENvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjAiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
+            "$isComponent$" : true
+          },
+          "masterB" : {
+            "$jsHbMetadatas$" : {
+              "$iAmJsHbBackendMetadatas$" : true,
+              "$idRef$" : 5
+            }
+          }
+        },
+        "vcharA" : "DetailAEnt_REG01_REG01_VcharA",
+        "vcharB" : "DetailAEnt_REG01_REG01_VcharB",
+        "blobA" : "RGV0YWlsQUVudF9SRUcwMV9CbG9iQQ==",
+        "blobB" : "RGV0YWlsQUVudF9SRUcwMV9CbG9iQg=="
+      },
+      "detailAComponent" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$idRef$" : 4
+        }
+      }
+    }, {
+      "$jsHbMetadatas$" : {
+        "$iAmJsHbBackendMetadatas$" : true,
+        "$id$" : 8,
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+        "$isAssociative$" : true,
+        "$hibernateId$" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$id$" : 9,
+            "$isComponent$" : true,
+            "$isComponentHibernateId$" : true
+          },
+          "masterA" : {
+            "$jsHbMetadatas$" : {
+              "$iAmJsHbBackendMetadatas$" : true,
+              "$idRef$" : 1
+            }
+          },
+          "subId" : 1
+        }
+      },
+      "compId" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$idRef$" : 9
+        }
+      },
+      "hbVersion" : 1,
+      "detailAComp" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$id$" : 10,
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+          "$isComponent$" : true
+        },
+        "masterB" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$idRef$" : 5
+          }
+        },
+        "detailACompComp" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$id$" : 11,
+            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBQ29tcC5kZXRhaWxBQ29tcENvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
+            "$isComponent$" : true
+          },
+          "masterB" : {
+            "$jsHbMetadatas$" : {
+              "$iAmJsHbBackendMetadatas$" : true,
+              "$idRef$" : 5
+            }
+          }
+        },
+        "vcharA" : "DetailAEnt_REG04_REG01_VcharA",
+        "vcharB" : "DetailAEnt_REG04_REG01_VcharB",
+        "blobA" : "RGV0YWlsQUVudF9SRUcwNF9CbG9iQQ==",
+        "blobB" : "RGV0YWlsQUVudF9SRUcwNF9CbG9iQg=="
+      },
+      "detailAComponent" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$idRef$" : 10
+        }
+      }
+    }, {
+      "$jsHbMetadatas$" : {
+        "$iAmJsHbBackendMetadatas$" : true,
+        "$id$" : 12,
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwicmF3S2V5VmFsdWVzIjpbIjEiLCIyIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+        "$isAssociative$" : true,
+        "$hibernateId$" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$id$" : 13,
+            "$isComponent$" : true,
+            "$isComponentHibernateId$" : true
+          },
+          "masterA" : {
+            "$jsHbMetadatas$" : {
+              "$iAmJsHbBackendMetadatas$" : true,
+              "$idRef$" : 1
+            }
+          },
+          "subId" : 2
+        }
+      },
+      "compId" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$idRef$" : 13
+        }
+      },
+      "hbVersion" : 1,
+      "detailAComp" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$id$" : 14,
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMiJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+          "$isComponent$" : true
+        },
+        "masterB" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$idRef$" : 5
+          }
+        },
+        "detailACompComp" : {
+          "$jsHbMetadatas$" : {
+            "$iAmJsHbBackendMetadatas$" : true,
+            "$id$" : 15,
+            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5EZXRhaWxBRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBQ29tcC5kZXRhaWxBQ29tcENvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjIiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
+            "$isComponent$" : true
+          },
+          "masterB" : {
+            "$jsHbMetadatas$" : {
+              "$iAmJsHbBackendMetadatas$" : true,
+              "$idRef$" : 5
+            }
+          }
+        },
+        "vcharA" : "DetailAEnt_REG07_REG01_VcharA",
+        "vcharB" : "DetailAEnt_REG07_REG01_VcharB",
+        "blobA" : "RGV0YWlsQUVudF9SRUcwN19CbG9iQQ==",
+        "blobB" : "RGV0YWlsQUVudF9SRUcwN19CbG9iQg=="
+      },
+      "detailAComponent" : {
+        "$jsHbMetadatas$" : {
+          "$iAmJsHbBackendMetadatas$" : true,
+          "$idRef$" : 14
+        }
+      }
+    } ],
+    "blobLazyA" : "TWFzdGVyQUVudF9SRUcwMV9CbG9iTGF6eUE=",
+    "blobLazyB" : "TWFzdGVyQUVudF9SRUcwMV9CbG9iTGF6eUI=",
+    "clobLazyA" : "MasterAEnt_REG01_ClobLazyB",
+    "clobLazyB" : "MasterAEnt_REG01_ClobLazyB"
+  }
+}

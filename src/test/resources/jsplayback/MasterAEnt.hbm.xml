@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class
+		name="org.jsplayback.backend.hibernate.entities.MasterAEnt"
+		table="MASTER_A">
+
+		<id name="id" type="java.lang.Integer">
+			<column name="MTRA_ID" sql-type="INTEGER"/>
+			<generator class="assigned"></generator>
+		</id>
+		<version name="hbVersion">
+			<column name="MTRA_HB_VERSION" sql-type="INTEGER"/>
+		</version>	
+
+		<property name="vcharA" type="java.lang.String">
+			<column name="MTRA_VCHAR_A" sql-type="VARCHAR(200)" length="200"/>
+		</property>
+		<property name="vcharB" type="java.lang.String">
+			<column name="MTRA_VCHAR_B" sql-type="VARCHAR(2000)" length="2000"/>
+		</property>
+		<property name="dateA" type="date">
+			<column name="MTRA_DATE_A" sql-type="DATE"/>
+		</property>
+		<property name="datetimeA" type="timestamp">
+			<column name="MTRA_DATETIME_A" sql-type="TIMESTAMP"/>
+		</property>
+		<property name="blobA" type="materialized_blob">
+			<column name="MTRA_BLOB_A" sql-type="BLOB"/>
+		</property>
+		<property name="blobB" type="blob">
+			<column name="MTRA_BLOB_B" sql-type="BLOB"/>
+		</property>
+		
+		<property name="blobLazyA" type="materialized_blob">
+			<column name="MTRA_BLOB_LAZY_A" sql-type="BLOB"/>
+		</property>	
+		<property name="blobLazyB" type="blob">
+			<column name="MTRA_BLOB_LAZY_B" sql-type="BLOB"/>
+		</property>	
+		<property name="clobLazyA" type="materialized_clob">
+			<column name="MTRA_CLOB_LAZY_A" sql-type="CLOB"/>
+		</property>	
+		<property name="clobLazyB" type="clob">
+			<column name="MTRA_CLOB_LAZY_B" sql-type="CLOB"/>
+		</property>	
+		
+		<set name="detailAEntCol" inverse="true" cascade="all-delete-orphan" fetch="select" order-by="DTLA_SUB_ID">
+			<key>
+				<column name="DTLA_MTRA_ID" sql-type="INTEGER"/>
+			</key>
+			<one-to-many class="org.jsplayback.backend.hibernate.entities.DetailAEnt"/>
+		</set>
+	</class>
+
+
+</hibernate-mapping>

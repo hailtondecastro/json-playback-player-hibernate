@@ -35,7 +35,18 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 	private ObjectMapper objectMapper;
 	private IJsHbSignatureCrypto signatureCrypto;
 	private boolean serialiseBySignatureAllRelationship = false;
+	private boolean ignoreAllJsHbLazyProperty = false;
+	
+	@Override
+	public boolean isIgnoreAllJsHbLazyProperty() {
+		return ignoreAllJsHbLazyProperty;
+	}
 
+	@Override
+	public IJsHbConfig configIgnoreAllJsHbLazyProperty(boolean ignoreAllJsHbLazyProperty) {
+		this.ignoreAllJsHbLazyProperty = ignoreAllJsHbLazyProperty;
+		return this;
+	}
 
 	@Override
 	public String getJsHbMetadatasName() {
@@ -95,7 +106,7 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 //	 * (non-Javadoc)
 //	 * 
 //	 * @see
-//	 * br.gov.serpro.webanalise.business.jsHbSuperSync.implemantation.JsHbConfig
+//	 * org.jsplayback.implemantation.JsHbConfig
 //	 * #configJsHbHibernateIdName(java.lang.String)
 //	 */
 //	@Override
