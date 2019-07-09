@@ -22,3 +22,5 @@ public class EntityAndComponentTrackInfo {
 		this.componentTypeEntry = componentTypeEntry;
 	}	
 }
+/*intentional conflict*/
+/*intentional conflict*/
