@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.config.jsplayback.TestServiceConfigBase;
 import org.hibernate.HibernateException;
@@ -88,6 +89,8 @@ public class JsHbManagerTest {
     
     @Before
     public void setUp() throws Exception {
+    	//System.setProperty("user.timezone", "GMT");
+    	java.util.TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		this.localSessionFactoryBean.dropDatabaseSchema();
 		this.localSessionFactoryBean.createDatabaseSchema();
 		Session ss = this.sessionFactory.openSession();
