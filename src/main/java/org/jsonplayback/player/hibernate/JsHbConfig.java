@@ -105,7 +105,7 @@ public class JsHbConfig implements IJsHbConfig, Cloneable {
 //	 * (non-Javadoc)
 //	 * 
 //	 * @see
-//	 * org.jsplayback.implemantation.JsHbConfig
+//	 * org.jsonplayback.implemantation.JsHbConfig
 //	 * #configJsHbHibernateIdName(java.lang.String)
 //	 */
 //	@Override

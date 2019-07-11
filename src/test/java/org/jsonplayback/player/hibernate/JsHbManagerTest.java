@@ -280,7 +280,7 @@ public class JsHbManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsplayback/"+JsHbManagerTest.class.getName()+".masterATest_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".masterATest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -432,7 +432,7 @@ public class JsHbManagerTest {
 			BufferedReader brExpected = 
 				new BufferedReader(
 					new InputStreamReader(
-						classLoader.getResourceAsStream("jsplayback/"+JsHbManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_expected.json")
+						classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_expected.json")
 					)
 				);
 			BufferedReader brGenerated = 
@@ -528,7 +528,7 @@ public class JsHbManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsplayback/"+JsHbManagerTest.class.getName()+".masterADetailATest_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".masterADetailATest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -588,7 +588,7 @@ public class JsHbManagerTest {
 										.clone()
 										.configSerialiseBySignatureAllRelationship(true));
 				
-				SignatureBean signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJBRW50IiwiaXNDb2xsIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBRW50Q29sIiwicmF3S2V5VmFsdWVzIjpbIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIl19");
+				SignatureBean signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
 				Collection<DetailAEnt> detailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
 				JsHbResultEntity<Collection<DetailAEnt>> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createResultEntity(detailAEntCol);
 				
@@ -621,7 +621,7 @@ public class JsHbManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsplayback/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -710,7 +710,7 @@ public class JsHbManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsplayback/"+JsHbManagerTest.class.getName()+".masterBTest_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".masterBTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -756,22 +756,22 @@ public class JsHbManagerTest {
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
 								
-				SignatureBean signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19");
+				SignatureBean signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
 				MasterBEnt masterBEnt = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
 				
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJBRW50IiwiaXNDb2xsIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBRW50Q29sIiwicmF3S2V5VmFsdWVzIjpbIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIl19");
+				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
 				Collection<DetailAEnt> detailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
 				
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
 				MasterBComp masterBComp = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
 
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb2xsIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJkZXRhaWxBRW50Q29sIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19");
+				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
 				Collection<DetailAEnt> compDetailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
 
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcC5tYXN0ZXJCQ29tcENvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
+				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19");
 				MasterBCompComp masterBCompComp = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);				
 				
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNwbGF5YmFjay5iYWNrZW5kLmhpYmVybmF0ZS5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb2xsIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcC5tYXN0ZXJCQ29tcENvbXAuZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
 				Collection<DetailAEnt> compCompDetailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
 				
 				

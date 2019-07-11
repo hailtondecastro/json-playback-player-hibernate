@@ -69,7 +69,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 		CassandraDataAutoConfiguration.class,
 		XADataSourceAutoConfiguration.class
 		})
-@ComponentScan(basePackages = { "org.jsplayback" }, excludeFilters = {
+@ComponentScan(basePackages = { "org.jsonplayback" }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
 public class TestServiceConfigBase {
@@ -106,9 +106,9 @@ public class TestServiceConfigBase {
     	CustomLocalSessionFactoryBean customLocalSessionFactoryBean = new CustomLocalSessionFactoryBean();
     	customLocalSessionFactoryBean.setDataSource(dataSource);
     	customLocalSessionFactoryBean.setMappingResources(new String[]{
-    		"jsplayback/MasterAEnt.hbm.xml",
-    		"jsplayback/MasterBEnt.hbm.xml",
-    		"jsplayback/DetailAEnt.hbm.xml"
+    		"jsonplayback/MasterAEnt.hbm.xml",
+    		"jsonplayback/MasterBEnt.hbm.xml",
+    		"jsonplayback/DetailAEnt.hbm.xml"
     	});
     	Properties hbProperties = new Properties();
     	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
