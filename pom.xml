@@ -5,11 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.jsplayback</groupId>
-	<artifactId>js-playback-backend-hibernate</artifactId>
+	<artifactId>json-playback-player-hibernate</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>js-playback-backend-hibernate</name>
+	<name>json-playback-player-hibernate</name>
 	<description>
 	</description>
 
