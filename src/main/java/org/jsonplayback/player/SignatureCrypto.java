@@ -5,7 +5,7 @@ package org.jsonplayback.player;
  * @author Hailton de Castro
  *
  */
-public interface IJsHbSignatureCrypto {
+public interface SignatureCrypto {
 	/**
 	 * Returns a 'Base64 url safe String' from original Json signature.  
 	 * @param plainSignatureStr

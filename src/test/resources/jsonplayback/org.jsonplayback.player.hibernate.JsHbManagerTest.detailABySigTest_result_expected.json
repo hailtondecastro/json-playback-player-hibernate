@@ -1,25 +1,25 @@
 {
   "result" : [ {
     "$jsHbMetadatas$" : {
-      "$iAmJsHbBackendMetadatas$" : true,
+      "$iAmPlayerMetadatas$" : true,
       "$id$" : 1,
       "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMCJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
-      "$hibernateId$" : {
+      "$playerObjectId$" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$id$" : 2,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiY29tcElkIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIwIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
           "$isComponent$" : true,
-          "$isComponentHibernateId$" : true
+          "$isComponentPlayerObjectId$" : true
         },
         "masterA" : {
           "$jsHbMetadatas$" : {
-            "$iAmJsHbBackendMetadatas$" : true,
+            "$iAmPlayerMetadatas$" : true,
             "$id$" : 3,
             "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
             "$isLazyUninitialized$" : true,
             "$isAssociative$" : true,
-            "$hibernateId$" : 1
+            "$playerObjectId$" : 1
           }
         },
         "subId" : 0
@@ -27,31 +27,31 @@
     },
     "compId" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$idRef$" : 2
       }
     },
     "hbVersion" : 1,
     "detailAComp" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$id$" : 4,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjAiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
         "$isComponent$" : true
       },
       "masterB" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$id$" : 5,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
           "$isLazyUninitialized$" : true,
           "$isAssociative$" : true,
-          "$hibernateId$" : {
+          "$playerObjectId$" : {
             "$jsHbMetadatas$" : {
-              "$iAmJsHbBackendMetadatas$" : true,
+              "$iAmPlayerMetadatas$" : true,
               "$id$" : 6,
               "$isComponent$" : true,
-              "$isComponentHibernateId$" : true
+              "$isComponentPlayerObjectId$" : true
             },
             "idA" : 1,
             "idB" : 1
@@ -60,14 +60,14 @@
       },
       "detailACompComp" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$id$" : 7,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIwIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
           "$isComponent$" : true
         },
         "masterB" : {
           "$jsHbMetadatas$" : {
-            "$iAmJsHbBackendMetadatas$" : true,
+            "$iAmPlayerMetadatas$" : true,
             "$idRef$" : 5
           }
         }
@@ -79,26 +79,26 @@
     },
     "detailAComponent" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$idRef$" : 4
       }
     }
   }, {
     "$jsHbMetadatas$" : {
-      "$iAmJsHbBackendMetadatas$" : true,
+      "$iAmPlayerMetadatas$" : true,
       "$id$" : 8,
       "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
-      "$hibernateId$" : {
+      "$playerObjectId$" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$id$" : 9,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiY29tcElkIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
           "$isComponent$" : true,
-          "$isComponentHibernateId$" : true
+          "$isComponentPlayerObjectId$" : true
         },
         "masterA" : {
           "$jsHbMetadatas$" : {
-            "$iAmJsHbBackendMetadatas$" : true,
+            "$iAmPlayerMetadatas$" : true,
             "$idRef$" : 3
           }
         },
@@ -107,34 +107,34 @@
     },
     "compId" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$idRef$" : 9
       }
     },
     "hbVersion" : 1,
     "detailAComp" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$id$" : 10,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
         "$isComponent$" : true
       },
       "masterB" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$idRef$" : 5
         }
       },
       "detailACompComp" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$id$" : 11,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
           "$isComponent$" : true
         },
         "masterB" : {
           "$jsHbMetadatas$" : {
-            "$iAmJsHbBackendMetadatas$" : true,
+            "$iAmPlayerMetadatas$" : true,
             "$idRef$" : 5
           }
         }
@@ -146,26 +146,26 @@
     },
     "detailAComponent" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$idRef$" : 10
       }
     }
   }, {
     "$jsHbMetadatas$" : {
-      "$iAmJsHbBackendMetadatas$" : true,
+      "$iAmPlayerMetadatas$" : true,
       "$id$" : 12,
       "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMiJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
-      "$hibernateId$" : {
+      "$playerObjectId$" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$id$" : 13,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiY29tcElkIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIyIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
           "$isComponent$" : true,
-          "$isComponentHibernateId$" : true
+          "$isComponentPlayerObjectId$" : true
         },
         "masterA" : {
           "$jsHbMetadatas$" : {
-            "$iAmJsHbBackendMetadatas$" : true,
+            "$iAmPlayerMetadatas$" : true,
             "$idRef$" : 3
           }
         },
@@ -174,34 +174,34 @@
     },
     "compId" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$idRef$" : 13
       }
     },
     "hbVersion" : 1,
     "detailAComp" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$id$" : 14,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjIiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
         "$isComponent$" : true
       },
       "masterB" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$idRef$" : 5
         }
       },
       "detailACompComp" : {
         "$jsHbMetadatas$" : {
-          "$iAmJsHbBackendMetadatas$" : true,
+          "$iAmPlayerMetadatas$" : true,
           "$id$" : 15,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIyIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
           "$isComponent$" : true
         },
         "masterB" : {
           "$jsHbMetadatas$" : {
-            "$iAmJsHbBackendMetadatas$" : true,
+            "$iAmPlayerMetadatas$" : true,
             "$idRef$" : 5
           }
         }
@@ -213,7 +213,7 @@
     },
     "detailAComponent" : {
       "$jsHbMetadatas$" : {
-        "$iAmJsHbBackendMetadatas$" : true,
+        "$iAmPlayerMetadatas$" : true,
         "$idRef$" : 14
       }
     }

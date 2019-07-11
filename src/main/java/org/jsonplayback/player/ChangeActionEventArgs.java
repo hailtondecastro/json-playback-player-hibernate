@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import org.jsonplayback.player.hibernate.JsHbPlaybackActionType;
 
-public class JsHbChangeActionEventArgs<E> {
+public class ChangeActionEventArgs<E> {
 	private E ownerValue;
 	private Object settedValue;
 	private String propertyName;
@@ -12,7 +12,7 @@ public class JsHbChangeActionEventArgs<E> {
 	private JsHbPlaybackActionType actionType;
 	
 	@SuppressWarnings("rawtypes")
-	public JsHbChangeActionEventArgs(E ownerValue, Object settedValue, String property, Collection changedCollection,
+	public ChangeActionEventArgs(E ownerValue, Object settedValue, String property, Collection changedCollection,
 			JsHbPlaybackActionType actionType) {
 		super();
 		this.ownerValue = ownerValue;

@@ -1,6 +1,6 @@
 package org.jsonplayback.player;
 
-public interface IJsHbGetBySignatureListener {
+public interface IGetBySignatureListener {
 	String getName();
 	<T> T onBeforeBySignature(String signature, SignatureBean signatureBean);
 	<T> T onAfterBySignature(String signature, SignatureBean signatureBean, T entity);

@@ -6,14 +6,13 @@ import java.util.Stack;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
-import org.jsonplayback.player.hibernate.JsHbBackendMetadatas;
 import org.jsonplayback.player.hibernate.JsHbBeanPropertyWriter;
 import org.jsonplayback.player.hibernate.JsHbJsonSerializer;
 import org.jsonplayback.player.hibernate.JsHbManager;
 import org.jsonplayback.player.hibernate.JsHbPlayback;
 import org.jsonplayback.player.hibernate.JsHbResultEntity;
 
-public interface IJsHbManager {
+public interface IManager {
 	SignatureBean generateLazySignature(PersistentCollection persistentCollection);
 
 	SignatureBean generateLazySignature(HibernateProxy hibernateProxy);
@@ -26,11 +25,11 @@ public interface IJsHbManager {
 
 	/**
 	 * Return not null value if the property is annotatted with
-	 * {@link JsHbLazyProperty} for a
+	 * {@link LazyProperty} for a
 	 * {@link IDirectRawWriterWrapper#getCallback()}.{@link IDirectRawWriter#write(java.io.OutputStream)}
-	 * call after set http header with {@link JsHbLazyProperty#contentTypePrefix()}.
-	 * {@link JsHbLazyProperty#charset()} must be added to content-type if
-	 * {@link JsHbLazyProperty#contentTypePrefix()} is "content-type: text/plain".
+	 * call after set http header with {@link LazyProperty#contentTypePrefix()}.
+	 * {@link LazyProperty#charset()} must be added to content-type if
+	 * {@link LazyProperty#contentTypePrefix()} is "content-type: text/plain".
 	 * Example:
 	 * <code>directRawWriterWrapper.getJsHbLazyProperty().contentTypePrefix() + "; " + directRawWriterWrapper.getJsHbLazyProperty().charset()</code>
 	 * 
@@ -46,9 +45,9 @@ public interface IJsHbManager {
 
 	Object getHibernateObjectId(Object object);
 
-	IJsHbConfig getJsHbConfig();
+	IConfig getJsHbConfig();
 
-	JsHbManager configure(IJsHbConfig jsHbConfig);
+	JsHbManager configure(IConfig jsHbConfig);
 
 	/**
 	 * Threadsafe
@@ -60,26 +59,9 @@ public interface IJsHbManager {
 	 */
 	void stopSuperSync();
 
-	Map<Long, Object> getObjectByIdMap();
-
-	/**
-	 * Internal use.
-	 * @return
-	 */
-	Map<IdentityRefKey, Long> getIdByObjectMap();
-
-	Long getCurrId();
-
-	void currIdPlusPlus();
-
 	boolean isStarted();
 
 //	boolean isPersistentClassOrComponent(Class clazz);
-
-	boolean isRelationship(Class<?> clazz, String fieldName);
-
-	SignatureBean generateLazySignatureForCollRelashionship(Class<?> ownerClass, String fieldName, Object ownerValue,
-			Object fieldValue);
 
 	/**
 	 * Sobreescreve a configuracao temporariamente. Eh thead safe e nao afeta as
@@ -88,11 +70,9 @@ public interface IJsHbManager {
 	 * @param newConfig
 	 * @return
 	 */
-	IJsHbManager overwriteConfigurationTemporarily(IJsHbConfig newConfig);
+	IManager overwriteConfigurationTemporarily(IConfig newConfig);
 
 	<T> JsHbResultEntity<T> createResultEntity(T result);
-
-	boolean isComponent(Class<?> componentClass);
 
 	/**
 	 * Inicializa o Manager. Faz as cargas iniciais a partir dos metadatas hibernate
@@ -103,36 +83,11 @@ public interface IJsHbManager {
 	 * 
 	 * @return
 	 */
-	IJsHbManager init();
+	IManager init();
 
-	boolean isPersistentClass(Class clazz);
+	IReplayable prepareReplayable(JsHbPlayback playback);
 
-	Stack<JsHbBeanPropertyWriter> getJsHbBeanPropertyWriterStepStack();
 
-//	Stack<String> getCurrentCompositePathStack();
-//	Object getCurrentCompositeOwner();
-	
-	AssociationAndComponentTrackInfo getCurrentAssociationAndComponentTrackInfo();
-
-	String getHibernateIdName(Class clazz);
-
-	Stack<JsHbJsonSerializer> getJsHbJsonSerializerStepStack();
-
-	IJsHbReplayable prepareReplayable(JsHbPlayback playback);
-
-	SignatureBean generateComponentSignature(AssociationAndComponentTrackInfo entityAndComponentTrackInfo);
-
-	Stack<JsHbBackendMetadatas> getJsHbBackendMetadatasWritingStack();
-
-	SignatureBean generateLazySignatureForJsHbLazyProperty(Class<?> ownerClass, String fieldName, Object ownerValue,
-			Object fieldValue);
-
-	IJsHbManager cloneWithNewConfiguration(IJsHbConfig newConfig);
-
-	String getCurrentPathFromLastEntity();
-
-	boolean isCurrentPathFromLastEntityAnEntityRelationship();
-
-	Map<IdentityRefKey, JsHbBackendMetadatas> getMetadatasCacheMap();
+	IManager cloneWithNewConfiguration(IConfig newConfig);
 }
 /*gerando conflito*/

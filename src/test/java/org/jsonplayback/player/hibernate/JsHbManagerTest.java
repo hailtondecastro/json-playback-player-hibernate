@@ -33,7 +33,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IManager;
 import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.JsHbResultEntity;
 import org.jsonplayback.player.hibernate.entities.DetailAComp;
@@ -86,7 +86,7 @@ public class JsHbManagerTest {
     }    
     
     @Autowired
-    IJsHbManager jsHbManager;
+    IManager jsHbManager;
     
     @Before
     public void setUp() throws Exception {

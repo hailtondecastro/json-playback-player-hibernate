@@ -1,6 +1,8 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player;
 
 import java.util.LinkedHashMap;
+
+import org.jsonplayback.player.hibernate.JsHbBeanPropertyWriter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -10,14 +12,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Usado para Serializar todos os metadatas.
+ * Used to Serialize all metadata.
  * @author Hailton de Castro
  *
  */
-public class JsHbBackendMetadatas implements Cloneable {
-	@JsonProperty("$iAmJsHbBackendMetadatas$")
+public class PlayerMetadatas implements Cloneable {
+	@JsonProperty("$iAmPlayerMetadatas$")
 	@JsonInclude(Include.NON_DEFAULT)
-	private Boolean iAmJsHbBackendMetadatas = true;
+	private Boolean iAmPlayerMetadatas = true;
 	
 	@JsonProperty("$id$")
 	@JsonInclude(Include.NON_NULL)
@@ -38,9 +40,9 @@ public class JsHbBackendMetadatas implements Cloneable {
 	@JsonInclude(Include.NON_DEFAULT)
 	private Boolean isComponent = false;
 	
-	@JsonProperty("$isComponentHibernateId$")
+	@JsonProperty("$isComponentPlayerObjectId$")
 	@JsonInclude(Include.NON_DEFAULT)
-	private Boolean isComponentHibernateId = false;
+	private Boolean isComponentPlayerObjectId = false;
 	
 	@JsonProperty("$isAssociative$")
 	@JsonInclude(Include.NON_DEFAULT)
@@ -50,38 +52,38 @@ public class JsHbBackendMetadatas implements Cloneable {
 	@JsonInclude(Include.NON_DEFAULT)
 	private Boolean isLazyProperty = false;
 	
-	@JsonProperty("$hibernateId$")
+	@JsonProperty("$playerObjectId$")
 	@JsonInclude(Include.NON_NULL)
-	private Object hibernateId;
+	private Object playerObjectId;
 
 	@JsonIgnore
-	private JsHbBeanPropertyWriter originalHibernateIdPropertyWriter;
+	private JsHbBeanPropertyWriter originalPlayerObjectIdPropertyWriter;
 	@JsonIgnore
-	private Object originalHibernateIdOwner;
+	private Object originalPlayerObjectIdOwner;
 	
-	public Object getOriginalHibernateIdOwner() {
-		return originalHibernateIdOwner;
+	public Object getOriginalPlayerObjectIdOwner() {
+		return originalPlayerObjectIdOwner;
 	}
-	public void setOriginalHibernateIdOwner(Object originalHibernateIdOwner) {
-		this.originalHibernateIdOwner = originalHibernateIdOwner;
+	public void setOriginalPlayerObjectIdOwner(Object originalPlayerObjectIdOwner) {
+		this.originalPlayerObjectIdOwner = originalPlayerObjectIdOwner;
 	}
-	public JsHbBeanPropertyWriter getOriginalHibernateIdPropertyWriter() {
-		return originalHibernateIdPropertyWriter;
+	public JsHbBeanPropertyWriter getOriginalPlayerObjectIdPropertyWriter() {
+		return originalPlayerObjectIdPropertyWriter;
 	}
-	public void setOriginalHibernateIdPropertyWriter(JsHbBeanPropertyWriter originalHibernateIdPropertyWriter) {
-		this.originalHibernateIdPropertyWriter = originalHibernateIdPropertyWriter;
+	public void setOriginalPlayerObjectIdPropertyWriter(JsHbBeanPropertyWriter originalPlayerObjectIdPropertyWriter) {
+		this.originalPlayerObjectIdPropertyWriter = originalPlayerObjectIdPropertyWriter;
 	}
-	public Boolean getIsComponentHibernateId() {
-		return isComponentHibernateId;
+	public Boolean getIsComponentPlayerObjectId() {
+		return isComponentPlayerObjectId;
 	}
-	public void setIsComponentHibernateId(Boolean isComponentHibernateId) {
-		this.isComponentHibernateId = isComponentHibernateId;
+	public void setIsComponentPlayerObjectId(Boolean isComponentPlayerObjectId) {
+		this.isComponentPlayerObjectId = isComponentPlayerObjectId;
 	}
-	public Boolean getiAmJsHbBackendMetadatas() {
-		return iAmJsHbBackendMetadatas;
+	public Boolean getiAmPlayerMetadatas() {
+		return iAmPlayerMetadatas;
 	}
-	public void setiAmJsHbBackendMetadatas(Boolean iAmJsHbBackendMetadatas) {
-		this.iAmJsHbBackendMetadatas = iAmJsHbBackendMetadatas;
+	public void setiAmPlayerMetadatas(Boolean iAmPlayerMetadatas) {
+		this.iAmPlayerMetadatas = iAmPlayerMetadatas;
 	}
 	public Long getId() {
 		return id;
@@ -125,11 +127,11 @@ public class JsHbBackendMetadatas implements Cloneable {
 	public void setIsLazyProperty(Boolean isLazyProperty) {
 		this.isLazyProperty = isLazyProperty;
 	}
-	public Object getHibernateId() {
-		return hibernateId;
+	public Object getPlayerObjectId() {
+		return playerObjectId;
 	}
-	public void setHibernateId(Object hibernateId) {
-		this.hibernateId = hibernateId;
+	public void setPlayerObjectId(Object playerObjectId) {
+		this.playerObjectId = playerObjectId;
 	}
 	
 	@Override
@@ -137,36 +139,36 @@ public class JsHbBackendMetadatas implements Cloneable {
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
 			LinkedHashMap<String, Object> thisAsMap = new LinkedHashMap<>();
-			thisAsMap.put("iAmJsHbBackendMetadatas", this.iAmJsHbBackendMetadatas);
+			thisAsMap.put("iAmPlayerMetadatas", this.iAmPlayerMetadatas);
 			thisAsMap.put("id", this.id);
 			thisAsMap.put("idRef", this.idRef);
 			thisAsMap.put("signature", this.signature);
 			thisAsMap.put("isLazyUninitialized", this.isLazyUninitialized);
 			thisAsMap.put("isComponent", this.isComponent);
-			thisAsMap.put("isComponentHibernateId", this.isComponentHibernateId);
+			thisAsMap.put("isComponentPlayerObjectId", this.isComponentPlayerObjectId);
 			thisAsMap.put("isAssociative", this.isAssociative);
 			thisAsMap.put("isLazyProperty", this.isLazyProperty);
-			thisAsMap.put("hibernateId", this.hibernateId != null? this.hibernateId.toString() : null);
+			thisAsMap.put("playerObjectId", this.playerObjectId != null? this.playerObjectId.toString() : null);
 			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(thisAsMap);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
 	}
 	
-	protected JsHbBackendMetadatas clone() {
-		JsHbBackendMetadatas metadatasClone = new JsHbBackendMetadatas();
-		metadatasClone.iAmJsHbBackendMetadatas           = this.iAmJsHbBackendMetadatas          ;       
+	protected PlayerMetadatas clone() {
+		PlayerMetadatas metadatasClone = new PlayerMetadatas();
+		metadatasClone.iAmPlayerMetadatas           = this.iAmPlayerMetadatas          ;       
 		metadatasClone.id                                = this.id                               ;      
 		metadatasClone.idRef                             = this.idRef                            ;      
 		metadatasClone.signature                         = this.signature                        ;      
 		metadatasClone.isLazyUninitialized               = this.isLazyUninitialized              ;      
 		metadatasClone.isComponent                       = this.isComponent                      ;      
-		metadatasClone.isComponentHibernateId            = this.isComponentHibernateId           ;      
+		metadatasClone.isComponentPlayerObjectId            = this.isComponentPlayerObjectId           ;      
 		metadatasClone.isAssociative                     = this.isAssociative                    ;      
 		metadatasClone.isLazyProperty                    = this.isLazyProperty                   ;      
-		metadatasClone.hibernateId                       = this.hibernateId                      ;      
-		metadatasClone.originalHibernateIdPropertyWriter = this.originalHibernateIdPropertyWriter;      
-		metadatasClone.originalHibernateIdOwner          = this.originalHibernateIdOwner         ;      
+		metadatasClone.playerObjectId                       = this.playerObjectId                      ;      
+		metadatasClone.originalPlayerObjectIdPropertyWriter = this.originalPlayerObjectIdPropertyWriter;      
+		metadatasClone.originalPlayerObjectIdOwner          = this.originalPlayerObjectIdOwner         ;      
 		return metadatasClone;
 	}
 }

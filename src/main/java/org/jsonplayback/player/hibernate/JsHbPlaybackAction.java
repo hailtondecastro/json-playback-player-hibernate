@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IManager;
 import org.jsonplayback.player.SignatureBean;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -50,7 +50,7 @@ public class JsHbPlaybackAction {
 	
 	protected JsHbPlayback jsHbPlaybackOwner;
 
-	protected String resolveJavaPropertyName(ObjectMapper objectMapper, IJsHbManager jsHbManager,
+	protected String resolveJavaPropertyName(ObjectMapper objectMapper, IManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (!this.isResolvedJavaPropertyName) {
 			this.isResolvedJavaPropertyName = true;
@@ -74,7 +74,7 @@ public class JsHbPlaybackAction {
 	 * @param creationRefMap
 	 * @return
 	 */
-	protected Object resolveOwnerValue(IJsHbManager jsHbManager, HashMap<Long, Object> creationRefMap) {
+	protected Object resolveOwnerValue(IManager jsHbManager, HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedOwnerValue == null) {
 			if (this.ownerSignatureStr != null) {
 				SignatureBean signatureBean = jsHbManager.deserializeSignature(this.ownerSignatureStr);
@@ -97,7 +97,7 @@ public class JsHbPlaybackAction {
 		return this.resolvedOwnerValue;
 	}
 
-	protected Object resolveSettedValue(ObjectMapper objectMapper, IJsHbManager jsHbManager,
+	protected Object resolveSettedValue(ObjectMapper objectMapper, IManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (!this.isResolvedSettedValue) {
 			this.isResolvedSettedValue = true;
@@ -153,7 +153,7 @@ public class JsHbPlaybackAction {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected Collection resolveColletion(ObjectMapper objectMapper, IJsHbManager jsHbManager,
+	protected Collection resolveColletion(ObjectMapper objectMapper, IManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedColletion == null && (this.actionType == JsHbPlaybackActionType.COLLECTION_ADD || this.actionType == JsHbPlaybackActionType.COLLECTION_REMOVE)) {
 			try {
@@ -166,7 +166,7 @@ public class JsHbPlaybackAction {
 		return this.resolvedColletion;
 	}
 
-	protected DefaultDeserializationContext resolveDefaultDeserializationContext(ObjectMapper objectMapper, IJsHbManager jsHbManager) {
+	protected DefaultDeserializationContext resolveDefaultDeserializationContext(ObjectMapper objectMapper, IManager jsHbManager) {
 		if (this.jsHbPlaybackOwner.defaultDeserializationContext == null) {
 			this.jsHbPlaybackOwner.defaultDeserializationContext = ((DefaultDeserializationContext) objectMapper
 					.getDeserializationContext()).createInstance(objectMapper.getDeserializationConfig(), null,
@@ -175,7 +175,7 @@ public class JsHbPlaybackAction {
 		return this.jsHbPlaybackOwner.defaultDeserializationContext;
 	}
 	
-	protected BeanDeserializerBase resolveBeanDeserializer(ObjectMapper objectMapper, IJsHbManager jsHbManager,
+	protected BeanDeserializerBase resolveBeanDeserializer(ObjectMapper objectMapper, IManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedBeanDeserializer == null) {
 			JavaType entJavaType = objectMapper.getTypeFactory().constructType(this.resolveOwnerJavaClass(jsHbManager, creationRefMap));
@@ -193,7 +193,7 @@ public class JsHbPlaybackAction {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected Class resolveOwnerJavaClass(IJsHbManager jsHbManager,
+	protected Class resolveOwnerJavaClass(IManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedOwnerJavaClass == null) {
 			try {

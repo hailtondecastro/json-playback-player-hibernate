@@ -44,11 +44,12 @@ import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
-import org.jsonplayback.player.IJsHbConfig;
-import org.jsonplayback.player.IJsHbManager;
-import org.jsonplayback.player.IJsHbReplayable;
+import org.jsonplayback.player.IConfig;
+import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.IdentityRefKey;
-import org.jsonplayback.player.JsHbLazyProperty;
+import org.jsonplayback.player.PlayerMetadatas;
+import org.jsonplayback.player.LazyProperty;
 import org.jsonplayback.player.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,18 +62,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
-public class JsHbManager implements IJsHbManager {
+public class JsHbManager implements IManagerImplementor {
 	private static Logger logger = LoggerFactory.getLogger(JsHbManager.class);
 	
-	private IJsHbConfig jsHbConfig = new JsHbConfig();
+	private IConfig jsHbConfig = new JsHbConfig();
 	ThreadLocal<Long> currIdTL = new ThreadLocal<Long>();
 	ThreadLocal<Map<Long, Object>> objectByIdMapTL = new ThreadLocal<>();
 	ThreadLocal<Map<IdentityRefKey, Long>> idByObjectMapTL = new ThreadLocal<>();
-	ThreadLocal<Map<IdentityRefKey, JsHbBackendMetadatas>> metadatasCacheMapTL = new ThreadLocal<>();
-	ThreadLocal<IJsHbConfig> temporaryConfigurationTL = new ThreadLocal<IJsHbConfig>();
+	ThreadLocal<Map<IdentityRefKey, PlayerMetadatas>> metadatasCacheMapTL = new ThreadLocal<>();
+	ThreadLocal<IConfig> temporaryConfigurationTL = new ThreadLocal<IConfig>();
 	ThreadLocal<Stack<JsHbBeanPropertyWriter>> jsHbBeanPropertyWriterStepStackTL = new ThreadLocal<Stack<JsHbBeanPropertyWriter>>();
 	ThreadLocal<Stack<JsHbJsonSerializer>> JsHbJsonSerializerStepStackTL = new ThreadLocal<Stack<JsHbJsonSerializer>>(); 
-	ThreadLocal<Stack<JsHbBackendMetadatas>> jsHbBackendMetadatasWritingStackTL = new ThreadLocal<Stack<JsHbBackendMetadatas>>();
+	ThreadLocal<Stack<PlayerMetadatas>> jsHbBackendMetadatasWritingStackTL = new ThreadLocal<Stack<PlayerMetadatas>>();
 
 //	ThreadLocal<Stack<String>> currentCompositePathStackTL = new ThreadLocal<>();
 //	ThreadLocal<Object> currentCompositeOwner = new ThreadLocal<>();
@@ -87,7 +88,7 @@ public class JsHbManager implements IJsHbManager {
 	}
 
 	@Override
-	public JsHbManager configure(IJsHbConfig jsHbConfig) {
+	public JsHbManager configure(IConfig jsHbConfig) {
 		if (jsHbConfig == null) {
 			throw new IllegalArgumentException("jsHbConfig can not be null");
 		}
@@ -104,7 +105,7 @@ public class JsHbManager implements IJsHbManager {
 	private boolean initialed = false;
 
 	@Override
-	public IJsHbManager init() {
+	public IManager init() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("init()");
 		}
@@ -889,13 +890,13 @@ public class JsHbManager implements IJsHbManager {
 	}
 	
 	@Override
-	public String getHibernateIdName(Class clazz) {
+	public String getPlayerObjectIdName(Class clazz) {
 
 		return this.jsHbConfig.getSessionFactory().getClassMetadata(clazz).getIdentifierPropertyName();
 	}
 
 	@Override
-	public IJsHbConfig getJsHbConfig() {
+	public IConfig getJsHbConfig() {
 		if (this.temporaryConfigurationTL.get() != null) {
 			return this.temporaryConfigurationTL.get();
 		} else {
@@ -924,7 +925,7 @@ public class JsHbManager implements IJsHbManager {
 		this.metadatasCacheMapTL.set(new HashMap<>());
 		this.jsHbBeanPropertyWriterStepStackTL.set(new Stack<JsHbBeanPropertyWriter>());
 		this.JsHbJsonSerializerStepStackTL.set(new Stack<JsHbJsonSerializer>());
-		this.jsHbBackendMetadatasWritingStackTL.set(new Stack<JsHbBackendMetadatas>());
+		this.jsHbBackendMetadatasWritingStackTL.set(new Stack<PlayerMetadatas>());
 //		this.currentCompositeOwner.set(null);
 //		this.currentCompositePathStackTL.set(new Stack<>());
 	}
@@ -966,7 +967,7 @@ public class JsHbManager implements IJsHbManager {
 	}
 	
 	@Override
-	public Map<IdentityRefKey, JsHbBackendMetadatas> getMetadatasCacheMap() {
+	public Map<IdentityRefKey, PlayerMetadatas> getMetadatasCacheMap() {
 		this.validateStarted();
 		return this.metadatasCacheMapTL.get();
 	}
@@ -982,7 +983,7 @@ public class JsHbManager implements IJsHbManager {
 	}
 
 	@Override
-	public Stack<JsHbBackendMetadatas> getJsHbBackendMetadatasWritingStack() {
+	public Stack<PlayerMetadatas> getJsHbBackendMetadatasWritingStack() {
 		return jsHbBackendMetadatasWritingStackTL.get();
 	}
 
@@ -1140,7 +1141,7 @@ public class JsHbManager implements IJsHbManager {
 	}
 
 	@Override
-	public IJsHbManager overwriteConfigurationTemporarily(IJsHbConfig newConfig) {
+	public IManager overwriteConfigurationTemporarily(IConfig newConfig) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("overwriteConfigurationTemporarily(). newConfig:\n {0}'", newConfig));
 		}
@@ -1149,17 +1150,17 @@ public class JsHbManager implements IJsHbManager {
 	}
 	
 	@Override
-	public IJsHbManager cloneWithNewConfiguration(IJsHbConfig newConfig) {
+	public IManager cloneWithNewConfiguration(IConfig newConfig) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("cloneWithNewConfiguration(). newConfig:\n {0}'", newConfig));
 		}
-		IJsHbManager jsHbManagerCloned = new JsHbManager();
+		IManager jsHbManagerCloned = new JsHbManager();
 		jsHbManagerCloned = jsHbManagerCloned.configure(newConfig);
 		return jsHbManagerCloned;
 	}
 
 	@Override
-	public IJsHbReplayable prepareReplayable(JsHbPlayback playback) {
+	public IReplayable prepareReplayable(JsHbPlayback playback) {
 //		throw new RuntimeException("");
 //		this.temporaryConfigurationTL.set(newConfig);
 //		return null;
@@ -1179,8 +1180,8 @@ public class JsHbManager implements IJsHbManager {
 		serStepTackLocal.pop();
 		for (JsHbJsonSerializer jsHbJsonSerializer : serStepTackLocal) {
 			Object currBean = jsHbJsonSerializer.getCurrSerializationBean();
-			if (currBean instanceof JsHbBackendMetadatas) {
-				currBean = ((JsHbBackendMetadatas) currBean).getOriginalHibernateIdOwner();
+			if (currBean instanceof PlayerMetadatas) {
+				currBean = ((PlayerMetadatas) currBean).getOriginalPlayerObjectIdOwner();
 			}
 			if (jsHbJsonSerializer.getCurrSerializationBean() != null && this.isPersistentClass(currBean.getClass())) {
 				lastEntityOwner = currBean;
@@ -1281,13 +1282,13 @@ public class JsHbManager implements IJsHbManager {
 					JsHbBeanPropertyWriter jsHbBeanPropertyWriter = (JsHbBeanPropertyWriter) propertyWriter;
 					if (jsHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName()
 							.equals(signature.getPropertyName())) {
-						final JsHbLazyProperty jsHbLazyPropertyAnn = jsHbBeanPropertyWriter
-								.getAnnotation(JsHbLazyProperty.class);
+						final LazyProperty jsHbLazyPropertyAnn = jsHbBeanPropertyWriter
+								.getAnnotation(LazyProperty.class);
 						if (jsHbLazyPropertyAnn != null && jsHbLazyPropertyAnn.directRawWrite()) {
 							return new IDirectRawWriterWrapper() {
 
 								@Override
-								public JsHbLazyProperty getJsHbLazyProperty() {
+								public LazyProperty getJsHbLazyProperty() {
 									return jsHbLazyPropertyAnn;
 								}
 

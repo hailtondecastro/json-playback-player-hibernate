@@ -7,8 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jsonplayback.player.IJsHbManager;
-import org.jsonplayback.player.JsHbLazyProperty;
+import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.PlayerMetadatas;
+import org.jsonplayback.player.LazyProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +25,9 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 
 	private static Logger logger = LoggerFactory.getLogger(JsHbBeanSerializerModifier.class);
-	private IJsHbManager jsHbManager;
+	private IManagerImplementor jsHbManager;
 
-	public JsHbBeanSerializerModifier configJsHbManager(IJsHbManager jsHbManager) {
+	public JsHbBeanSerializerModifier configJsHbManager(IManagerImplementor jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}
@@ -42,9 +43,9 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 
 		Class beanClass = beanDesc.getType().getRawClass();
 		boolean beanClassIsPersistent = this.jsHbManager.isPersistentClass(beanClass);
-		String hibernateIdName = null;
+		String playerObjectIdName = null;
 		if (beanClassIsPersistent) {
-			hibernateIdName = this.jsHbManager.getHibernateIdName(beanClass);			
+			playerObjectIdName = this.jsHbManager.getPlayerObjectIdName(beanClass);			
 		}
 		
 		for (int i = 0; i < beanProperties.size(); i++) {
@@ -52,23 +53,23 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 			BeanPropertyDefinition prpDef = prpDefsMap.get(beanPropertyWriter.getName());
 			Class prpClass = beanPropertyWriter.getType().getRawClass();
 			boolean isPersistent = this.jsHbManager.isPersistentClass(prpClass);
-			boolean isHibernateId = false;
-			boolean isMetadatasHibernateId = false;
+			boolean isPlayerObjectId = false;
+			boolean isMetadatasPlayerObjectId = false;
 
 			if (beanClassIsPersistent) {
-				if (hibernateIdName.equals(prpDef.getInternalName())) {
-					isHibernateId = true;
+				if (playerObjectIdName.equals(prpDef.getInternalName())) {
+					isPlayerObjectId = true;
 				}
 			}
 
-			if (prpDef.getAccessor().getDeclaringClass().equals(JsHbBackendMetadatas.class)
-					&& prpDef.getInternalName().equals("hibernateId")) {
-				isMetadatasHibernateId = true;
+			if (prpDef.getAccessor().getDeclaringClass().equals(PlayerMetadatas.class)
+					&& prpDef.getInternalName().equals("playerObjectId")) {
+				isMetadatasPlayerObjectId = true;
 			}
 
 			BeanPropertyWriter newBeanPropertyWriter = null;
 			if (this.jsHbManager.isPersistentClass(beanClass) || this.jsHbManager.isComponent(beanClass)) {
-				JsHbLazyProperty jsHbLazyProperty = beanPropertyWriter.getAnnotation(JsHbLazyProperty.class);
+				LazyProperty jsHbLazyProperty = beanPropertyWriter.getAnnotation(LazyProperty.class);
 				if (jsHbLazyProperty != null) {
 					if ((beanPropertyWriter.getType().getRawClass().isArray()
 							&& beanPropertyWriter.getType().getRawClass().getComponentType() == byte.class)
@@ -84,27 +85,27 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
 							.configJsHbManager(jsHbManager)
 //							.loadComponentOwnerClass(beanClass)
-							.loadBeanPropertyDefinition(prpDef).loadIsHibernateId(isHibernateId)
+							.loadBeanPropertyDefinition(prpDef).loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsPersistent(isPersistent)
-							.loadIsMetadatasHibernateId(isMetadatasHibernateId);
+							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
 				} else if (this.jsHbManager.isRelationship(beanClass, prpDef.getInternalName())) {
 					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
 							.configJsHbManager(jsHbManager).loadRelationshipOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
-							.loadIsHibernateId(isHibernateId)
-							.loadIsMetadatasHibernateId(isMetadatasHibernateId);
+							.loadIsPlayerObjectId(isPlayerObjectId)
+							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
 //					throw new RuntimeException("ISSO TA ERRADO. beanPropertyWriter.getName()?!?!?!");
 				} else {
 					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter).configJsHbManager(jsHbManager)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
-							.loadIsHibernateId(isHibernateId)
-							.loadIsMetadatasHibernateId(isMetadatasHibernateId);
+							.loadIsPlayerObjectId(isPlayerObjectId)
+							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
 				}
 			} else {
 				newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter).configJsHbManager(jsHbManager)
 						.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
-						.loadIsHibernateId(isHibernateId)
-						.loadIsMetadatasHibernateId(isMetadatasHibernateId);
+						.loadIsPlayerObjectId(isPlayerObjectId)
+						.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
 			}
 			
 			if (newBeanPropertyWriter != null) {

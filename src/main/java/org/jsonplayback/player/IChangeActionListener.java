@@ -1,8 +1,8 @@
 package org.jsonplayback.player;
 
-public interface IJsHbChangeActionListener {
+public interface IChangeActionListener {
 	String getName();
-	void onBeforeChange(JsHbChangeActionEventArgs eventArgs);
-	void onAfterChange(JsHbChangeActionEventArgs eventArgs);
+	void onBeforeChange(ChangeActionEventArgs eventArgs);
+	void onAfterChange(ChangeActionEventArgs eventArgs);
 }
 /*gerando conflito*/

@@ -79,7 +79,7 @@ public class JsHbHelper implements IJsHbHelper {
 	// newGen = new
 	// JsHbJsonGeneratorDelegate(gen).configJsHbManager(this.jsHbManager);
 	// }
-	// newGen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName());
+	// newGen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName());
 	// idSerializer.serialize(objectId, newGen, serializers);
 	// }
 	// gen.writeEndObject();
@@ -155,7 +155,7 @@ public class JsHbHelper implements IJsHbHelper {
 			newGen = new JsHbJsonGeneratorDelegate(gen).configJsHbManager(this.jsHbManager);
 		}
 		try {
-			jsHbJsonSerializer.writeHibernateId(valueToSerialize, newGen, serializers);
+			jsHbJsonSerializer.writePlayerObjectId(valueToSerialize, newGen, serializers);
 		} catch (Exception e) {
 			throw new RuntimeException("Isso nao deveria acontecer", e);
 		}

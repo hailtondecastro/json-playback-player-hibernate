@@ -3,8 +3,9 @@ package org.jsonplayback.player.hibernate;
 import java.util.Stack;
 
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IJsHbManager;
-import org.jsonplayback.player.JsHbLazyProperty;
+import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.PlayerMetadatas;
+import org.jsonplayback.player.LazyProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,16 +20,16 @@ import com.fasterxml.jackson.databind.ser.impl.PropertySerializerMap;
 public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 	private static Logger logger = LoggerFactory.getLogger(JsHbBeanPropertyWriter.class);
 
-	private IJsHbManager jsHbManager;
+	private IManagerImplementor jsHbManager;
 
 //	private Class<?> componentOwnerClass = null;
 	private Class<?> relationshipOwnerClass = null;
 	private ThreadLocal<Stack<Object>> currOwnerStackTL = new ThreadLocal<>();
 	private BeanPropertyDefinition beanPropertyDefinition = null;
 	private boolean isPersistent;
-	private boolean isHibernateId;
-	private boolean isMetadatasHibernateId;
-	private JsHbLazyProperty jsHbLazyProperty;
+	private boolean isPlayerObjectId;
+	private boolean isMetadatasPlayerObjectId;
+	private LazyProperty jsHbLazyProperty;
 	private JsHbJsonSerializer jsHbJsonSerializerForLazyProperty;
 
 	public JsHbBeanPropertyWriter configJsHbJsonSerializerForLazyProperty(JsHbJsonSerializer jsHbJsonSerializerForLazyProperty) {
@@ -36,7 +37,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return this;
 	}
 
-	public JsHbLazyProperty getJsHbLazyProperty() {
+	public LazyProperty getJsHbLazyProperty() {
 		return jsHbLazyProperty;
 	}
 	
@@ -47,26 +48,26 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return currOwnerStackTL;			
 	}
 
-	public JsHbBeanPropertyWriter loadJsHbLazyProperty(JsHbLazyProperty jsHbLazyProperty) {
+	public JsHbBeanPropertyWriter loadJsHbLazyProperty(LazyProperty jsHbLazyProperty) {
 		this.jsHbLazyProperty = jsHbLazyProperty;
 		return this;
 	}
 	
-	public boolean isMetadatasHibernateId() {
-		return isMetadatasHibernateId;
+	public boolean isMetadatasPlayerObjectId() {
+		return isMetadatasPlayerObjectId;
 	}
 
-	public JsHbBeanPropertyWriter loadIsMetadatasHibernateId(boolean isHibernateIdOnMetadatas) {
-		this.isMetadatasHibernateId = isHibernateIdOnMetadatas;
+	public JsHbBeanPropertyWriter loadIsMetadatasPlayerObjectId(boolean isPlayerObjectIdOnMetadatas) {
+		this.isMetadatasPlayerObjectId = isPlayerObjectIdOnMetadatas;
 		return this;
 	}
 
-	public boolean getIsHibernateId() {
-		return isHibernateId;
+	public boolean getIsPlayerObjectId() {
+		return isPlayerObjectId;
 	}
 
-	public JsHbBeanPropertyWriter loadIsHibernateId(boolean isHibernateId) {
-		this.isHibernateId = isHibernateId;
+	public JsHbBeanPropertyWriter loadIsPlayerObjectId(boolean isPlayerObjectId) {
+		this.isPlayerObjectId = isPlayerObjectId;
 		return this;
 	}
 
@@ -114,7 +115,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return this;
 	}
 
-	public JsHbBeanPropertyWriter configJsHbManager(IJsHbManager jsHbManager) {
+	public JsHbBeanPropertyWriter configJsHbManager(IManagerImplementor jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}
@@ -141,20 +142,20 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 
 		try {
 			if (this.jsHbManager.isStarted()) {
-				if (!this.isMetadatasHibernateId) {
+				if (!this.isMetadatasPlayerObjectId) {
 				this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(this);
 				} else {
-					JsHbBackendMetadatas metadatas = (JsHbBackendMetadatas) bean;
-					this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(metadatas.getOriginalHibernateIdPropertyWriter());
+					PlayerMetadatas metadatas = (PlayerMetadatas) bean;
+					this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(metadatas.getOriginalPlayerObjectIdPropertyWriter());
 			}
 			}
 			
 			//?!?!?!?! 
-			if (!this.isMetadatasHibernateId) {					
+			if (!this.isMetadatasPlayerObjectId) {					
 				this.getCurrOwnerStackTL().get().push(bean);
 			} else {
-				JsHbBackendMetadatas metadatas = (JsHbBackendMetadatas) bean;
-				this.getCurrOwnerStackTL().get().push(metadatas.getOriginalHibernateIdOwner());
+				PlayerMetadatas metadatas = (PlayerMetadatas) bean;
+				this.getCurrOwnerStackTL().get().push(metadatas.getOriginalPlayerObjectIdOwner());
 			}
 			
 			if (this.jsHbLazyProperty != null) {
@@ -168,14 +169,14 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 			}
 
 			if (this.jsHbManager.isStarted()) {
-				if (!this.isMetadatasHibernateId) {
+				if (!this.isMetadatasPlayerObjectId) {
 					super.serializeAsField(bean, gen, prov);					
 				} else {
-					JsHbBackendMetadatas metadatas = (JsHbBackendMetadatas) bean;
-					if (metadatas.getHibernateId() != null) {
+					PlayerMetadatas metadatas = (PlayerMetadatas) bean;
+					if (metadatas.getPlayerObjectId() != null) {
 						gen.writeFieldName(_name);
-						metadatas.getOriginalHibernateIdPropertyWriter().serializeAsElement(
-								metadatas.getOriginalHibernateIdOwner(), 
+						metadatas.getOriginalPlayerObjectIdPropertyWriter().serializeAsElement(
+								metadatas.getOriginalPlayerObjectIdOwner(), 
 								gen, 
 								prov);						
 					}
@@ -187,13 +188,13 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 			this.getCurrOwnerStackTL().get().pop();
 			if (this.jsHbManager.isStarted()) {
 				JsHbBeanPropertyWriter propertyWriterPop = this.jsHbManager.getJsHbBeanPropertyWriterStepStack().pop();
-				if (!this.isMetadatasHibernateId) {
+				if (!this.isMetadatasPlayerObjectId) {
 					if (propertyWriterPop != this) {
 						throw new RuntimeException("This should not happen");
 					}					
 				} else {
-					JsHbBackendMetadatas metadatas = (JsHbBackendMetadatas) bean;
-					if (propertyWriterPop != metadatas.getOriginalHibernateIdPropertyWriter()) {
+					PlayerMetadatas metadatas = (PlayerMetadatas) bean;
+					if (propertyWriterPop != metadatas.getOriginalPlayerObjectIdPropertyWriter()) {
 						throw new RuntimeException("This should not happen");
 					}
 				}
@@ -221,7 +222,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		}
 	}
 
-	public void findFieldHibernateIdentifierValue(Object bean, SerializerProvider prov, JsHbBackendMetadatas backendMetadatas)
+	public void findFieldPlayerObjectIdentifierValue(Object bean, SerializerProvider prov, PlayerMetadatas backendMetadatas)
 			throws Exception {
 		try {
 			if (this.jsHbManager.isStarted()) {
@@ -232,9 +233,9 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 			// inlined 'get()'
 			final Object value = (_accessorMethod == null) ? _field.get(bean) : _accessorMethod.invoke(bean);
 
-			backendMetadatas.setHibernateId(value);
-			backendMetadatas.setOriginalHibernateIdPropertyWriter(this);
-			backendMetadatas.setOriginalHibernateIdOwner(bean);
+			backendMetadatas.setPlayerObjectId(value);
+			backendMetadatas.setOriginalPlayerObjectIdPropertyWriter(this);
+			backendMetadatas.setOriginalPlayerObjectIdOwner(bean);
 		} finally {
 			this.getCurrOwnerStackTL().get().pop();
 			if (this.jsHbManager.isStarted()) {
@@ -246,7 +247,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		}
 	}
 	
-//	public void serializeAsFieldHibernateIdentifier(Object bean, JsonGenerator gen, SerializerProvider prov)
+//	public void serializeAsFieldPlayerObjectIdentifier(Object bean, JsonGenerator gen, SerializerProvider prov)
 //			throws Exception {
 //		try {
 //			if (this.jsHbManager.isStarted()) {
@@ -260,14 +261,14 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 //			// Null handling is bit different, check that first
 //			if (value == null) {
 //				if (_nullSerializer != null) {
-//					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName());
+//					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName());
 //					_nullSerializer.serialize(null, gen, prov);
 //					
 //					if (logger.isTraceEnabled()) {
 //						logger.trace(MessageFormat.format(
-//								"serializeAsFieldHibernateIdentifier():\n" + " gen.writeFieldName(\"{0}\");\n"
+//								"serializeAsFieldPlayerObjectIdentifier():\n" + " gen.writeFieldName(\"{0}\");\n"
 //										+ " _nullSerializer.serialize(null, gen, prov); ",
-//								this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName()));
+//								this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName()));
 //					}
 //				}
 //				return;
@@ -299,21 +300,21 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 //					return;
 //				}
 //			}
-//			gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName());
+//			gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName());
 //			if (logger.isTraceEnabled()) {
 //				logger.trace(MessageFormat.format(
-//						"serializeAsFieldHibernateIdentifier():\n" + " gen.writeFieldName(\"{0}\");",
-//						this.jsHbManager.getJsHbConfig().getJsHbHibernateIdName()));
+//						"serializeAsFieldPlayerObjectIdentifier():\n" + " gen.writeFieldName(\"{0}\");",
+//						this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName()));
 //			}
 //			if (_typeSerializer == null) {
 //				if (logger.isTraceEnabled()) {
-//					logger.trace(MessageFormat.format("serializeAsFieldHibernateIdentifier():\n"
+//					logger.trace(MessageFormat.format("serializeAsFieldPlayerObjectIdentifier():\n"
 //							+ " ser.serialize(value, gen, prov);\n" + " ser: ''{0}''", ser));
 //				}
 //				ser.serialize(value, gen, prov);
 //			} else {
 //				if (logger.isTraceEnabled()) {
-//					logger.trace(MessageFormat.format("serializeAsFieldHibernateIdentifier():\n"
+//					logger.trace(MessageFormat.format("serializeAsFieldPlayerObjectIdentifier():\n"
 //							+ " ser.serialize(value, gen, prov, _typeSerializer);\n" + " ser: ''{0}''\n"
 //									+ " _typeSerializer: " + _typeSerializer, ser, _typeSerializer));
 //				}
@@ -339,7 +340,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 //        	.append("componentOwnerClass='").append(componentOwnerClass).append("', ")
         	.append("relationshipOwnerClass='").append(relationshipOwnerClass).append("', ")
         	.append("isPersistent=").append(isPersistent).append(", ")
-        	.append("isHibernateId=").append(isHibernateId).append(", ")
+        	.append("isPlayerObjectId=").append(isPlayerObjectId).append(", ")
         	.append("relationshipOwnerClass='").append(relationshipOwnerClass).append("'")
         	.append(" from original BeanPropertyWriter={ ").append(super.toString()).append(" }");
 		return sb.toString();

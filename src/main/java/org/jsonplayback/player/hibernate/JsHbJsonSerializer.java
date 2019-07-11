@@ -12,9 +12,10 @@ import java.util.Stack;
 
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IManager;
 import org.jsonplayback.player.IdentityRefKey;
-import org.jsonplayback.player.JsHbLazyProperty;
+import org.jsonplayback.player.PlayerMetadatas;
+import org.jsonplayback.player.LazyProperty;
 import org.jsonplayback.player.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 public class JsHbJsonSerializer extends JsonSerializer<Object> {
 	private static Logger logger = LoggerFactory.getLogger(JsHbJsonSerializer.class);
 	
-	IJsHbManager jsHbManager;
+	IManagerImplementor jsHbManager;
 	private SerializerProvider serializers;
 //	private BeanPropertyWriter beanPropertyWriterForLazyProperty;
 //
@@ -39,7 +40,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 //		return this;
 //	}
 
-	public JsHbJsonSerializer configJsHbManager(IJsHbManager jsHbManager) {
+	public JsHbJsonSerializer configJsHbManager(IManagerImplementor jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}
@@ -73,7 +74,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 
 	private JsHbBeanPropertyWriter hbIdPropertyWriter = null;
 
-	public void findHibernateId(Object value, JsonGenerator gen, SerializerProvider serializers, JsHbBackendMetadatas backendMetadatas)
+	public void findPlayerObjectId(Object value, JsonGenerator gen, SerializerProvider serializers, PlayerMetadatas backendMetadatas)
 			throws IOException, JsonProcessingException {
 		if (this.delegate instanceof BeanSerializer) {
 			BeanSerializer beanSerializer = (BeanSerializer) this.delegate;
@@ -82,14 +83,14 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				PropertyWriter propertyWriter = (PropertyWriter) iterator.next();
 				if (propertyWriter instanceof JsHbBeanPropertyWriter) {
 					JsHbBeanPropertyWriter jsHbBeanPropertyWriter = (JsHbBeanPropertyWriter) propertyWriter;
-					if (jsHbBeanPropertyWriter.getIsHibernateId()) {
+					if (jsHbBeanPropertyWriter.getIsPlayerObjectId()) {
 						try {
 							if (logger.isTraceEnabled()) {
 								logger.trace(
-										"writeHibernateId(Object, JsonGenerator, SerializerProvider):\n"
-												+ " jsHbBeanPropertyWriter.serializeAsFieldHibernateIdentifier(value, gen, serializers)");
+										"writePlayerObjectId(Object, JsonGenerator, SerializerProvider):\n"
+												+ " jsHbBeanPropertyWriter.serializeAsFieldPlayerObjectIdentifier(value, gen, serializers)");
 							}
-							jsHbBeanPropertyWriter.findFieldHibernateIdentifierValue(value, serializers, backendMetadatas);
+							jsHbBeanPropertyWriter.findFieldPlayerObjectIdentifierValue(value, serializers, backendMetadatas);
 						} catch (Exception e) {
 							throw new RuntimeException("Nao deveria acontecer", e);
 						}
@@ -102,7 +103,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 		}
 	}
 
-//	public void writeHibernateId(Object value, JsonGenerator gen, SerializerProvider serializers)
+//	public void writePlayerObjectId(Object value, JsonGenerator gen, SerializerProvider serializers)
 //			throws IOException, JsonProcessingException {
 //		if (this.delegate instanceof BeanSerializer) {
 //			BeanSerializer beanSerializer = (BeanSerializer) this.delegate;
@@ -111,14 +112,14 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 //				PropertyWriter propertyWriter = (PropertyWriter) iterator.next();
 //				if (propertyWriter instanceof JsHbBeanPropertyWriter) {
 //					JsHbBeanPropertyWriter jsHbBeanPropertyWriter = (JsHbBeanPropertyWriter) propertyWriter;
-//					if (jsHbBeanPropertyWriter.getIsHibernateId()) {
+//					if (jsHbBeanPropertyWriter.getIsPlayerObjectId()) {
 //						try {
 //							if (logger.isTraceEnabled()) {
 //								logger.trace(
-//										"writeHibernateId(Object, JsonGenerator, SerializerProvider):\n"
-//												+ " jsHbBeanPropertyWriter.serializeAsFieldHibernateIdentifier(value, gen, serializers)");
+//										"writePlayerObjectId(Object, JsonGenerator, SerializerProvider):\n"
+//												+ " jsHbBeanPropertyWriter.serializeAsFieldPlayerObjectIdentifier(value, gen, serializers)");
 //							}
-//							jsHbBeanPropertyWriter.serializeAsFieldHibernateIdentifier(value, gen, serializers);
+//							jsHbBeanPropertyWriter.serializeAsFieldPlayerObjectIdentifier(value, gen, serializers);
 //						} catch (Exception e) {
 //							throw new RuntimeException("Nao deveria acontecer", e);
 //						}
@@ -166,7 +167,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 					logger.trace("Not Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). value instanceof JsHbResultEntity");
 				}
 				this.delegate.serialize(value, gen, serializers);
-			} else if (value instanceof JsHbBackendMetadatas) {
+			} else if (value instanceof PlayerMetadatas) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Not Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). value instanceof JsHbBackendMetadatas");
 				}
@@ -216,7 +217,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 		} else {
 			if (this.jsHbManager.getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
 				gen.writeStartObject();
-				JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+				PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 				backendMetadatas.setIdRef(this.jsHbManager.getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
 //				gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdRefName());
 //				gen.writeNumber(this.jsHbManager.getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
@@ -245,7 +246,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 //					this.jsHbManager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), backendMetadatas);
 				} finally {
 					if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-						JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+						PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 						if (backendMetadatasPoped != backendMetadatas) {
 							throw new RuntimeException("This should not happen");
 						}					
@@ -258,7 +259,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				Class forValueClass = valueToSerialize.getClass().getSuperclass();
 				if (this.jsHbManager.getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
 					gen.writeStartObject();
-					JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+					PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 					backendMetadatas.setIdRef(this.jsHbManager.getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
 //					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdRefName());
 //					gen.writeNumber(this.jsHbManager.getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
@@ -286,7 +287,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 //						this.jsHbManager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), backendMetadatas);
 					} finally {
 						if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-							JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+							PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 							if (backendMetadatasPoped != backendMetadatas) {
 								throw new RuntimeException("This should not happen");
 							}					
@@ -306,11 +307,11 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 	}
 
 	private boolean mayByRefOrBySigneSerialize(Object valueToSerialize, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-		JsHbBackendMetadatas backendMetadatas = this.jsHbManager.getMetadatasCacheMap().get(new IdentityRefKey(valueToSerialize));
+		PlayerMetadatas backendMetadatas = this.jsHbManager.getMetadatasCacheMap().get(new IdentityRefKey(valueToSerialize));
 		if (backendMetadatas != null) {
 			if (backendMetadatas.getId() != null) {
 				long idRef = backendMetadatas.getId();
-				backendMetadatas = new JsHbBackendMetadatas();
+				backendMetadatas = new PlayerMetadatas();
 				backendMetadatas.setIdRef(idRef);
 			} else {
 				throw new RuntimeException("This should not happen");
@@ -334,7 +335,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				gen.writeObject(backendMetadatas);
 			} finally {
 				if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-					JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+					PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 					if (backendMetadatasPoped != backendMetadatas) {
 						throw new RuntimeException("This should not happen");
 					}					
@@ -384,7 +385,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				this.jsHbManager.getObjectByIdMap().put(this.jsHbManager.getCurrId(), valueToSerialize);
 				this.jsHbManager.getIdByObjectMap().put(new IdentityRefKey(valueToSerialize),
 						this.jsHbManager.getCurrId());
-				JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+				PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 				backendMetadatas.setId(this.jsHbManager.getCurrId());
 				backendMetadatas.setIsLazyUninitialized(true);
 				backendMetadatas.setIsAssociative(true);
@@ -419,11 +420,11 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 					if (logger.isTraceEnabled()) {
 						logger.trace(MessageFormat.format(
 								"mayWriteBySignatureRefNoCache(). Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider):\n"
-												+ " this.findHibernateId(valueToSerialize, gen, serializers, {0});",
+												+ " this.findPlayerObjectId(valueToSerialize, gen, serializers, {0});",
 												backendMetadatas));
 					}
 					
-					this.findHibernateId(valueToSerialize, gen, serializers, backendMetadatas);
+					this.findPlayerObjectId(valueToSerialize, gen, serializers, backendMetadatas);
 				}
 				
 				if (logger.isTraceEnabled()) {
@@ -443,7 +444,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 					this.jsHbManager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), backendMetadatas);
 				} finally {
 					if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-						JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+						PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 						if (backendMetadatasPoped != backendMetadatas) {
 							throw new RuntimeException("This should not happen");
 						}					
@@ -456,7 +457,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				// ((HibernateProxy)valueToSerialize).getHibernateLazyInitializer().getImplementation();
 				if (this.jsHbManager.getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
 					gen.writeStartObject();
-					JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+					PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 					backendMetadatas.setIdRef(this.jsHbManager.getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
 					try {
 						this.jsHbManager.getJsHbBackendMetadatasWritingStack().push(backendMetadatas);				
@@ -465,7 +466,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 						this.jsHbManager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), backendMetadatas);
 					} finally {
 						if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-							JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+							PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 							if (backendMetadatasPoped != backendMetadatas) {
 								throw new RuntimeException("This should not happen");
 							}					
@@ -502,7 +503,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 			PersistentCollection pcvalue = (PersistentCollection) valueToSerialize;
 			if (this.jsHbManager.getJsHbConfig().isSerialiseBySignatureAllRelationship() || !pcvalue.wasInitialized()) {
 				gen.writeStartObject();
-				JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+				PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 				backendMetadatas.setIsLazyUninitialized(true);
 				backendMetadatas.setIsAssociative(true);
 //				gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName());
@@ -521,7 +522,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 					this.jsHbManager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), backendMetadatas);
 				} finally {
 					if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-						JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+						PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 						if (backendMetadatasPoped != backendMetadatas) {
 							throw new RuntimeException("This should not happen");
 						}					
@@ -558,7 +559,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 					this.jsHbManager.getObjectByIdMap().put(this.jsHbManager.getCurrId(), valueToSerialize);
 					this.jsHbManager.getIdByObjectMap().put(new IdentityRefKey(valueToSerialize),
 							this.jsHbManager.getCurrId());
-					JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+					PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 					backendMetadatas.setId(this.jsHbManager.getCurrId());
 					backendMetadatas.setIsLazyUninitialized(true);
 					backendMetadatas.setIsAssociative(true);
@@ -602,9 +603,9 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 						if (logger.isTraceEnabled()) {
 							logger.trace(
 									"mayWriteBySignatureRefNoCache(). Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). !(valueToSerialize instanceof Collection):\n"
-											+ " this.findHibernateId(valueToSerialize, gen, serializers, backendMetadatas)");
+											+ " this.findPlayerObjectId(valueToSerialize, gen, serializers, backendMetadatas)");
 						}
-						this.findHibernateId(valueToSerialize, gen, serializers, backendMetadatas);
+						this.findPlayerObjectId(valueToSerialize, gen, serializers, backendMetadatas);
 					}
 					if (logger.isTraceEnabled()) {
 						logger.trace(
@@ -623,7 +624,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 						this.jsHbManager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), backendMetadatas);
 					} finally {
 						if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-							JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+							PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 							if (backendMetadatasPoped != backendMetadatas) {
 								throw new RuntimeException("This should not happen");
 							}					
@@ -634,7 +635,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 				}
 			} else if (!this.jsHbManager.getJsHbConfig().isIgnoreAllJsHbLazyProperty()
 					&& this.jsHbManager.getJsHbBeanPropertyWriterStepStack().size() > 0){
-				JsHbLazyProperty jsHbLazyProperty = currPropertyWriter.getAnnotation(JsHbLazyProperty.class);
+				LazyProperty jsHbLazyProperty = currPropertyWriter.getAnnotation(LazyProperty.class);
 				if (jsHbLazyProperty != null) {
 					try {
 						long size = 0;
@@ -658,7 +659,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 							return false;
 						} else {
 							gen.writeStartObject();
-							JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+							PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 							backendMetadatas.setIsLazyUninitialized(true);
 							backendMetadatas.setIsLazyProperty(true);
 //							gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsLazyUninitializedName());
@@ -682,7 +683,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 								this.jsHbManager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), backendMetadatas);
 							} finally {
 								if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-									JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+									PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 									if (backendMetadatasPoped != backendMetadatas) {
 										throw new RuntimeException("This should not happen");
 									}					

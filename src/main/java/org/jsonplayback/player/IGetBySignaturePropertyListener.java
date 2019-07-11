@@ -2,7 +2,7 @@ package org.jsonplayback.player;
 
 import java.util.Map;
 
-public interface IJsHbGetBySignaturePropertyListener extends IJsHbGetBySignatureListener {
+public interface IGetBySignaturePropertyListener extends IGetBySignatureListener {
 	Map<Class, String> getPropertiesTriggers();
 }
 /*gerando conflito*/

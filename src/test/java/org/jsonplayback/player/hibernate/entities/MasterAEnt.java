@@ -5,7 +5,7 @@ import java.sql.Clob;
 import java.util.Collection;
 import java.util.Date;
 
-import org.jsonplayback.player.JsHbLazyProperty;
+import org.jsonplayback.player.LazyProperty;
 import org.jsonplayback.player.hibernate.BlobBase64Serializer;
 import org.jsonplayback.player.hibernate.ByteArrayBase64Serializer;
 import org.jsonplayback.player.hibernate.ClobStringSerializer;
@@ -24,16 +24,16 @@ public class MasterAEnt {
 	private Blob blobB;
 	private Integer hbVersion;
 	private Collection<DetailAEnt> detailAEntCol;
-	@JsHbLazyProperty(nonLazyMaxSize=1024)
+	@LazyProperty(nonLazyMaxSize=1024)
 	@JsonSerialize(using=ByteArrayBase64Serializer.class)
 	private byte[] blobLazyA;
 	@JsonSerialize(using=BlobBase64Serializer.class)
-	@JsHbLazyProperty(nonLazyMaxSize=1024)
+	@LazyProperty(nonLazyMaxSize=1024)
 	private Blob blobLazyB;
-	@JsHbLazyProperty(nonLazyMaxSize=1024)
+	@LazyProperty(nonLazyMaxSize=1024)
 	private String clobLazyA;
 	@JsonSerialize(using=ClobStringSerializer.class)
-	@JsHbLazyProperty(nonLazyMaxSize=1024)
+	@LazyProperty(nonLazyMaxSize=1024)
 	private Clob clobLazyB;
 	
 	

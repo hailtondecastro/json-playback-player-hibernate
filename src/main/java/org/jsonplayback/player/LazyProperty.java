@@ -10,10 +10,10 @@ import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
 @Target({ FIELD, METHOD })
-public @interface JsHbLazyProperty {
+public @interface LazyProperty {
 	/**
 	 * If <code>true</code>,
-	 * {@link IJsHbManager#needDirectWrite(SignatureBean)}
+	 * {@link IManager#needDirectWrite(SignatureBean)}
 	 * must be used to retrieve the content on the {@link OutputStream}.
 	 * 
 	 * @return

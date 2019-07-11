@@ -1,6 +1,6 @@
 package org.jsonplayback.player;
 
-public interface IJsHbGetBySignatureClassListener extends IJsHbGetBySignatureListener {
+public interface IGetBySignatureClassListener extends IGetBySignatureListener {
 	Class<?>[] getClassTriggers();
 }
 /*gerando conflito*/

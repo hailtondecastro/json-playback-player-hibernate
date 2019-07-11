@@ -4,12 +4,12 @@ import java.util.function.Function;
 
 import org.jsonplayback.player.hibernate.JsHbPlayback;
 
-public interface IJsHbReplayable {
-	IJsHbReplayable addChangeActionListener(IJsHbChangeActionListener changeActionListener);
-	<E> IJsHbReplayable addChangeActionListenerForClass(Class<E> entClass, IJsHbChangeActionListener changeActionListener);
-	<E> IJsHbReplayable addChangeActionListenerForProperty(Class<E> entClass, Function<E, ?> propertyFunc, IJsHbChangeActionListener changeActionListener);
-	<E> IJsHbFluentChangeListener<E> fluentChangeListener(Class<E> targetClass);
-	IJsHbFluentChangeListener<?> fluentChangeListener();
+public interface IReplayable {
+	IReplayable addChangeActionListener(IChangeActionListener changeActionListener);
+	<E> IReplayable addChangeActionListenerForClass(Class<E> entClass, IChangeActionListener changeActionListener);
+	<E> IReplayable addChangeActionListenerForProperty(Class<E> entClass, Function<E, ?> propertyFunc, IChangeActionListener changeActionListener);
+	<E> IFluentChangeListener<E> fluentChangeListener(Class<E> targetClass);
+	IFluentChangeListener<?> fluentChangeListener();
 	void replay();
 }
 /*gerando conflito*/

@@ -1,13 +1,13 @@
 package org.jsonplayback.player.hibernate;
 
-import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IManager;
 
 public class JsHbResultEntity<T> {
 	private T result;
 
-	private IJsHbManager jsHbManager;
+	private IManager jsHbManager;
 	
-	JsHbResultEntity configJsHbManager(IJsHbManager jsHbManager) {
+	JsHbResultEntity configJsHbManager(IManager jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}

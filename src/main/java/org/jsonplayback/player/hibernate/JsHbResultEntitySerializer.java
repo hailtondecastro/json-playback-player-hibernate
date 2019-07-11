@@ -2,7 +2,7 @@ package org.jsonplayback.player.hibernate;
 
 import java.io.IOException;
 
-import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IManager;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,9 +15,9 @@ public class JsHbResultEntitySerializer extends JsonSerializer<JsHbResultEntity>
 		
 	}
 	
-	private IJsHbManager jsHbManager;
+	private IManager jsHbManager;
 	
-	public JsHbResultEntitySerializer configJsHbManager(IJsHbManager jsHbManager) {
+	public JsHbResultEntitySerializer configJsHbManager(IManager jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}

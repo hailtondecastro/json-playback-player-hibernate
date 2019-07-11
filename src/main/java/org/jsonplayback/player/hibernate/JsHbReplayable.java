@@ -18,11 +18,11 @@ import org.hibernate.type.CollectionType;
 import org.hibernate.type.ListType;
 import org.hibernate.type.SetType;
 import org.hibernate.type.Type;
-import org.jsonplayback.player.IJsHbChangeActionListener;
-import org.jsonplayback.player.IJsHbFluentChangeListener;
-import org.jsonplayback.player.IJsHbManager;
-import org.jsonplayback.player.IJsHbReplayable;
-import org.jsonplayback.player.JsHbChangeActionEventArgs;
+import org.jsonplayback.player.IChangeActionListener;
+import org.jsonplayback.player.IFluentChangeListener;
+import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IReplayable;
+import org.jsonplayback.player.ChangeActionEventArgs;
 import org.jsonplayback.player.util.ReflectionNamesDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
 
-public class JsHbReplayable implements IJsHbReplayable {
+public class JsHbReplayable implements IReplayable {
 	private static Logger logger = LoggerFactory.getLogger(JsHbReplayable.class);
 	
 	private static class ClassPropertyKey {
@@ -76,15 +76,15 @@ public class JsHbReplayable implements IJsHbReplayable {
 		}
 	}
 
-	private HashMap<ClassPropertyKey, List<IJsHbChangeActionListener>> listenersByPrpsMap = new HashMap<>();
-	private HashMap<Class, List<IJsHbChangeActionListener>> listenersByClassMap = new HashMap<>();
-	private ArrayList<IJsHbChangeActionListener> listenersList = new ArrayList<>();
+	private HashMap<ClassPropertyKey, List<IChangeActionListener>> listenersByPrpsMap = new HashMap<>();
+	private HashMap<Class, List<IChangeActionListener>> listenersByClassMap = new HashMap<>();
+	private ArrayList<IChangeActionListener> listenersList = new ArrayList<>();
 	private JsHbPlayback playback = null;
 	private boolean replayed = false;
 
-	private IJsHbManager jsHbManager;
+	private IManager jsHbManager;
 	
-	public JsHbReplayable configJsHbManager(IJsHbManager jsHbManager) {
+	public JsHbReplayable configJsHbManager(IManager jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}
@@ -95,7 +95,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 	}
 
 	@Override
-	public IJsHbReplayable addChangeActionListener(IJsHbChangeActionListener changeActionListener) {
+	public IReplayable addChangeActionListener(IChangeActionListener changeActionListener) {
 		if (changeActionListener == null) {
 			throw new IllegalArgumentException("changeActionListener can not be null");
 		}
@@ -108,8 +108,8 @@ public class JsHbReplayable implements IJsHbReplayable {
 	}
 
 	@Override
-	public <E> IJsHbReplayable addChangeActionListenerForClass(Class<E> entClass,
-			IJsHbChangeActionListener changeActionListener) {
+	public <E> IReplayable addChangeActionListenerForClass(Class<E> entClass,
+			IChangeActionListener changeActionListener) {
 		if (entClass == null) {
 			throw new IllegalArgumentException("entClass can not be null");
 		}
@@ -129,8 +129,8 @@ public class JsHbReplayable implements IJsHbReplayable {
 	}
 
 	@Override
-	public <E> IJsHbReplayable addChangeActionListenerForProperty(Class<E> entClass, Function<E, ?> propertyFunc,
-			IJsHbChangeActionListener changeActionListener) {
+	public <E> IReplayable addChangeActionListenerForProperty(Class<E> entClass, Function<E, ?> propertyFunc,
+			IChangeActionListener changeActionListener) {
 		if (entClass == null) {
 			throw new IllegalArgumentException("entClass can not be null");
 		}
@@ -259,7 +259,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 		}
 		this.replayed = true;
 		
-		List<IJsHbChangeActionListener> actionListenersList = null;
+		List<IChangeActionListener> actionListenersList = null;
 		HashMap<Long, Object> creationRefMap = new HashMap<>();
 		Session ss = this.jsHbManager.getJsHbConfig().getSessionFactory().getCurrentSession();
 		ObjectMapper objectMapper = this.jsHbManager.getJsHbConfig().getObjectMapper();
@@ -274,7 +274,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 			Collection resolvedCollection = action.resolveColletion(objectMapper, this.jsHbManager, creationRefMap);
 			Object resolvedSettedValue = action.resolveSettedValue(objectMapper, this.jsHbManager, creationRefMap);
 			
-			JsHbChangeActionEventArgs<Object> actionEventArgs = new JsHbChangeActionEventArgs<Object>(
+			ChangeActionEventArgs<Object> actionEventArgs = new ChangeActionEventArgs<Object>(
 					resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection,
 					action.getActionType());
 			
@@ -284,7 +284,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 				
 				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerJavaClass(this.jsHbManager, creationRefMap));
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -294,7 +294,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 				
 				actionListenersList = this.listenersByPrpsMap.get(classPropertyKey);
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -304,7 +304,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 				
 				actionListenersList = this.listenersList;
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -314,7 +314,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 			} else {
 				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerJavaClass(this.jsHbManager, creationRefMap));
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -324,7 +324,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 				
 				actionListenersList = this.listenersList;
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -375,7 +375,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 
 				actionListenersList = this.listenersByPrpsMap.get(classPropertyKey);
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -385,7 +385,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 
 				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerJavaClass(this.jsHbManager, creationRefMap));
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -395,7 +395,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 				
 				actionListenersList = this.listenersList;
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -405,7 +405,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 			} else {
 				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerJavaClass(this.jsHbManager, creationRefMap));
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -415,7 +415,7 @@ public class JsHbReplayable implements IJsHbReplayable {
 
 				actionListenersList = this.listenersList;
 				if (actionListenersList != null) {
-					for (IJsHbChangeActionListener actionListenerItem : actionListenersList) {
+					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
@@ -427,12 +427,12 @@ public class JsHbReplayable implements IJsHbReplayable {
 	}
 
 	@Override
-	public <E> IJsHbFluentChangeListener<E> fluentChangeListener(Class<E> targetClass) {
+	public <E> IFluentChangeListener<E> fluentChangeListener(Class<E> targetClass) {
 		// TODO Auto-generated method stub
 		return new JsHbFluentChangeListenerDefault<E>(this, targetClass);
 	}
 	
-	public IJsHbFluentChangeListener<?> fluentChangeListener() {
+	public IFluentChangeListener<?> fluentChangeListener() {
 		return new JsHbFluentChangeListenerDefault<>(this, null);
 	}
 }

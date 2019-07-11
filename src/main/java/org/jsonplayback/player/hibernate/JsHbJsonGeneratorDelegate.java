@@ -5,8 +5,9 @@ import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IManager;
 import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 	private static Logger logger = LoggerFactory.getLogger(JsHbJsonGeneratorDelegate.class);
 	
-	IJsHbManager jsHbManager;
+	IManagerImplementor jsHbManager;
 	private SerializerProvider serializers;
 
 	public JsHbJsonGeneratorDelegate configSerializers(SerializerProvider serializers) {
@@ -28,7 +29,7 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 		return this;
 	}
 
-	public JsHbJsonGeneratorDelegate configJsHbManager(IJsHbManager jsHbManager) {
+	public JsHbJsonGeneratorDelegate configJsHbManager(IManagerImplementor jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}
@@ -61,7 +62,7 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 						"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Setting \"{0}\": {1}",
 						"backendMetadatas.id", this.jsHbManager.getCurrId()));
 			}
-			JsHbBackendMetadatas backendMetadatas = new JsHbBackendMetadatas();
+			PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 			backendMetadatas.setId(this.jsHbManager.getCurrId());
 //			this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdName());
 //			this.writeNumber(this.jsHbManager.getCurrId());
@@ -87,7 +88,7 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 //					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName());
 //					this.writeBoolean(true);
 				}
-				this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findHibernateId(forValue, this, serializers, backendMetadatas);
+				this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findPlayerObjectId(forValue, this, serializers, backendMetadatas);
 			} else {
 				AssociationAndComponentTrackInfo aacTrackInfo = this.jsHbManager.getCurrentAssociationAndComponentTrackInfo();
 				if (aacTrackInfo != null && !this.jsHbManager.isNeverSigned(forValue.getClass())) {
@@ -116,20 +117,20 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 //					this.writeString(signatureStr);
 //					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsComponentName());
 //					this.writeBoolean(true);
-					this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findHibernateId(forValue, this, serializers, backendMetadatas);
-					//this.jsHbManager.getJsHbJsonSerializerStepStackTL().peek().writeHibernateId(forValue, this, serializers);
+					this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findPlayerObjectId(forValue, this, serializers, backendMetadatas);
+					//this.jsHbManager.getJsHbJsonSerializerStepStackTL().peek().writePlayerObjectId(forValue, this, serializers);
 				} else {
 				}
 			}
 			
 			
-			//I can be writing a JsHbbackendMetadatas.hibernateId  
+			//I can be writing a JsHbbackendMetadatas.playerObjectId  
 			if (forValue != null
 					&& this.jsHbManager.isComponent(forValue.getClass())
 					&& this.jsHbManager.getJsHbBackendMetadatasWritingStack().size() > 0
-					&& forValue == this.jsHbManager.getJsHbBackendMetadatasWritingStack().peek().getHibernateId()) {
+					&& forValue == this.jsHbManager.getJsHbBackendMetadatasWritingStack().peek().getPlayerObjectId()) {
 				backendMetadatas.setIsComponent(true);
-				backendMetadatas.setIsComponentHibernateId(true);
+				backendMetadatas.setIsComponentPlayerObjectId(true);
 			}
 			
 			try {
@@ -138,7 +139,7 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 				this.writeObject(backendMetadatas);				
 			} finally {
 				if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-					JsHbBackendMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+					PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
 					if (backendMetadatasPoped != backendMetadatas) {
 						throw new RuntimeException("This should not happen");
 					}					
