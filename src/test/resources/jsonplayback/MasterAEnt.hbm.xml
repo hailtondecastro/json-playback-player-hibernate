@@ -5,7 +5,7 @@
 <hibernate-mapping>
 
 	<class
-		name="org.jsplayback.backend.hibernate.entities.MasterAEnt"
+		name="org.jsonplayback.player.hibernate.entities.MasterAEnt"
 		table="MASTER_A">
 
 		<id name="id" type="java.lang.Integer">
@@ -52,7 +52,7 @@
 			<key>
 				<column name="DTLA_MTRA_ID" sql-type="INTEGER"/>
 			</key>
-			<one-to-many class="org.jsplayback.backend.hibernate.entities.DetailAEnt"/>
+			<one-to-many class="org.jsonplayback.player.hibernate.entities.DetailAEnt"/>
 		</set>
 	</class>
 

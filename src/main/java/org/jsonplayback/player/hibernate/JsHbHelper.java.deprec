@@ -1,4 +1,4 @@
-package org.jsplayback.backend.implemantation;
+package org.jsonplayback.player.implemantation;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,10 +13,10 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanSerializer;
 
-import org.jsplayback.backend.IJsHbHelper;
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.IdentityRefKey;
-import org.jsplayback.backend.SignatureBean;
+import org.jsonplayback.player.IJsHbHelper;
+import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.SignatureBean;
 
 public class JsHbHelper implements IJsHbHelper {
 
@@ -30,7 +30,7 @@ public class JsHbHelper implements IJsHbHelper {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.jsplayback.backend.implemantation.
+	 * @see org.jsonplayback.player.implemantation.
 	 * IJsHbHelper#mayByRefOrLazySerialize(java.lang.Object,
 	 * com.fasterxml.jackson.core.JsonGenerator,
 	 * com.fasterxml.jackson.databind.SerializerProvider, java.lang.String)

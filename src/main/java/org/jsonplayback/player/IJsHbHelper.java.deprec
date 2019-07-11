@@ -1,4 +1,4 @@
-package org.jsplayback.backend;
+package org.jsonplayback.player;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-import org.jsplayback.backend.implemantation.JsHbJsonSerializer;
+import org.jsonplayback.player.implemantation.JsHbJsonSerializer;
 
 public interface IJsHbHelper {
 

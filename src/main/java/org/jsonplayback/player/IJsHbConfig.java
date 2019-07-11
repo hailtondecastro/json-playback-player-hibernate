@@ -9,22 +9,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public interface IJsHbConfig {
 	/* (non-Javadoc)
-	 * @see org.jsplayback.backend.hibernate.JsHbConfig#getListeners()
+	 * @see org.jsonplayback.player.hibernate.JsHbConfig#getListeners()
 	 */
 	List<IJsHbGetBySignatureListener> getListeners();
 
 	/* (non-Javadoc)
-	 * @see org.jsplayback.backend.hibernate.JsHbConfig#getSessionFactory()
+	 * @see org.jsonplayback.player.hibernate.JsHbConfig#getSessionFactory()
 	 */
 	SessionFactory getSessionFactory();
 
 	/* (non-Javadoc)
-	 * @see org.jsplayback.backend.hibernate.JsHbConfig#getSignatureCrypto()
+	 * @see org.jsonplayback.player.hibernate.JsHbConfig#getSignatureCrypto()
 	 */
 	IJsHbSignatureCrypto getSignatureCrypto();
 
 	/* (non-Javadoc)
-	 * @see org.jsplayback.backend.hibernate.JsHbConfig#getNotLazyClasses()
+	 * @see org.jsonplayback.player.hibernate.JsHbConfig#getNotLazyClasses()
 	 */
 	Set<Class> getNeverSignedClasses();
 

@@ -5,10 +5,10 @@
 <hibernate-mapping>
 
 	<class
-		name="org.jsplayback.backend.hibernate.entities.DetailAEnt"
+		name="org.jsonplayback.player.hibernate.entities.DetailAEnt"
 		table="DETAIL_A">
 
-		<composite-id name="compId" class="org.jsplayback.backend.hibernate.entities.DetailACompId">
+		<composite-id name="compId" class="org.jsonplayback.player.hibernate.entities.DetailACompId">
 			<key-many-to-one name="masterA">
 				<column name="DTLA_MTRA_ID" sql-type="INTEGER"/>
 			</key-many-to-one>
@@ -28,7 +28,7 @@
 		</property>
 		
 		
-		<component name="detailAComp" class="org.jsplayback.backend.hibernate.entities.DetailAComp">
+		<component name="detailAComp" class="org.jsonplayback.player.hibernate.entities.DetailAComp">
 			<many-to-one name="masterB">
 				<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
 				<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
@@ -46,7 +46,7 @@
 				<column name="DTLA_BLOB_B_COMPONENT" sql-type="BLOB"/>
 			</property>
 			
-			<component name="detailACompComp" class="org.jsplayback.backend.hibernate.entities.DetailACompComp">
+			<component name="detailACompComp" class="org.jsonplayback.player.hibernate.entities.DetailACompComp">
 				<many-to-one name="masterB" insert="false" update="false">
 					<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
 					<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>

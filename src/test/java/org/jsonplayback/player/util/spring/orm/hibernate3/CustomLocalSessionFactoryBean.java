@@ -1,4 +1,4 @@
-package org.jsplayback.backend.util.spring.orm.hibernate3;
+package org.jsonplayback.player.util.spring.orm.hibernate3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +61,7 @@ public class CustomLocalSessionFactoryBean extends LocalSessionFactoryBean {
                     || "property".equals(
                             propertyMapping.getPropertyAccessorName())) {
                 propertyMapping.setPropertyAccessorName(
-                        org.jsplayback.backend.util.spring.orm.hibernate3.BasicPropertyIndexedAccessor.class
+                        org.jsonplayback.player.util.spring.orm.hibernate3.BasicPropertyIndexedAccessor.class
                                 .getName());
             }
         }

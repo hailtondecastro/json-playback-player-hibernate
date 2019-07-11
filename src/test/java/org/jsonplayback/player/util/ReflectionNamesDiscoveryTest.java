@@ -1,4 +1,4 @@
-package org.jsplayback.backend.util;
+package org.jsonplayback.player.util;
 
 import static org.hamcrest.Matchers.equalTo;
 

@@ -1,4 +1,4 @@
-package org.jsplayback.backend.util.spring.orm.hibernate3;
+package org.jsonplayback.player.util.spring.orm.hibernate3;
 
 import java.beans.Introspector;
 import java.lang.reflect.Method;

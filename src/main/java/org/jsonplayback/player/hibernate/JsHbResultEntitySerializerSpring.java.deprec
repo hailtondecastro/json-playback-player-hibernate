@@ -1,9 +1,9 @@
-package org.jsplayback.backend.implemantation;
+package org.jsonplayback.player.implemantation;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.JsonComponent;
 
-import org.jsplayback.backend.IJsHbManager;
+import org.jsonplayback.player.IJsHbManager;
 
 @JsonComponent
 public class JsHbResultEntitySerializerSpring extends JsHbResultEntitySerializer{

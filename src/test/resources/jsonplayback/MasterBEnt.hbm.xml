@@ -5,10 +5,10 @@
 <hibernate-mapping>
 
 	<class
-		name="org.jsplayback.backend.hibernate.entities.MasterBEnt"
+		name="org.jsonplayback.player.hibernate.entities.MasterBEnt"
 		table="MASTER_B">
 
-		<composite-id name="compId" class="org.jsplayback.backend.hibernate.entities.MasterBCompId">
+		<composite-id name="compId" class="org.jsonplayback.player.hibernate.entities.MasterBCompId">
 			<key-property name="idA">
 				<column name="MTRB_ID_A" sql-type="INTEGER"/>
 			</key-property>
@@ -43,24 +43,24 @@
 				<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
 				<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
 			</key>
-			<one-to-many class="org.jsplayback.backend.hibernate.entities.DetailAEnt"/>
+			<one-to-many class="org.jsonplayback.player.hibernate.entities.DetailAEnt"/>
 		</set>
 		
-		<component name="masterBComp" class="org.jsplayback.backend.hibernate.entities.MasterBComp">
+		<component name="masterBComp" class="org.jsonplayback.player.hibernate.entities.MasterBComp">
 			<set name="detailAEntCol" inverse="true" cascade="none" fetch="select" order-by="DTLA_SUB_ID">
 				<key>
 					<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
 					<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
 				</key>
-				<one-to-many class="org.jsplayback.backend.hibernate.entities.DetailAEnt"/>
+				<one-to-many class="org.jsonplayback.player.hibernate.entities.DetailAEnt"/>
 			</set>
-			<component name="masterBCompComp" class="org.jsplayback.backend.hibernate.entities.MasterBCompComp">
+			<component name="masterBCompComp" class="org.jsonplayback.player.hibernate.entities.MasterBCompComp">
 				<set name="detailAEntCol" inverse="true" cascade="none" fetch="select" order-by="DTLA_SUB_ID">
 					<key>
 						<column name="DTLA_MTRB_ID_A_COMPONENT" sql-type="INTEGER"/>
 						<column name="DTLA_MTRB_ID_B_COMPONENT" sql-type="INTEGER"/>
 					</key>
-					<one-to-many class="org.jsplayback.backend.hibernate.entities.DetailAEnt"/>
+					<one-to-many class="org.jsonplayback.player.hibernate.entities.DetailAEnt"/>
 				</set>
 			</component>
 		</component>

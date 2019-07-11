@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate.entities;
+package org.jsonplayback.player.hibernate.entities;
 
 public class DetailAEnt {
 	private DetailACompId compId;

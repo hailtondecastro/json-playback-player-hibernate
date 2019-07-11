@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate.entities;
+package org.jsonplayback.player.hibernate.entities;
 
 import java.util.Collection;
 

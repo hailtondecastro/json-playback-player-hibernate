@@ -1,4 +1,4 @@
-package org.jsplayback.backend.implemantation;
+package org.jsonplayback.player.implemantation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.type.SimpleType;
 import com.fasterxml.jackson.databind.util.NameTransformer;
 
-import org.jsplayback.backend.IJsHbManager;
+import org.jsonplayback.player.IJsHbManager;
 
 public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 

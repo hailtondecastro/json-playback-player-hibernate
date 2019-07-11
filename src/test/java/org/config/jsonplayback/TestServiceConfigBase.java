@@ -1,4 +1,4 @@
-package org.config.jsplayback;
+package org.config.jsonplayback;
 
 import java.util.Properties;
 
@@ -14,7 +14,7 @@ import org.jsonplayback.player.hibernate.JsHbConfig;
 import org.jsonplayback.player.hibernate.JsHbManager;
 import org.jsonplayback.player.hibernate.JsHbResultEntity;
 import org.jsonplayback.player.hibernate.JsHbResultEntitySerializer;
-import org.jsplayback.backend.util.spring.orm.hibernate3.CustomLocalSessionFactoryBean;
+import org.jsonplayback.player.util.spring.orm.hibernate3.CustomLocalSessionFactoryBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
