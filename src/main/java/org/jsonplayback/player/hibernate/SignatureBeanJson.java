@@ -1,6 +1,6 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
-import org.jsplayback.backend.SignatureBean;
+import org.jsonplayback.player.SignatureBean;
 
 /**
  * Usado para Serializar {@link SignatureBean} pra json

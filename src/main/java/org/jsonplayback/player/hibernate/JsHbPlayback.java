@@ -1,14 +1,14 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.jsonplayback.player.IJsHbGetBySignatureListener;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext;
-
-import org.jsplayback.backend.IJsHbGetBySignatureListener;
 
 public class JsHbPlayback {
 	private List<JsHbPlaybackAction> actions;

@@ -1,8 +1,8 @@
-package org.jsplayback.backend;
+package org.jsonplayback.player;
 
 import java.util.function.Function;
 
-import org.jsplayback.backend.hibernate.JsHbPlayback;
+import org.jsonplayback.player.hibernate.JsHbPlayback;
 
 public interface IJsHbReplayable {
 	IJsHbReplayable addChangeActionListener(IJsHbChangeActionListener changeActionListener);

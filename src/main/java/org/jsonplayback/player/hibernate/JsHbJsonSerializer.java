@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.io.IOException;
 import java.sql.Blob;
@@ -12,10 +12,10 @@ import java.util.Stack;
 
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.IdentityRefKey;
-import org.jsplayback.backend.JsHbLazyProperty;
-import org.jsplayback.backend.SignatureBean;
+import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.JsHbLazyProperty;
+import org.jsonplayback.player.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 public enum JsHbPlaybackActionType {
 	CREATE,

@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import org.hibernate.proxy.HibernateProxy;
 

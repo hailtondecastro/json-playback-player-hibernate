@@ -4,8 +4,8 @@ import java.sql.Blob;
 import java.util.Collection;
 import java.util.Date;
 
-import org.jsplayback.backend.hibernate.BlobBase64Serializer;
-import org.jsplayback.backend.hibernate.ByteArrayBase64Serializer;
+import org.jsonplayback.player.hibernate.BlobBase64Serializer;
+import org.jsonplayback.player.hibernate.ByteArrayBase64Serializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 

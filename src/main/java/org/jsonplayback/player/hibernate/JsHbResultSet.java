@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.io.InputStream;
 import java.io.Reader;

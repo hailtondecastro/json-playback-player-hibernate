@@ -1,12 +1,12 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.jsplayback.backend.IJsHbChangeActionListener;
-import org.jsplayback.backend.IJsHbFluentChangeListener;
-import org.jsplayback.backend.IJsHbReplayable;
-import org.jsplayback.backend.JsHbChangeActionEventArgs;
+import org.jsonplayback.player.IJsHbChangeActionListener;
+import org.jsonplayback.player.IJsHbFluentChangeListener;
+import org.jsonplayback.player.IJsHbReplayable;
+import org.jsonplayback.player.JsHbChangeActionEventArgs;
 
 public class JsHbFluentChangeListenerDefault<E> implements IJsHbFluentChangeListener<E> {
 

@@ -1,17 +1,17 @@
-package org.jsplayback.backend;
+package org.jsonplayback.player;
 
 import java.util.Map;
 import java.util.Stack;
 
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsplayback.backend.hibernate.AssociationAndComponentTrackInfo;
-import org.jsplayback.backend.hibernate.JsHbBackendMetadatas;
-import org.jsplayback.backend.hibernate.JsHbBeanPropertyWriter;
-import org.jsplayback.backend.hibernate.JsHbJsonSerializer;
-import org.jsplayback.backend.hibernate.JsHbManager;
-import org.jsplayback.backend.hibernate.JsHbPlayback;
-import org.jsplayback.backend.hibernate.JsHbResultEntity;
+import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
+import org.jsonplayback.player.hibernate.JsHbBackendMetadatas;
+import org.jsonplayback.player.hibernate.JsHbBeanPropertyWriter;
+import org.jsonplayback.player.hibernate.JsHbJsonSerializer;
+import org.jsonplayback.player.hibernate.JsHbManager;
+import org.jsonplayback.player.hibernate.JsHbPlayback;
+import org.jsonplayback.player.hibernate.JsHbResultEntity;
 
 public interface IJsHbManager {
 	SignatureBean generateLazySignature(PersistentCollection persistentCollection);

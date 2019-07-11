@@ -1,6 +1,6 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
-import org.jsplayback.backend.IJsHbManager;
+import org.jsonplayback.player.IJsHbManager;
 
 public class JsHbResultEntity<T> {
 	private T result;

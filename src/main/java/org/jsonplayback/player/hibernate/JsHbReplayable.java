@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
@@ -18,12 +18,12 @@ import org.hibernate.type.CollectionType;
 import org.hibernate.type.ListType;
 import org.hibernate.type.SetType;
 import org.hibernate.type.Type;
-import org.jsplayback.backend.IJsHbChangeActionListener;
-import org.jsplayback.backend.IJsHbFluentChangeListener;
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.IJsHbReplayable;
-import org.jsplayback.backend.JsHbChangeActionEventArgs;
-import org.jsplayback.backend.util.ReflectionNamesDiscovery;
+import org.jsonplayback.player.IJsHbChangeActionListener;
+import org.jsonplayback.player.IJsHbFluentChangeListener;
+import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IJsHbReplayable;
+import org.jsonplayback.player.JsHbChangeActionEventArgs;
+import org.jsonplayback.player.util.ReflectionNamesDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

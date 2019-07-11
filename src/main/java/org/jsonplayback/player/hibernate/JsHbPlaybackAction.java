@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -10,6 +10,8 @@ import java.util.Map;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.proxy.HibernateProxy;
+import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.SignatureBean;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,9 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerBase;
 import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext;
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
-
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.SignatureBean;
 
 public class JsHbPlaybackAction {
 	

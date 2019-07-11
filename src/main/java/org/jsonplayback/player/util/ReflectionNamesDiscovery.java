@@ -1,4 +1,4 @@
-package org.jsplayback.backend.util;
+package org.jsonplayback.player.util;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;

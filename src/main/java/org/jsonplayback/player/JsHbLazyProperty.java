@@ -1,4 +1,4 @@
-package org.jsplayback.backend;
+package org.jsonplayback.player;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;

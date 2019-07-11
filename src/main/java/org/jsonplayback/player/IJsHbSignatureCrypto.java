@@ -1,4 +1,4 @@
-package org.jsplayback.backend;
+package org.jsonplayback.player;
 
 /**
  * Encript and decript from and to Json signature.

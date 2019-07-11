@@ -2,6 +2,7 @@ package org.jsplayback.backend.util;
 
 import static org.hamcrest.Matchers.equalTo;
 
+import org.jsonplayback.player.util.ReflectionNamesDiscovery;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;

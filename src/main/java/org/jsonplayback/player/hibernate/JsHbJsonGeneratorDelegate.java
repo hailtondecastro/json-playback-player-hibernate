@@ -1,13 +1,13 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.IdentityRefKey;
-import org.jsplayback.backend.SignatureBean;
+import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

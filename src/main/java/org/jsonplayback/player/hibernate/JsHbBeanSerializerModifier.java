@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.sql.Blob;
 import java.sql.Clob;
@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.JsHbLazyProperty;
+import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.JsHbLazyProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

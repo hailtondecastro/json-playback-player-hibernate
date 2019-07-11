@@ -1,4 +1,4 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,14 +42,14 @@ import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
-import org.jsplayback.backend.IDirectRawWriter;
-import org.jsplayback.backend.IDirectRawWriterWrapper;
-import org.jsplayback.backend.IJsHbConfig;
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.IJsHbReplayable;
-import org.jsplayback.backend.IdentityRefKey;
-import org.jsplayback.backend.JsHbLazyProperty;
-import org.jsplayback.backend.SignatureBean;
+import org.jsonplayback.player.IDirectRawWriter;
+import org.jsonplayback.player.IDirectRawWriterWrapper;
+import org.jsonplayback.player.IJsHbConfig;
+import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.IJsHbReplayable;
+import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.JsHbLazyProperty;
+import org.jsonplayback.player.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,8 +1,8 @@
-package org.jsplayback.backend;
+package org.jsonplayback.player;
 
 import java.util.Collection;
 
-import org.jsplayback.backend.hibernate.JsHbPlaybackActionType;
+import org.jsonplayback.player.hibernate.JsHbPlaybackActionType;
 
 public class JsHbChangeActionEventArgs<E> {
 	private E ownerValue;

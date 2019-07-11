@@ -1,10 +1,10 @@
-package org.jsplayback.backend.hibernate;
+package org.jsonplayback.player.hibernate;
 
 import java.util.Stack;
 
 import org.hibernate.proxy.HibernateProxy;
-import org.jsplayback.backend.IJsHbManager;
-import org.jsplayback.backend.JsHbLazyProperty;
+import org.jsonplayback.player.IJsHbManager;
+import org.jsonplayback.player.JsHbLazyProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

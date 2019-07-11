@@ -1,4 +1,4 @@
-package org.jsplayback.backend;
+package org.jsonplayback.player;
 
 public interface IJsHbChangeActionListener {
 	String getName();
