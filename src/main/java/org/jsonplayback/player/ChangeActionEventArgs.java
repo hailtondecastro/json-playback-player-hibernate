@@ -2,18 +2,16 @@ package org.jsonplayback.player;
 
 import java.util.Collection;
 
-import org.jsonplayback.player.hibernate.JsHbPlaybackActionType;
-
 public class ChangeActionEventArgs<E> {
 	private E ownerValue;
 	private Object settedValue;
 	private String propertyName;
 	private Collection changedCollection;
-	private JsHbPlaybackActionType actionType;
+	private TapeActionType actionType;
 	
 	@SuppressWarnings("rawtypes")
 	public ChangeActionEventArgs(E ownerValue, Object settedValue, String property, Collection changedCollection,
-			JsHbPlaybackActionType actionType) {
+			TapeActionType actionType) {
 		super();
 		this.ownerValue = ownerValue;
 		this.settedValue = settedValue;
@@ -46,10 +44,10 @@ public class ChangeActionEventArgs<E> {
 	public void setChangedCollection(Collection changedCollection) {
 		this.changedCollection = changedCollection;
 	}
-	public JsHbPlaybackActionType getActionType() {
+	public TapeActionType getActionType() {
 		return actionType;
 	}
-	public void setActionType(JsHbPlaybackActionType actionType) {
+	public void setActionType(TapeActionType actionType) {
 		this.actionType = actionType;
 	}
 	

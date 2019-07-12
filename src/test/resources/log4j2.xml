@@ -27,10 +27,6 @@
   </Appenders>
  
   <Loggers>
-  <!-- 
-    <Logger name="br.gov.serpro" level="error">
-    </Logger>
-   -->
     <!-- 
     <Logger name="org.hibernate.SQL" level="debug">
     </Logger>
@@ -41,8 +37,6 @@
     <Logger name="oracle" level="trace">
     </Logger>
     <Logger name="ucp" level="trace">
-    </Logger>
-    <Logger name="br.gov.serpro.webanalise.spring.boot.desenvonly.PreparedStatementWithExecPlan" level="trace">
     </Logger>
      -->
  

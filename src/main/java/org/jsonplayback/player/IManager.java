@@ -9,16 +9,9 @@ import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
 import org.jsonplayback.player.hibernate.JsHbBeanPropertyWriter;
 import org.jsonplayback.player.hibernate.JsHbJsonSerializer;
 import org.jsonplayback.player.hibernate.JsHbManager;
-import org.jsonplayback.player.hibernate.JsHbPlayback;
 import org.jsonplayback.player.hibernate.JsHbResultEntity;
 
 public interface IManager {
-	SignatureBean generateLazySignature(PersistentCollection persistentCollection);
-
-	SignatureBean generateLazySignature(HibernateProxy hibernateProxy);
-
-	SignatureBean generateSignature(Object nonHibernateProxy);
-
 	String serializeSignature(SignatureBean signatureBean);
 
 	SignatureBean deserializeSignature(String signatureStr);
@@ -85,7 +78,7 @@ public interface IManager {
 	 */
 	IManager init();
 
-	IReplayable prepareReplayable(JsHbPlayback playback);
+	IReplayable prepareReplayable(Tape tape);
 
 
 	IManager cloneWithNewConfiguration(IConfig newConfig);

@@ -1,6 +1,6 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player;
 
-public enum JsHbPlaybackActionType {
+public enum TapeActionType {
 	CREATE,
 	SAVE,
 	DELETE,

@@ -3,13 +3,20 @@ package org.jsonplayback.player.hibernate;
 import java.util.Map;
 import java.util.Stack;
 
+import org.hibernate.collection.PersistentCollection;
+import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.player.IManager;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.SignatureBean;
 
 public interface IManagerImplementor extends IManager {
-	//#####
+	SignatureBean generateLazySignature(PersistentCollection persistentCollection);
+
+	SignatureBean generateLazySignature(HibernateProxy hibernateProxy);
+
+	SignatureBean generateSignature(Object nonHibernateProxy);
+
 	boolean isRelationship(Class<?> clazz, String fieldName);
 	
 	Long getCurrId();

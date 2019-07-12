@@ -48,6 +48,7 @@ import org.jsonplayback.player.IConfig;
 import org.jsonplayback.player.IManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.Tape;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
 import org.jsonplayback.player.SignatureBean;
@@ -1160,14 +1161,14 @@ public class JsHbManager implements IManagerImplementor {
 	}
 
 	@Override
-	public IReplayable prepareReplayable(JsHbPlayback playback) {
+	public IReplayable prepareReplayable(Tape tape) {
 //		throw new RuntimeException("");
 //		this.temporaryConfigurationTL.set(newConfig);
 //		return null;
 		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format("prepareReplayable(). playback:\n {0}'", playback));
+			logger.trace(MessageFormat.format("prepareReplayable(). tape:\n {0}'", tape));
 		}
-		return new JsHbReplayable().configJsHbManager(this).loadPlayback(playback);
+		return new JsHbReplayable().configJsHbManager(this).loadPlayback(tape);
 	}
 
 	@Override
