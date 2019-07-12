@@ -8,7 +8,7 @@ public class TapeAction {
 	private String settedSignatureStr;
 	private Long settedCreationId;
 	private Long settedCreationRefId;
-	private String ownerJavaClass;
+	private String ownerPlayerType;
 	private TapeActionType actionType;
 	private String fieldName;
 	
@@ -62,12 +62,12 @@ public class TapeAction {
 		this.settedCreationRefId = settedCreationRefId;
 	}
 
-	public String getOwnerJavaClass() {
-		return ownerJavaClass;
+	public String getOwnerPlayerType() {
+		return ownerPlayerType;
 	}
 
-	public void setOwnerJavaClass(String ownerJavaClass) {
-		this.ownerJavaClass = ownerJavaClass;
+	public void setOwnerPlayerType(String ownerPlayerType) {
+		this.ownerPlayerType = ownerPlayerType;
 	}
 
 	public TapeActionType getActionType() {

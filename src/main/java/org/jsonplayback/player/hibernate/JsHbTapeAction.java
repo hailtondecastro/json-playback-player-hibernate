@@ -35,7 +35,7 @@ public class JsHbTapeAction extends TapeAction {
 	private Collection resolvedColletion = null;
 	private BeanDeserializerBase resolvedBeanDeserializer = null;
 	@SuppressWarnings("rawtypes")
-	private Class resolvedOwnerJavaClass = null;
+	private Class resolvedOwnerPlayerType = null;
 	private String resolvedJavaPropertyName = null;
 	private boolean isResolvedJavaPropertyName = false;
 	
@@ -84,12 +84,12 @@ public class JsHbTapeAction extends TapeAction {
 		this.resolvedBeanDeserializer = resolvedBeanDeserializer;
 	}
 
-	public Class getResolvedOwnerJavaClass() {
-		return resolvedOwnerJavaClass;
+	public Class getResolvedOwnerPlayerType() {
+		return resolvedOwnerPlayerType;
 	}
 
-	public void setResolvedOwnerJavaClass(Class resolvedOwnerJavaClass) {
-		this.resolvedOwnerJavaClass = resolvedOwnerJavaClass;
+	public void setResolvedOwnerPlayerType(Class resolvedOwnerPlayerType) {
+		this.resolvedOwnerPlayerType = resolvedOwnerPlayerType;
 	}
 
 	public String getResolvedJavaPropertyName() {
@@ -151,7 +151,7 @@ public class JsHbTapeAction extends TapeAction {
 				this.resolvedOwnerValue = jsHbManager.getBySignature(signatureBean);
 			} else if (this.getOwnerCreationId() != null) {
 				try {
-					this.resolvedOwnerValue = this.resolveOwnerJavaClass(jsHbManager, creationRefMap).newInstance();
+					this.resolvedOwnerValue = this.resolveOwnerPlayerType(jsHbManager, creationRefMap).newInstance();
 					
 					creationRefMap.put(this.getOwnerCreationId(), this.resolvedOwnerValue);
 				} catch (Exception e) {
@@ -248,7 +248,7 @@ public class JsHbTapeAction extends TapeAction {
 	protected BeanDeserializerBase resolveBeanDeserializer(ObjectMapper objectMapper, IManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedBeanDeserializer == null) {
-			JavaType entJavaType = objectMapper.getTypeFactory().constructType(this.resolveOwnerJavaClass(jsHbManager, creationRefMap));
+			JavaType entJavaType = objectMapper.getTypeFactory().constructType(this.resolveOwnerPlayerType(jsHbManager, creationRefMap));
 			try {
 				
 				this.resolvedBeanDeserializer = (BeanDeserializerBase) this.resolveDefaultDeserializationContext(objectMapper, jsHbManager)
@@ -263,24 +263,24 @@ public class JsHbTapeAction extends TapeAction {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected Class resolveOwnerJavaClass(IManager jsHbManager,
+	protected Class resolveOwnerPlayerType(IManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
-		if (this.resolvedOwnerJavaClass == null) {
+		if (this.resolvedOwnerPlayerType == null) {
 			try {
-				if (this.getOwnerJavaClass() != null) {
-					this.resolvedOwnerJavaClass = Class.forName(this.getOwnerJavaClass());
+				if (this.getOwnerPlayerType() != null) {
+					this.resolvedOwnerPlayerType = Class.forName(this.getOwnerPlayerType());
 				} else if (this.getOwnerSignatureStr() != null) {
 					this.resolveOwnerValue(jsHbManager, creationRefMap);
 					if (this.resolvedOwnerValue instanceof HibernateProxy) {
-						this.resolvedOwnerJavaClass = this.resolvedOwnerValue.getClass().getSuperclass();						
+						this.resolvedOwnerPlayerType = this.resolvedOwnerValue.getClass().getSuperclass();						
 					} else {
-						this.resolvedOwnerJavaClass = this.resolvedOwnerValue.getClass();
+						this.resolvedOwnerPlayerType = this.resolvedOwnerValue.getClass();
 					}
 				} else if (this.getOwnerCreationRefId() != null) {
 					if (!creationRefMap.containsKey(this.getOwnerCreationRefId())) {
 						throw new RuntimeException(MessageFormat.format("There is no ''{0}'' action with this creation id\naction:\n{1}", TapeActionType.CREATE , this));
 					}
-					this.resolvedOwnerJavaClass = creationRefMap.get(this.getOwnerCreationRefId()).getClass();
+					this.resolvedOwnerPlayerType = creationRefMap.get(this.getOwnerCreationRefId()).getClass();
 				} else {
 					throw new RuntimeException(MessageFormat.format("this.ownerCreationRefId != null. Not supported.\\n{0}", this));
 				}
@@ -288,7 +288,7 @@ public class JsHbTapeAction extends TapeAction {
 				throw new RuntimeException(MessageFormat.format("This should not happen\naction:\n{0}", this), e);
 			}
 		}
-		return this.resolvedOwnerJavaClass;
+		return this.resolvedOwnerPlayerType;
 	}
 
 	public void setSimpleSettedValue(Object simpleSettedValue) {
@@ -306,7 +306,7 @@ public class JsHbTapeAction extends TapeAction {
 			thisAsMap.put("settedSignatureStr", this.getSettedSignatureStr());
 			thisAsMap.put("settedCreationId", this.getSettedCreationId());
 			thisAsMap.put("settedCreationRefId", this.getSettedCreationRefId());
-			thisAsMap.put("ownerJavaClass", this.getOwnerJavaClass());
+			thisAsMap.put("ownerPlayerType", this.getOwnerPlayerType());
 			thisAsMap.put("actionType", this.getActionType());
 			thisAsMap.put("fieldName", this.getFieldName());
 			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(thisAsMap);

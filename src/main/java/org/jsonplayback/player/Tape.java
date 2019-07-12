@@ -33,7 +33,7 @@ public class Tape {
 				actionAsMap.put("settedSignatureStr", actionItem.getSettedSignatureStr());
 				actionAsMap.put("settedCreationId", actionItem.getSettedCreationId());
 				actionAsMap.put("settedCreationRefId", actionItem.getSettedCreationRefId());
-				actionAsMap.put("ownerJavaClass", actionItem.getOwnerJavaClass());
+				actionAsMap.put("ownerPlayerType", actionItem.getOwnerPlayerType());
 				actionAsMap.put("actionType", actionItem.getActionType());
 				actionAsMap.put("fieldName", actionItem.getFieldName());
 				actionList.add(actionAsMap);

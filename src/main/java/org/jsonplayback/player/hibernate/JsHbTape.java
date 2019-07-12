@@ -40,7 +40,7 @@ public class JsHbTape extends Tape {
 				actionAsMap.put("settedSignatureStr", jsHbActionItem.getSettedSignatureStr());
 				actionAsMap.put("settedCreationId", jsHbActionItem.getSettedCreationId());
 				actionAsMap.put("settedCreationRefId", jsHbActionItem.getSettedCreationRefId());
-				actionAsMap.put("ownerJavaClass", jsHbActionItem.getOwnerJavaClass());
+				actionAsMap.put("ownerPlayerType", jsHbActionItem.getOwnerPlayerType());
 				actionAsMap.put("actionType", jsHbActionItem.getActionType());
 				actionAsMap.put("fieldName", jsHbActionItem.getFieldName());
 				actionAsMap.put("simpleSettedValue", jsHbActionItem.getSimpleSettedValue());

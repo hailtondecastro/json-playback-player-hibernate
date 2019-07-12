@@ -177,9 +177,9 @@ public class JsHbReplayable implements IReplayable {
 				}
 				Object ownerValue = jsHbAction.resolveOwnerValue(this.jsHbManager, creationRefMap);
 				
-				ClassMetadata classMetadata = this.jsHbManager.getJsHbConfig().getSessionFactory().getClassMetadata(jsHbAction.resolveOwnerJavaClass(jsHbManager, creationRefMap));
+				ClassMetadata classMetadata = this.jsHbManager.getJsHbConfig().getSessionFactory().getClassMetadata(jsHbAction.resolveOwnerPlayerType(jsHbManager, creationRefMap));
 				if (classMetadata != null) {
-					PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(jsHbAction.resolveOwnerJavaClass(jsHbManager, creationRefMap));
+					PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(jsHbAction.resolveOwnerPlayerType(jsHbManager, creationRefMap));
 					for (int i = 0; i < propertyDescriptors.length; i++) {
 						PropertyDescriptor propertyDescriptorItem = propertyDescriptors[i];
 						if (!("class".equals(propertyDescriptorItem.getName()))) {
@@ -283,10 +283,10 @@ public class JsHbReplayable implements IReplayable {
 					jsHbAction.getActionType());
 			
 			if (jsHbAction.getFieldName() != null) {
-				ClassPropertyKey classPropertyKey = new ClassPropertyKey(jsHbAction.resolveOwnerJavaClass(this.jsHbManager, creationRefMap),
+				ClassPropertyKey classPropertyKey = new ClassPropertyKey(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap),
 						resolvedJavaPropertyName);
 				
-				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerJavaClass(this.jsHbManager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
@@ -316,7 +316,7 @@ public class JsHbReplayable implements IReplayable {
 					}
 				}
 			} else {
-				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerJavaClass(this.jsHbManager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
@@ -374,7 +374,7 @@ public class JsHbReplayable implements IReplayable {
 
 			// after events
 			if (jsHbAction.getFieldName() != null) {
-				ClassPropertyKey classPropertyKey = new ClassPropertyKey(jsHbAction.resolveOwnerJavaClass(this.jsHbManager, creationRefMap),
+				ClassPropertyKey classPropertyKey = new ClassPropertyKey(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap),
 						resolvedJavaPropertyName);
 
 				actionListenersList = this.listenersByPrpsMap.get(classPropertyKey);
@@ -387,7 +387,7 @@ public class JsHbReplayable implements IReplayable {
 					}
 				}
 
-				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerJavaClass(this.jsHbManager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
@@ -407,7 +407,7 @@ public class JsHbReplayable implements IReplayable {
 					}
 				}
 			} else {
-				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerJavaClass(this.jsHbManager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
