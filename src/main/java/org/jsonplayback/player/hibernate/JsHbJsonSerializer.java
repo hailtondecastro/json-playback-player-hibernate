@@ -12,7 +12,7 @@ import java.util.Stack;
 
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 public class JsHbJsonSerializer extends JsonSerializer<Object> {
 	private static Logger logger = LoggerFactory.getLogger(JsHbJsonSerializer.class);
 	
-	IManagerImplementor jsHbManager;
+	IPlayerManagerImplementor jsHbManager;
 	private SerializerProvider serializers;
 //	private BeanPropertyWriter beanPropertyWriterForLazyProperty;
 //
@@ -40,7 +40,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 //		return this;
 //	}
 
-	public JsHbJsonSerializer configJsHbManager(IManagerImplementor jsHbManager) {
+	public JsHbJsonSerializer configJsHbManager(IPlayerManagerImplementor jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}

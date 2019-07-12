@@ -33,7 +33,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.JsHbResultEntity;
 import org.jsonplayback.player.hibernate.entities.DetailAComp;
@@ -86,7 +86,7 @@ public class JsHbManagerTest {
     }    
     
     @Autowired
-    IManager jsHbManager;
+    IPlayerManager jsHbManager;
     
     @Before
     public void setUp() throws Exception {
@@ -223,7 +223,7 @@ public class JsHbManagerTest {
 		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".masterATest_result_generated.json";
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startSuperSync();
+		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -274,7 +274,7 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopSuperSync();
+		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
 		
 		ClassLoader classLoader = getClass().getClassLoader();
 		BufferedReader brExpected = 
@@ -311,7 +311,7 @@ public class JsHbManagerTest {
 			
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			
-			JsHbManagerTest.this.jsHbManager.startSuperSync();
+			JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 	
 				@Override
@@ -373,9 +373,9 @@ public class JsHbManagerTest {
 				}
 				
 			});
-			JsHbManagerTest.this.jsHbManager.stopSuperSync();
+			JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
 			
-			JsHbManagerTest.this.jsHbManager.startSuperSync();
+			JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 	
 				@Override
@@ -426,7 +426,7 @@ public class JsHbManagerTest {
 				}
 				
 			});
-			JsHbManagerTest.this.jsHbManager.stopSuperSync();
+			JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
 			
 			ClassLoader classLoader = getClass().getClassLoader();
 			BufferedReader brExpected = 
@@ -471,7 +471,7 @@ public class JsHbManagerTest {
 		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".masterADetailATest_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startSuperSync();
+		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -522,7 +522,7 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopSuperSync();
+		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
 		
 		ClassLoader classLoader = getClass().getClassLoader();
 		BufferedReader brExpected = 
@@ -562,7 +562,7 @@ public class JsHbManagerTest {
 		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startSuperSync();
+		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -615,7 +615,7 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopSuperSync();
+		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
 		
 		ClassLoader classLoader = getClass().getClassLoader();
 		BufferedReader brExpected = 
@@ -650,7 +650,7 @@ public class JsHbManagerTest {
 		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".masterBTest_result_generated.json";
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startSuperSync();
+		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -704,7 +704,7 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopSuperSync();
+		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
 		
 		ClassLoader classLoader = getClass().getClassLoader();
 		BufferedReader brExpected = 
@@ -744,7 +744,7 @@ public class JsHbManagerTest {
 		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startSuperSync();
+		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -789,7 +789,7 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopSuperSync();
+		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
 	}
 //eyJjbGF6ek5hbWUiOiJici5nb3Yuc2VycHJvLndlYmFuYWxpc2UuanNIYlN1cGVyU3luYy5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ
 }

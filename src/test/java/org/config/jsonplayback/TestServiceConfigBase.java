@@ -7,12 +7,12 @@ import javax.annotation.PostConstruct;
 import org.hibernate.SessionFactory;
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.jsonplayback.player.IConfig;
-import org.jsonplayback.player.IManager;
-import org.jsonplayback.player.hibernate.IManagerImplementor;
+import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.hibernate.IPlayerManagerImplementor;
 import org.jsonplayback.player.hibernate.JsHbBasicClassIntrospector;
 import org.jsonplayback.player.hibernate.JsHbBeanSerializerModifier;
 import org.jsonplayback.player.hibernate.JsHbConfig;
-import org.jsonplayback.player.hibernate.JsHbManager;
+import org.jsonplayback.player.hibernate.JsHbPlayerManager;
 import org.jsonplayback.player.hibernate.JsHbResultEntity;
 import org.jsonplayback.player.hibernate.JsHbResultEntitySerializer;
 import org.jsonplayback.player.util.spring.orm.hibernate3.CustomLocalSessionFactoryBean;
@@ -149,12 +149,12 @@ public class TestServiceConfigBase {
 //	}
 	
 	@Bean
-	public IManager getJsHbManager(@Autowired IConfig jsHbConfig) {
-		return new JsHbManager().configure(jsHbConfig);
+	public IPlayerManager getJsHbManager(@Autowired IConfig jsHbConfig) {
+		return new JsHbPlayerManager().configure(jsHbConfig);
 	}
 	
 	@Bean
-	public JsHbResultEntitySerializer getJsHbResultEntitySerializer(@Autowired IManager jsHbManager) {
+	public JsHbResultEntitySerializer getJsHbResultEntitySerializer(@Autowired IPlayerManager jsHbManager) {
 		JsHbResultEntitySerializer serializer = new JsHbResultEntitySerializer().configJsHbManager(jsHbManager);
 		return serializer;
 	}
@@ -168,7 +168,7 @@ public class TestServiceConfigBase {
 	 */
 	@Bean
 	public JsHbBeanSerializerModifier getJsHbBeanSerializerModifier(
-			@Autowired IManagerImplementor jsHbManager, 
+			@Autowired IPlayerManagerImplementor jsHbManager, 
 			@Autowired JsHbResultEntitySerializer jsHbResultEntitySerializer, 
 			@Autowired Jackson2ObjectMapperBuilder builder,
 			@Autowired JsonComponentModule module,

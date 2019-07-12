@@ -5,7 +5,7 @@ import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.SignatureBean;
@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 	private static Logger logger = LoggerFactory.getLogger(JsHbJsonGeneratorDelegate.class);
 	
-	IManagerImplementor jsHbManager;
+	IPlayerManagerImplementor jsHbManager;
 	private SerializerProvider serializers;
 
 	public JsHbJsonGeneratorDelegate configSerializers(SerializerProvider serializers) {
@@ -29,7 +29,7 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 		return this;
 	}
 
-	public JsHbJsonGeneratorDelegate configJsHbManager(IManagerImplementor jsHbManager) {
+	public JsHbJsonGeneratorDelegate configJsHbManager(IPlayerManagerImplementor jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}

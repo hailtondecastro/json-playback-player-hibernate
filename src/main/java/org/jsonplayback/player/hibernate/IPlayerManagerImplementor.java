@@ -5,12 +5,12 @@ import java.util.Stack;
 
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.SignatureBean;
 
-public interface IManagerImplementor extends IManager {
+public interface IPlayerManagerImplementor extends IPlayerManager {
 	SignatureBean generateLazySignature(PersistentCollection persistentCollection);
 
 	SignatureBean generateLazySignature(HibernateProxy hibernateProxy);

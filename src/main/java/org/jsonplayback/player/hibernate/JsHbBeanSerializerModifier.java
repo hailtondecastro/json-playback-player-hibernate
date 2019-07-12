@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
 import org.slf4j.Logger;
@@ -25,9 +25,9 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 
 	private static Logger logger = LoggerFactory.getLogger(JsHbBeanSerializerModifier.class);
-	private IManagerImplementor jsHbManager;
+	private IPlayerManagerImplementor jsHbManager;
 
-	public JsHbBeanSerializerModifier configJsHbManager(IManagerImplementor jsHbManager) {
+	public JsHbBeanSerializerModifier configJsHbManager(IPlayerManagerImplementor jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}

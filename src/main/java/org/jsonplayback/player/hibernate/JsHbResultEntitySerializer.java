@@ -2,7 +2,7 @@ package org.jsonplayback.player.hibernate;
 
 import java.io.IOException;
 
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,9 +15,9 @@ public class JsHbResultEntitySerializer extends JsonSerializer<JsHbResultEntity>
 		
 	}
 	
-	private IManager jsHbManager;
+	private IPlayerManager jsHbManager;
 	
-	public JsHbResultEntitySerializer configJsHbManager(IManager jsHbManager) {
+	public JsHbResultEntitySerializer configJsHbManager(IPlayerManager jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}
@@ -27,7 +27,7 @@ public class JsHbResultEntitySerializer extends JsonSerializer<JsHbResultEntity>
 	public void serialize(JsHbResultEntity value, JsonGenerator gen, SerializerProvider serializers)
 			throws IOException, JsonProcessingException {
 		try {
-			this.jsHbManager.startSuperSync();
+			this.jsHbManager.startJsonWriteIntersept();
 
 			final JsonSerializer<Object> defaultJsonSerializer = serializers.findValueSerializer(Object.class);
 			
@@ -36,7 +36,7 @@ public class JsHbResultEntitySerializer extends JsonSerializer<JsHbResultEntity>
 			serializers.findValueSerializer(value.getResult().getClass()).serialize(value.getResult(), gen, serializers);
 			gen.writeEndObject();
 		} finally {
-			this.jsHbManager.stopSuperSync();
+			this.jsHbManager.stopJsonWriteIntersept();
 		}
 	}
 }

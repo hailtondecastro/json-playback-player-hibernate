@@ -21,7 +21,7 @@ import org.hibernate.type.Type;
 import org.jsonplayback.player.ChangeActionEventArgs;
 import org.jsonplayback.player.IChangeActionListener;
 import org.jsonplayback.player.IFluentChangeListener;
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.Tape;
 import org.jsonplayback.player.TapeAction;
@@ -84,9 +84,9 @@ public class JsHbReplayable implements IReplayable {
 	private Tape tape = null;
 	private boolean replayed = false;
 
-	private IManager jsHbManager;
+	private IPlayerManager jsHbManager;
 	
-	public JsHbReplayable configJsHbManager(IManager jsHbManager) {
+	public JsHbReplayable configJsHbManager(IPlayerManager jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}

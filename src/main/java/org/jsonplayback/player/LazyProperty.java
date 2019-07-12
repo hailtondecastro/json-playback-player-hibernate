@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 public @interface LazyProperty {
 	/**
 	 * If <code>true</code>,
-	 * {@link IManager#needDirectWrite(SignatureBean)}
+	 * {@link IPlayerManager#needDirectWrite(SignatureBean)}
 	 * must be used to retrieve the content on the {@link OutputStream}.
 	 * 
 	 * @return

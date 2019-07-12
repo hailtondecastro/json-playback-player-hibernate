@@ -8,10 +8,10 @@ import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
 import org.jsonplayback.player.hibernate.JsHbBeanPropertyWriter;
 import org.jsonplayback.player.hibernate.JsHbJsonSerializer;
-import org.jsonplayback.player.hibernate.JsHbManager;
+import org.jsonplayback.player.hibernate.JsHbPlayerManager;
 import org.jsonplayback.player.hibernate.JsHbResultEntity;
 
-public interface IManager {
+public interface IPlayerManager {
 	String serializeSignature(SignatureBean signatureBean);
 
 	SignatureBean deserializeSignature(String signatureStr);
@@ -40,17 +40,17 @@ public interface IManager {
 
 	IConfig getJsHbConfig();
 
-	JsHbManager configure(IConfig jsHbConfig);
+	JsHbPlayerManager configure(IConfig jsHbConfig);
 
 	/**
 	 * Threadsafe
 	 */
-	void startSuperSync();
+	void startJsonWriteIntersept();
 
 	/**
 	 * Threadsafe
 	 */
-	void stopSuperSync();
+	void stopJsonWriteIntersept();
 
 	boolean isStarted();
 
@@ -58,29 +58,29 @@ public interface IManager {
 
 	/**
 	 * Sobreescreve a configuracao temporariamente. Eh thead safe e nao afeta as
-	 * demais theads. Eh descartado em {@link #stopSuperSync()}.
+	 * demais theads. Eh descartado em {@link #stopJsonWriteIntersept()}.
 	 * 
 	 * @param newConfig
 	 * @return
 	 */
-	IManager overwriteConfigurationTemporarily(IConfig newConfig);
+	IPlayerManager overwriteConfigurationTemporarily(IConfig newConfig);
 
 	<T> JsHbResultEntity<T> createResultEntity(T result);
 
 	/**
-	 * Inicializa o Manager. Faz as cargas iniciais a partir dos metadatas hibernate
-	 * e de quaisquer outras informacoes necessarias. <br>
-	 * Eh chamado automaticamente no primeiro {@link #startSuperSync()} caso nao
-	 * tenha sido chamado ainda. Pode ser chamado novamente a qualquer momento. Nao
+	 * Initializes the Manager. It does as the initial metadata loads hibernate
+	 * and all other necessary information. Home
+	 * Eh automatically called in the first {@link #startJsonWriteIntersept ()} if not
+	 * has been called yet. It can be recalled at any time. Not
 	 * eh thread safe.
 	 * 
 	 * @return
 	 */
-	IManager init();
+	IPlayerManager init();
 
 	IReplayable prepareReplayable(Tape tape);
 
 
-	IManager cloneWithNewConfiguration(IConfig newConfig);
+	IPlayerManager cloneWithNewConfiguration(IConfig newConfig);
 }
 /*gerando conflito*/

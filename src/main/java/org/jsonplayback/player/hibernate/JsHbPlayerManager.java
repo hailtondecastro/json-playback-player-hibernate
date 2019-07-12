@@ -45,7 +45,7 @@ import org.hibernate.type.Type;
 import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
 import org.jsonplayback.player.IConfig;
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.Tape;
@@ -63,8 +63,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
-public class JsHbManager implements IManagerImplementor {
-	private static Logger logger = LoggerFactory.getLogger(JsHbManager.class);
+public class JsHbPlayerManager implements IPlayerManagerImplementor {
+	private static Logger logger = LoggerFactory.getLogger(JsHbPlayerManager.class);
 	
 	private IConfig jsHbConfig = new JsHbConfig();
 	ThreadLocal<Long> currIdTL = new ThreadLocal<Long>();
@@ -89,7 +89,7 @@ public class JsHbManager implements IManagerImplementor {
 	}
 
 	@Override
-	public JsHbManager configure(IConfig jsHbConfig) {
+	public JsHbPlayerManager configure(IConfig jsHbConfig) {
 		if (jsHbConfig == null) {
 			throw new IllegalArgumentException("jsHbConfig can not be null");
 		}
@@ -106,7 +106,7 @@ public class JsHbManager implements IManagerImplementor {
 	private boolean initialed = false;
 
 	@Override
-	public IManager init() {
+	public IPlayerManager init() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("init()");
 		}
@@ -907,7 +907,7 @@ public class JsHbManager implements IManagerImplementor {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void startSuperSync() {
+	public void startJsonWriteIntersept() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("startSuperSync()");
 		}
@@ -932,7 +932,7 @@ public class JsHbManager implements IManagerImplementor {
 	}
 
 	@Override
-	public void stopSuperSync() {
+	public void stopJsonWriteIntersept() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("stopSuperSync()");
 		}
@@ -1142,7 +1142,7 @@ public class JsHbManager implements IManagerImplementor {
 	}
 
 	@Override
-	public IManager overwriteConfigurationTemporarily(IConfig newConfig) {
+	public IPlayerManager overwriteConfigurationTemporarily(IConfig newConfig) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("overwriteConfigurationTemporarily(). newConfig:\n {0}'", newConfig));
 		}
@@ -1151,11 +1151,11 @@ public class JsHbManager implements IManagerImplementor {
 	}
 	
 	@Override
-	public IManager cloneWithNewConfiguration(IConfig newConfig) {
+	public IPlayerManager cloneWithNewConfiguration(IConfig newConfig) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("cloneWithNewConfiguration(). newConfig:\n {0}'", newConfig));
 		}
-		IManager jsHbManagerCloned = new JsHbManager();
+		IPlayerManager jsHbManagerCloned = new JsHbPlayerManager();
 		jsHbManagerCloned = jsHbManagerCloned.configure(newConfig);
 		return jsHbManagerCloned;
 	}

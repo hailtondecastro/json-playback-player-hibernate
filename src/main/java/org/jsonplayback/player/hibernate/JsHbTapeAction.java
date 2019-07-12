@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.TapeAction;
 import org.jsonplayback.player.TapeActionType;
@@ -120,7 +120,7 @@ public class JsHbTapeAction extends TapeAction {
 		this.defaultDeserializationContext = defaultDeserializationContext;
 	}
 	
-	protected String resolveJavaPropertyName(ObjectMapper objectMapper, IManager jsHbManager,
+	protected String resolveJavaPropertyName(ObjectMapper objectMapper, IPlayerManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (!this.isResolvedJavaPropertyName) {
 			this.isResolvedJavaPropertyName = true;
@@ -144,7 +144,7 @@ public class JsHbTapeAction extends TapeAction {
 	 * @param creationRefMap
 	 * @return
 	 */
-	protected Object resolveOwnerValue(IManager jsHbManager, HashMap<Long, Object> creationRefMap) {
+	protected Object resolveOwnerValue(IPlayerManager jsHbManager, HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedOwnerValue == null) {
 			if (this.getOwnerSignatureStr() != null) {
 				SignatureBean signatureBean = jsHbManager.deserializeSignature(this.getOwnerSignatureStr());
@@ -167,7 +167,7 @@ public class JsHbTapeAction extends TapeAction {
 		return this.resolvedOwnerValue;
 	}
 
-	protected Object resolveSettedValue(ObjectMapper objectMapper, IManager jsHbManager,
+	protected Object resolveSettedValue(ObjectMapper objectMapper, IPlayerManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (!this.isResolvedSettedValue) {
 			this.isResolvedSettedValue = true;
@@ -223,7 +223,7 @@ public class JsHbTapeAction extends TapeAction {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected Collection resolveColletion(ObjectMapper objectMapper, IManager jsHbManager,
+	protected Collection resolveColletion(ObjectMapper objectMapper, IPlayerManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedColletion == null && (this.getActionType() == TapeActionType.COLLECTION_ADD || this.getActionType() == TapeActionType.COLLECTION_REMOVE)) {
 			try {
@@ -236,7 +236,7 @@ public class JsHbTapeAction extends TapeAction {
 		return this.resolvedColletion;
 	}
 
-	protected DefaultDeserializationContext resolveDefaultDeserializationContext(ObjectMapper objectMapper, IManager jsHbManager) {
+	protected DefaultDeserializationContext resolveDefaultDeserializationContext(ObjectMapper objectMapper, IPlayerManager jsHbManager) {
 		if (((JsHbTape)this.getTapeOwner()).getDefaultDeserializationContext() == null) {
 			((JsHbTape)this.getTapeOwner()).setDefaultDeserializationContext(((DefaultDeserializationContext) objectMapper
 					.getDeserializationContext()).createInstance(objectMapper.getDeserializationConfig(), null,
@@ -245,7 +245,7 @@ public class JsHbTapeAction extends TapeAction {
 		return ((JsHbTape)this.getTapeOwner()).defaultDeserializationContext;
 	}
 	
-	protected BeanDeserializerBase resolveBeanDeserializer(ObjectMapper objectMapper, IManager jsHbManager,
+	protected BeanDeserializerBase resolveBeanDeserializer(ObjectMapper objectMapper, IPlayerManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedBeanDeserializer == null) {
 			JavaType entJavaType = objectMapper.getTypeFactory().constructType(this.resolveOwnerPlayerType(jsHbManager, creationRefMap));
@@ -263,7 +263,7 @@ public class JsHbTapeAction extends TapeAction {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected Class resolveOwnerPlayerType(IManager jsHbManager,
+	protected Class resolveOwnerPlayerType(IPlayerManager jsHbManager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedOwnerPlayerType == null) {
 			try {

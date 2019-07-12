@@ -3,7 +3,7 @@ package org.jsonplayback.player.hibernate;
 import java.util.Stack;
 
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IManager;
+import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ser.impl.PropertySerializerMap;
 public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 	private static Logger logger = LoggerFactory.getLogger(JsHbBeanPropertyWriter.class);
 
-	private IManagerImplementor jsHbManager;
+	private IPlayerManagerImplementor jsHbManager;
 
 //	private Class<?> componentOwnerClass = null;
 	private Class<?> relationshipOwnerClass = null;
@@ -115,7 +115,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return this;
 	}
 
-	public JsHbBeanPropertyWriter configJsHbManager(IManagerImplementor jsHbManager) {
+	public JsHbBeanPropertyWriter configJsHbManager(IPlayerManagerImplementor jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}
