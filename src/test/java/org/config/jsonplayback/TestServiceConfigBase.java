@@ -8,13 +8,13 @@ import org.hibernate.SessionFactory;
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.jsonplayback.player.IConfig;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.hibernate.IPlayerManagerImplementor;
 import org.jsonplayback.player.hibernate.JsHbBasicClassIntrospector;
 import org.jsonplayback.player.hibernate.JsHbBeanSerializerModifier;
 import org.jsonplayback.player.hibernate.JsHbConfig;
 import org.jsonplayback.player.hibernate.JsHbPlayerManager;
-import org.jsonplayback.player.hibernate.JsHbResultEntity;
-import org.jsonplayback.player.hibernate.JsHbResultEntitySerializer;
+import org.jsonplayback.player.hibernate.JsHbPlayerSnapshotSerializer;
 import org.jsonplayback.player.util.spring.orm.hibernate3.CustomLocalSessionFactoryBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,8 +154,8 @@ public class TestServiceConfigBase {
 	}
 	
 	@Bean
-	public JsHbResultEntitySerializer getJsHbResultEntitySerializer(@Autowired IPlayerManager jsHbManager) {
-		JsHbResultEntitySerializer serializer = new JsHbResultEntitySerializer().configJsHbManager(jsHbManager);
+	public JsHbPlayerSnapshotSerializer getJsHbResultEntitySerializer(@Autowired IPlayerManager jsHbManager) {
+		JsHbPlayerSnapshotSerializer serializer = new JsHbPlayerSnapshotSerializer().configJsHbManager(jsHbManager);
 		return serializer;
 	}
 	
@@ -169,7 +169,7 @@ public class TestServiceConfigBase {
 	@Bean
 	public JsHbBeanSerializerModifier getJsHbBeanSerializerModifier(
 			@Autowired IPlayerManagerImplementor jsHbManager, 
-			@Autowired JsHbResultEntitySerializer jsHbResultEntitySerializer, 
+			@Autowired JsHbPlayerSnapshotSerializer jsHbResultEntitySerializer, 
 			@Autowired Jackson2ObjectMapperBuilder builder,
 			@Autowired JsonComponentModule module,
 			@Autowired MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter
@@ -178,7 +178,7 @@ public class TestServiceConfigBase {
 		JsHbBeanSerializerModifier modifier = new JsHbBeanSerializerModifier().configJsHbManager(jsHbManager);
 		//jsonComponentModule.addSerializer(JsHbResultEntity.class, jsHbResultEntitySerializer);
 		//mapper.registerModule(jsonComponentModule);
-		module.addSerializer(JsHbResultEntity.class, jsHbResultEntitySerializer);
+		module.addSerializer(PlayerSnapshot.class, jsHbResultEntitySerializer);
 		module.setSerializerModifier(modifier);
 		ObjectMapper mapperOriginal = mappingJackson2HttpMessageConverter.getObjectMapper();
 		ObjectMapper mapperNovo = builder.build();

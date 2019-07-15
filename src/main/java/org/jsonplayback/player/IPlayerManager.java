@@ -9,7 +9,6 @@ import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
 import org.jsonplayback.player.hibernate.JsHbBeanPropertyWriter;
 import org.jsonplayback.player.hibernate.JsHbJsonSerializer;
 import org.jsonplayback.player.hibernate.JsHbPlayerManager;
-import org.jsonplayback.player.hibernate.JsHbResultEntity;
 
 public interface IPlayerManager {
 	String serializeSignature(SignatureBean signatureBean);
@@ -65,7 +64,7 @@ public interface IPlayerManager {
 	 */
 	IPlayerManager overwriteConfigurationTemporarily(IConfig newConfig);
 
-	<T> JsHbResultEntity<T> createResultEntity(T result);
+	<T> PlayerSnapshot<T> createPlayerSnapshot(T result);
 
 	/**
 	 * Initializes the Manager. It does as the initial metadata loads hibernate

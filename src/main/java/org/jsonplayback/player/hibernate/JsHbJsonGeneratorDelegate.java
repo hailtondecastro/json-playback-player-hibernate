@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.SignatureBean;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 				logger.trace("Not Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). !this.jsHbManager.isStarted()");
 			}
 			this.delegate.writeStartObject();
-		} else if (forValue instanceof JsHbResultEntity) {
+		} else if (forValue instanceof PlayerSnapshot) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Not Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). forValue instanceof JsHbResultEntity");
 			}

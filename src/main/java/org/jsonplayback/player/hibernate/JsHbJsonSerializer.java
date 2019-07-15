@@ -14,6 +14,7 @@ import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
 import org.jsonplayback.player.SignatureBean;
@@ -162,7 +163,7 @@ public class JsHbJsonSerializer extends JsonSerializer<Object> {
 					logger.trace("Not Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). value == null");
 				}
 				this.delegate.serialize(value, gen, serializers);
-			} else if (value instanceof JsHbResultEntity) {
+			} else if (value instanceof PlayerSnapshot) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Not Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider). value instanceof JsHbResultEntity");
 				}

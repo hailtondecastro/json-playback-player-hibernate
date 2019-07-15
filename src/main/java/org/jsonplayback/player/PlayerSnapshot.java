@@ -1,28 +1,26 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player;
 
-import org.jsonplayback.player.IPlayerManager;
-
-public class JsHbResultEntity<T> {
-	private T result;
+public class PlayerSnapshot<T> {
+	private T wrappedSnapshot;
 
 	private IPlayerManager jsHbManager;
 	
-	JsHbResultEntity configJsHbManager(IPlayerManager jsHbManager) {
+	public PlayerSnapshot configJsHbManager(IPlayerManager jsHbManager) {
 		this.jsHbManager = jsHbManager;
 		return this;
 	}
 	
-	JsHbResultEntity(T result) {
+	public PlayerSnapshot(T wrappedSnapshot) {
 		super();
-		this.result = result;
+		this.wrappedSnapshot = wrappedSnapshot;
 	}
 
-	public T getResult() {
-		return result;
+	public T getWrappedSnapshot() {
+		return wrappedSnapshot;
 	}
 
-	public void setResult(T result) {
-		this.result = result;
+	public void setWrappedSnapshot(T wrappedSnapshot) {
+		this.wrappedSnapshot = wrappedSnapshot;
 	}
 }
 /*gerando conflito*/

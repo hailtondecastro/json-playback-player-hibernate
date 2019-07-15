@@ -48,6 +48,7 @@ import org.jsonplayback.player.IConfig;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.Tape;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
@@ -80,12 +81,12 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 //	ThreadLocal<Object> currentCompositeOwner = new ThreadLocal<>();
 
 	@Override
-	public <T> JsHbResultEntity<T> createResultEntity(T result) {
+	public <T> PlayerSnapshot<T> createPlayerSnapshot(T result) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(
 					MessageFormat.format("createResultEntity for {0}", result != null ? result.getClass() : "null"));
 		}
-		return new JsHbResultEntity<T>(result).configJsHbManager(this);
+		return new PlayerSnapshot<T>(result).configJsHbManager(this);
 	}
 
 	@Override

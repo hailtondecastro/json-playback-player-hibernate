@@ -34,8 +34,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
-import org.jsonplayback.player.hibernate.JsHbResultEntity;
 import org.jsonplayback.player.hibernate.entities.DetailAComp;
 import org.jsonplayback.player.hibernate.entities.DetailACompId;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
@@ -250,7 +250,7 @@ public class JsHbManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(true));
 				
-				JsHbResultEntity<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createResultEntity(masterAEnt);
+				PlayerSnapshot<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(masterAEnt);
 				
 				FileOutputStream fos;
 				try {
@@ -402,7 +402,7 @@ public class JsHbManagerTest {
 												.clone()
 												.configSerialiseBySignatureAllRelationship(true));
 					
-					JsHbResultEntity<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createResultEntity(masterAEnt);
+					PlayerSnapshot<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(masterAEnt);
 					
 					FileOutputStream fos;
 					try {
@@ -498,7 +498,7 @@ public class JsHbManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				JsHbResultEntity<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createResultEntity(masterAEnt);
+				PlayerSnapshot<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(masterAEnt);
 				
 				FileOutputStream fos;
 				try {
@@ -590,7 +590,7 @@ public class JsHbManagerTest {
 				
 				SignatureBean signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
 				Collection<DetailAEnt> detailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
-				JsHbResultEntity<Collection<DetailAEnt>> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createResultEntity(detailAEntCol);
+				PlayerSnapshot<Collection<DetailAEnt>> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(detailAEntCol);
 				
 				FileOutputStream fos;
 				
@@ -680,7 +680,7 @@ public class JsHbManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(true));
 				
-				JsHbResultEntity<MasterBEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createResultEntity(masterBEnt);
+				PlayerSnapshot<MasterBEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(masterBEnt);
 				
 				FileOutputStream fos;
 				try {
