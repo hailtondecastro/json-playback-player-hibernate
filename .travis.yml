@@ -1,1 +1,7 @@
 language: java
+before_install:
+  - echo $GPG_PASSPHRASE | gpg --import travis.gpg
+  - rm -f travis.gpg
+script:
+  - mvn -P travis
+  
