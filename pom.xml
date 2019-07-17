@@ -172,6 +172,9 @@
 	<profiles>
 		<profile>
 			<id>travis</id>
+			<properties>
+				<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
