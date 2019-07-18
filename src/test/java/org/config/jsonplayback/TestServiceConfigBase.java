@@ -15,6 +15,7 @@ import org.jsonplayback.player.hibernate.JsHbBeanSerializerModifier;
 import org.jsonplayback.player.hibernate.JsHbConfig;
 import org.jsonplayback.player.hibernate.JsHbPlayerManager;
 import org.jsonplayback.player.hibernate.JsHbPlayerSnapshotSerializer;
+import org.jsonplayback.player.util.NoOpLoggingSystem;
 import org.jsonplayback.player.util.spring.orm.hibernate3.CustomLocalSessionFactoryBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.autoconfigure.web.ErrorMvcAutoConfiguration;
 import org.springframework.boot.context.TypeExcludeFilter;
 import org.springframework.boot.jackson.JsonComponentModule;
+import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -42,7 +44,6 @@ import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Classe de configuracao base para todas (por enquanto) outras classes de
@@ -89,6 +90,8 @@ public class TestServiceConfigBase {
 	@Bean
     public LocalSessionFactoryBean getSessionFactoryBean() {
     	System.setProperty("hsqldb.reconfig_logging", "false");
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());
     	
     	// https://stackoverflow.com/questions/41230234/using-datasource-to-connect-to-sqlite-with-xerial-sqlite-jdbc-driver
     	//SQLiteConfig sqLiteConfig = new SQLiteConfig();
