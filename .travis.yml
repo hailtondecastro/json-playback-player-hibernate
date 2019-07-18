@@ -6,9 +6,9 @@ before_install:
   - cp settings.template.xml $HOME/.m2/settings.xml
 script:
   - mvn -P travis clean install
+
 deploy:
   provider: script 
-  script: 
-      - mvn -P travis clean deploy
+  script: foo mvn -P travis clean deploy
   on:
     tags: deploy
