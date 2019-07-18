@@ -118,8 +118,8 @@ public class JsHbManagerTest {
 				masterAEnt.setVcharB(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharB", i));
 				masterAEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
 				masterAEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
-				System.out.println("####: " + masterAEnt.getDatetimeA());
-				System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
+//				System.out.println("####: " + masterAEnt.getDatetimeA());
+//				System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
 				masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
 				masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
 				masterAEnt.setBlobB(ss.connection().createBlob());
@@ -463,9 +463,9 @@ public class JsHbManagerTest {
 	@Test
 	public void masterADetailATest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
-		for (String keyCS : availableCharsetsMap.keySet()) {
-			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
-		}
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
 		
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".masterADetailATest_result_generated.json";
@@ -554,9 +554,9 @@ public class JsHbManagerTest {
 	@Test
 	public void detailABySigTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
-		for (String keyCS : availableCharsetsMap.keySet()) {
-			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
-		}
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
 		
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_generated.json";
@@ -736,9 +736,9 @@ public class JsHbManagerTest {
 	@Test
 	public void masterBInnerCompsGetBySigTest() throws Exception {
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
-		for (String keyCS : availableCharsetsMap.keySet()) {
-			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
-		}
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
 		
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_generated.json";

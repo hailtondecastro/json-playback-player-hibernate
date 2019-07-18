@@ -7,8 +7,8 @@ before_install:
 script:
   - mvn -P travis clean install
 deploy:
-  - provider: script 
-    script: 
+  provider: script 
+  script: 
       - mvn -P travis clean deploy
-    on:
-      tags: deploy
+  on:
+    tags: deploy
