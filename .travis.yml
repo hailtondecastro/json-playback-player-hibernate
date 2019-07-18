@@ -4,11 +4,15 @@ before_install:
   - echo $GPG_PASSPHRASE | gpg --import travis.gpg
   - rm -f travis.gpg
   - cp settings.template.xml $HOME/.m2/settings.xml
+
 script:
   - mvn -P travis clean install
-
+    
 deploy:
-  provider: script 
-  script: foo mvn -P travis clean deploy
+  provider: script
+  script: mvn -P travis deploy
+  skip_cleanup: true
   on:
-    tags: deploy
+    tags: true
+    all_branches: true
+    condition: $TRAVIS_TAG = deploy
