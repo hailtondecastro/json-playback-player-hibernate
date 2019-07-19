@@ -70,7 +70,8 @@ Framework for integrate entity object graph operations (field, collections modif
   $ # Run this and submit the content to [Add new GPG keys](https://github.com/settings/gpg/new):
   $ gpg --armor --export 2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F
   ```
-  Skipping a build on travis: https://docs.travis-ci.com/user/customizing-the-build/#skipping-a-build
+  Skipping a build on travis: put [skip travis] on comment. ref.: [Customizing the Build - Travis CI](https://docs.travis-ci.com/user/customizing-the-build/#skipping-a-build).  
+  Maven Deploy on central.sonatype.org with travis: Override the "deploy" tag and push it.
 
 #### Claim Your Namespace on the Central Repository (central.sonatype.org)
   Acording to [OSSRH Guide](https://central.sonatype.org/pages/ossrh-guide.html#create-a-ticket-with-sonatype):  
