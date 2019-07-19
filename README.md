@@ -153,4 +153,4 @@ Framework for integrate entity object graph operations (field, collections modif
   1. Secret variables (DISPLAY VALUE IN BUILD LOG "off" and remember escape special character):
       - GPG_PASSPHRASE: Passphare used for [travis.gpg](#user-content-working-with-pgp-signatures-centralsonatypeorg);
       - SONATYPE_USER: Generated user on [https://oss.sonatype.org -> Profile -> User Token](https://oss.sonatype.org/#profile;User%20Token);
-      - SONATYPE_PASSWORD: Generated user on [https://oss.sonatype.org -> Profile -> User Token](https://oss.sonatype.org/#profile;User%20Token).
+      - SONATYPE_PASSWORD: Generated password on [https://oss.sonatype.org -> Profile -> User Token](https://oss.sonatype.org/#profile;User%20Token).
