@@ -1,11 +1,11 @@
 {
   "wrappedSnapshot" : {
-    "$jsHbMetadatas$" : {
+    "$metadatas$" : {
       "$iAmPlayerMetadatas$" : true,
       "$id$" : 1,
       "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
       "$playerObjectId$" : {
-        "$jsHbMetadatas$" : {
+        "$metadatas$" : {
           "$iAmPlayerMetadatas$" : true,
           "$id$" : 2,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiY29tcElkIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
@@ -17,7 +17,7 @@
       }
     },
     "compId" : {
-      "$jsHbMetadatas$" : {
+      "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$idRef$" : 2
       }
@@ -30,7 +30,7 @@
     "blobB" : "TWFzdGVyQkVudF9SRUcwMV9CbG9iQg==",
     "hbVersion" : 0,
     "detailAEntCol" : {
-      "$jsHbMetadatas$" : {
+      "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
         "$isLazyUninitialized$" : true,
@@ -38,14 +38,14 @@
       }
     },
     "masterBComp" : {
-      "$jsHbMetadatas$" : {
+      "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$id$" : 3,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
         "$isComponent$" : true
       },
       "detailAEntCol" : {
-        "$jsHbMetadatas$" : {
+        "$metadatas$" : {
           "$iAmPlayerMetadatas$" : true,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
           "$isLazyUninitialized$" : true,
@@ -53,14 +53,14 @@
         }
       },
       "masterBCompComp" : {
-        "$jsHbMetadatas$" : {
+        "$metadatas$" : {
           "$iAmPlayerMetadatas$" : true,
           "$id$" : 4,
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
           "$isComponent$" : true
         },
         "detailAEntCol" : {
-          "$jsHbMetadatas$" : {
+          "$metadatas$" : {
             "$iAmPlayerMetadatas$" : true,
             "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
             "$isLazyUninitialized$" : true,

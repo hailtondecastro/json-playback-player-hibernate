@@ -6,9 +6,9 @@ import java.util.Stack;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
-import org.jsonplayback.player.hibernate.JsHbBeanPropertyWriter;
-import org.jsonplayback.player.hibernate.JsHbJsonSerializer;
-import org.jsonplayback.player.hibernate.JsHbPlayerManager;
+import org.jsonplayback.player.hibernate.PlayerBeanPropertyWriter;
+import org.jsonplayback.player.hibernate.PlayerJsonSerializer;
+import org.jsonplayback.player.hibernate.PlayerManagerDefault;
 
 public interface IPlayerManager {
 	String serializeSignature(SignatureBean signatureBean);
@@ -23,7 +23,7 @@ public interface IPlayerManager {
 	 * {@link LazyProperty#charset()} must be added to content-type if
 	 * {@link LazyProperty#contentTypePrefix()} is "content-type: text/plain".
 	 * Example:
-	 * <code>directRawWriterWrapper.getJsHbLazyProperty().contentTypePrefix() + "; " + directRawWriterWrapper.getJsHbLazyProperty().charset()</code>
+	 * <code>directRawWriterWrapper.getLazyProperty().contentTypePrefix() + "; " + directRawWriterWrapper.getLazyProperty().charset()</code>
 	 * 
 	 * @param signature
 	 * @return
@@ -37,9 +37,9 @@ public interface IPlayerManager {
 
 	Object getHibernateObjectId(Object object);
 
-	IConfig getJsHbConfig();
+	IPlayerConfig getConfig();
 
-	JsHbPlayerManager configure(IConfig jsHbConfig);
+	PlayerManagerDefault configure(IPlayerConfig config);
 
 	/**
 	 * Threadsafe
@@ -62,7 +62,7 @@ public interface IPlayerManager {
 	 * @param newConfig
 	 * @return
 	 */
-	IPlayerManager overwriteConfigurationTemporarily(IConfig newConfig);
+	IPlayerManager overwriteConfigurationTemporarily(IPlayerConfig newConfig);
 
 	<T> PlayerSnapshot<T> createPlayerSnapshot(T result);
 
@@ -80,6 +80,6 @@ public interface IPlayerManager {
 	IReplayable prepareReplayable(Tape tape);
 
 
-	IPlayerManager cloneWithNewConfiguration(IConfig newConfig);
+	IPlayerManager cloneWithNewConfiguration(IPlayerConfig newConfig);
 }
 /*gerando conflito*/

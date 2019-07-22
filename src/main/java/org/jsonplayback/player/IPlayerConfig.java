@@ -7,49 +7,37 @@ import org.hibernate.SessionFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public interface IConfig {
-	/* (non-Javadoc)
-	 * @see org.jsonplayback.player.hibernate.JsHbConfig#getListeners()
-	 */
+public interface IPlayerConfig {
 	List<IGetBySignatureListener> getListeners();
 
-	/* (non-Javadoc)
-	 * @see org.jsonplayback.player.hibernate.JsHbConfig#getSessionFactory()
-	 */
 	SessionFactory getSessionFactory();
 
-	/* (non-Javadoc)
-	 * @see org.jsonplayback.player.hibernate.JsHbConfig#getSignatureCrypto()
-	 */
 	SignatureCrypto getSignatureCrypto();
 
-	/* (non-Javadoc)
-	 * @see org.jsonplayback.player.hibernate.JsHbConfig#getNotLazyClasses()
-	 */
 	Set<Class> getNeverSignedClasses();
 
-	IConfig configNeverSignedClasses(Set<Class> getNotLazyClasses);
+	IPlayerConfig configNeverSignedClasses(Set<Class> getNotLazyClasses);
 
-	IConfig configSessionFactory(SessionFactory sessionFactory);
+	IPlayerConfig configSessionFactory(SessionFactory sessionFactory);
 
-	IConfig configSerialiseBySignatureAllRelationship(boolean serialiseBySignatureAllRelationship);
+	IPlayerConfig configSerialiseBySignatureAllRelationship(boolean serialiseBySignatureAllRelationship);
 
 	boolean isSerialiseBySignatureAllRelationship();
 	
-	IConfig clone();
+	IPlayerConfig clone();
 
 	ObjectMapper getObjectMapper();
 
-	IConfig configObjectMapper(ObjectMapper objectMapper);
+	IPlayerConfig configObjectMapper(ObjectMapper objectMapper);
 
 	Set<Class> getNonLazybleClasses();
 
-	String getJsHbMetadatasName();
+	String getPlayerMetadatasName();
 
-	IConfig configJsHbMetadatasName(String jsHbMetadatasName);
+	IPlayerConfig configPlayerMetadatasName(String playerMetadatasName);
 
-	boolean isIgnoreAllJsHbLazyProperty();
+	boolean isIgnoreAllLazyProperty();
 
-	IConfig configIgnoreAllJsHbLazyProperty(boolean ignoreAllJsHbLazyProperty);
+	IPlayerConfig configIgnoreAllLazyProperty(boolean ignoreAllLazyProperty);
 }
 /*gerando conflito*/

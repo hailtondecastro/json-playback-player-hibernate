@@ -1,6 +1,6 @@
 {
   "wrappedSnapshot" : {
-    "$jsHbMetadatas$" : {
+    "$metadatas$" : {
       "$iAmPlayerMetadatas$" : true,
       "$id$" : 1,
       "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
@@ -15,7 +15,7 @@
     "blobB" : "TWFzdGVyQUVudF9SRUcwMV9CbG9iQg==",
     "hbVersion" : 0,
     "detailAEntCol" : {
-      "$jsHbMetadatas$" : {
+      "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
         "$isLazyUninitialized$" : true,
@@ -23,7 +23,7 @@
       }
     },
     "blobLazyA" : {
-      "$jsHbMetadatas$" : {
+      "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInByb3BlcnR5TmFtZSI6ImJsb2JMYXp5QSIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
         "$isLazyUninitialized$" : true,
@@ -31,7 +31,7 @@
       }
     },
     "blobLazyB" : {
-      "$jsHbMetadatas$" : {
+      "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInByb3BlcnR5TmFtZSI6ImJsb2JMYXp5QiIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
         "$isLazyUninitialized$" : true,
@@ -39,7 +39,7 @@
       }
     },
     "clobLazyA" : {
-      "$jsHbMetadatas$" : {
+      "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInByb3BlcnR5TmFtZSI6ImNsb2JMYXp5QSIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
         "$isLazyUninitialized$" : true,
@@ -47,7 +47,7 @@
       }
     },
     "clobLazyB" : {
-      "$jsHbMetadatas$" : {
+      "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInByb3BlcnR5TmFtZSI6ImNsb2JMYXp5QiIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
         "$isLazyUninitialized$" : true,

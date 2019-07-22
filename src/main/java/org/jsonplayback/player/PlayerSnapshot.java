@@ -4,11 +4,11 @@ public class PlayerSnapshot<T> {
 	private T wrappedSnapshot;
 
 	@SuppressWarnings("unused")
-	private IPlayerManager jsHbManager;
+	private IPlayerManager manager;
 	
 	@SuppressWarnings("rawtypes")
-	public PlayerSnapshot configJsHbManager(IPlayerManager jsHbManager) {
-		this.jsHbManager = jsHbManager;
+	public PlayerSnapshot configManager(IPlayerManager manager) {
+		this.manager = manager;
 		return this;
 	}
 	

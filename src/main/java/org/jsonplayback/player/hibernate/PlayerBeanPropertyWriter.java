@@ -17,10 +17,10 @@ import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.PropertySerializerMap;
 
-public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
-	private static Logger logger = LoggerFactory.getLogger(JsHbBeanPropertyWriter.class);
+public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
+	private static Logger logger = LoggerFactory.getLogger(PlayerBeanPropertyWriter.class);
 
-	private IPlayerManagerImplementor jsHbManager;
+	private IPlayerManagerImplementor playerManager;
 
 //	private Class<?> componentOwnerClass = null;
 	private Class<?> relationshipOwnerClass = null;
@@ -29,16 +29,16 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 	private boolean isPersistent;
 	private boolean isPlayerObjectId;
 	private boolean isMetadatasPlayerObjectId;
-	private LazyProperty jsHbLazyProperty;
-	private JsHbJsonSerializer jsHbJsonSerializerForLazyProperty;
+	private LazyProperty lazyProperty;
+	private PlayerJsonSerializer playerJsonSerializerForLazyProperty;
 
-	public JsHbBeanPropertyWriter configJsHbJsonSerializerForLazyProperty(JsHbJsonSerializer jsHbJsonSerializerForLazyProperty) {
-		this.jsHbJsonSerializerForLazyProperty = jsHbJsonSerializerForLazyProperty;
+	public PlayerBeanPropertyWriter configPlayerBeanPropertyWriterForLazyProperty(PlayerJsonSerializer playerJsonSerializerForLazyProperty) {
+		this.playerJsonSerializerForLazyProperty = playerJsonSerializerForLazyProperty;
 		return this;
 	}
 
-	public LazyProperty getJsHbLazyProperty() {
-		return jsHbLazyProperty;
+	public LazyProperty getLazyProperty() {
+		return lazyProperty;
 	}
 	
 	protected ThreadLocal<Stack<Object>> getCurrOwnerStackTL() {
@@ -48,8 +48,8 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return currOwnerStackTL;			
 	}
 
-	public JsHbBeanPropertyWriter loadJsHbLazyProperty(LazyProperty jsHbLazyProperty) {
-		this.jsHbLazyProperty = jsHbLazyProperty;
+	public PlayerBeanPropertyWriter loadLazyProperty(LazyProperty lazyProperty) {
+		this.lazyProperty = lazyProperty;
 		return this;
 	}
 	
@@ -57,7 +57,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return isMetadatasPlayerObjectId;
 	}
 
-	public JsHbBeanPropertyWriter loadIsMetadatasPlayerObjectId(boolean isPlayerObjectIdOnMetadatas) {
+	public PlayerBeanPropertyWriter loadIsMetadatasPlayerObjectId(boolean isPlayerObjectIdOnMetadatas) {
 		this.isMetadatasPlayerObjectId = isPlayerObjectIdOnMetadatas;
 		return this;
 	}
@@ -66,7 +66,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return isPlayerObjectId;
 	}
 
-	public JsHbBeanPropertyWriter loadIsPlayerObjectId(boolean isPlayerObjectId) {
+	public PlayerBeanPropertyWriter loadIsPlayerObjectId(boolean isPlayerObjectId) {
 		this.isPlayerObjectId = isPlayerObjectId;
 		return this;
 	}
@@ -75,7 +75,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return isPersistent;
 	}
 
-	public JsHbBeanPropertyWriter loadIsPersistent(boolean isPersistent) {
+	public PlayerBeanPropertyWriter loadIsPersistent(boolean isPersistent) {
 		this.isPersistent = isPersistent;
 		return this;
 	}
@@ -84,7 +84,7 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return beanPropertyDefinition;
 	}
 
-	public JsHbBeanPropertyWriter loadBeanPropertyDefinition(BeanPropertyDefinition beanPropertyDefinition) {
+	public PlayerBeanPropertyWriter loadBeanPropertyDefinition(BeanPropertyDefinition beanPropertyDefinition) {
 		this.beanPropertyDefinition = beanPropertyDefinition;
 		return this;
 	}
@@ -105,22 +105,17 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		return relationshipOwnerClass;
 	}
 
-//	public JsHbBeanPropertyWriter loadComponentOwnerClass(Class<?> componentOwnerClass) {
-//		this.componentOwnerClass = componentOwnerClass;
-//		return this;
-//	}
-
-	public JsHbBeanPropertyWriter loadRelationshipOwnerClass(Class<?> relationshipOwnerClass) {
+	public PlayerBeanPropertyWriter loadRelationshipOwnerClass(Class<?> relationshipOwnerClass) {
 		this.relationshipOwnerClass = relationshipOwnerClass;
 		return this;
 	}
 
-	public JsHbBeanPropertyWriter configJsHbManager(IPlayerManagerImplementor jsHbManager) {
-		this.jsHbManager = jsHbManager;
+	public PlayerBeanPropertyWriter configManager(IPlayerManagerImplementor manager) {
+		this.playerManager = manager;
 		return this;
 	}
 
-	public JsHbBeanPropertyWriter(BeanPropertyWriter propertyWriter) {
+	public PlayerBeanPropertyWriter(BeanPropertyWriter propertyWriter) {
 		super(propertyWriter);
 	}
 
@@ -141,12 +136,12 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 	public void serializeAsField(Object bean, JsonGenerator gen, SerializerProvider prov) throws Exception {
 
 		try {
-			if (this.jsHbManager.isStarted()) {
+			if (this.playerManager.isStarted()) {
 				if (!this.isMetadatasPlayerObjectId) {
-				this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(this);
+				this.playerManager.getPlayerBeanPropertyWriterStepStack().push(this);
 				} else {
 					PlayerMetadatas metadatas = (PlayerMetadatas) bean;
-					this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(metadatas.getOriginalPlayerObjectIdPropertyWriter());
+					this.playerManager.getPlayerBeanPropertyWriterStepStack().push(metadatas.getOriginalPlayerObjectIdPropertyWriter());
 			}
 			}
 			
@@ -158,17 +153,17 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 				this.getCurrOwnerStackTL().get().push(metadatas.getOriginalPlayerObjectIdOwner());
 			}
 			
-			if (this.jsHbLazyProperty != null) {
+			if (this.lazyProperty != null) {
 				JsonSerializer<Object> delegateSerializer = this.getSerializer();
 				if (delegateSerializer == null) {
 					delegateSerializer = prov.findValueSerializer(this.getPropertyType());					
 				}
-				if (!(this.getSerializer() instanceof JsHbJsonSerializer)) {
-					super._serializer = new JsHbJsonSerializer(delegateSerializer).configJsHbManager(this.jsHbManager);
+				if (!(this.getSerializer() instanceof PlayerJsonSerializer)) {
+					super._serializer = new PlayerJsonSerializer(delegateSerializer).configManager(this.playerManager);
 				}
 			}
 
-			if (this.jsHbManager.isStarted()) {
+			if (this.playerManager.isStarted()) {
 				if (!this.isMetadatasPlayerObjectId) {
 					super.serializeAsField(bean, gen, prov);					
 				} else {
@@ -186,8 +181,8 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 			}	
 		} finally {
 			this.getCurrOwnerStackTL().get().pop();
-			if (this.jsHbManager.isStarted()) {
-				JsHbBeanPropertyWriter propertyWriterPop = this.jsHbManager.getJsHbBeanPropertyWriterStepStack().pop();
+			if (this.playerManager.isStarted()) {
+				PlayerBeanPropertyWriter propertyWriterPop = this.playerManager.getPlayerBeanPropertyWriterStepStack().pop();
 				if (!this.isMetadatasPlayerObjectId) {
 					if (propertyWriterPop != this) {
 						throw new RuntimeException("This should not happen");
@@ -225,8 +220,8 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 	public void findFieldPlayerObjectIdentifierValue(Object bean, SerializerProvider prov, PlayerMetadatas backendMetadatas)
 			throws Exception {
 		try {
-			if (this.jsHbManager.isStarted()) {
-				this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(this);
+			if (this.playerManager.isStarted()) {
+				this.playerManager.getPlayerBeanPropertyWriterStepStack().push(this);
 			}
 			this.getCurrOwnerStackTL().get().push(bean);
 
@@ -238,8 +233,8 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 			backendMetadatas.setOriginalPlayerObjectIdOwner(bean);
 		} finally {
 			this.getCurrOwnerStackTL().get().pop();
-			if (this.jsHbManager.isStarted()) {
-				JsHbBeanPropertyWriter propertyWriterPop = this.jsHbManager.getJsHbBeanPropertyWriterStepStack().pop();
+			if (this.playerManager.isStarted()) {
+				PlayerBeanPropertyWriter propertyWriterPop = this.playerManager.getPlayerBeanPropertyWriterStepStack().pop();
 				if (propertyWriterPop != this) {
 					throw new RuntimeException("This should not happen");
 				}
@@ -247,96 +242,11 @@ public class JsHbBeanPropertyWriter extends BeanPropertyWriter {
 		}
 	}
 	
-//	public void serializeAsFieldPlayerObjectIdentifier(Object bean, JsonGenerator gen, SerializerProvider prov)
-//			throws Exception {
-//		try {
-//			if (this.jsHbManager.isStarted()) {
-//				this.jsHbManager.getJsHbBeanPropertyWriterStepStack().push(this);
-//			}
-//			this.currOwner = bean;
-//
-//			// inlined 'get()'
-//			final Object value = (_accessorMethod == null) ? _field.get(bean) : _accessorMethod.invoke(bean);
-//
-//			// Null handling is bit different, check that first
-//			if (value == null) {
-//				if (_nullSerializer != null) {
-//					gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName());
-//					_nullSerializer.serialize(null, gen, prov);
-//					
-//					if (logger.isTraceEnabled()) {
-//						logger.trace(MessageFormat.format(
-//								"serializeAsFieldPlayerObjectIdentifier():\n" + " gen.writeFieldName(\"{0}\");\n"
-//										+ " _nullSerializer.serialize(null, gen, prov); ",
-//								this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName()));
-//					}
-//				}
-//				return;
-//			}
-//			// then find serializer to use
-//			JsonSerializer<Object> ser = _serializer;
-//			if (ser == null) {
-//				Class<?> cls = value.getClass();
-//				PropertySerializerMap m = _dynamicSerializers;
-//				ser = m.serializerFor(cls);
-//				if (ser == null) {
-//					ser = _findAndAddDynamic(m, cls, prov);
-//				}
-//			}
-//			// and then see if we must suppress certain values (default, empty)
-//			if (_suppressableValue != null) {
-//				if (MARKER_FOR_EMPTY == _suppressableValue) {
-//					if (ser.isEmpty(prov, value)) {
-//						return;
-//					}
-//				} else if (_suppressableValue.equals(value)) {
-//					return;
-//				}
-//			}
-//			// For non-nulls: simple check for direct cycles
-//			if (value == bean) {
-//				// three choices: exception; handled by call; or pass-through
-//				if (_handleSelfReference(bean, gen, prov, ser)) {
-//					return;
-//				}
-//			}
-//			gen.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName());
-//			if (logger.isTraceEnabled()) {
-//				logger.trace(MessageFormat.format(
-//						"serializeAsFieldPlayerObjectIdentifier():\n" + " gen.writeFieldName(\"{0}\");",
-//						this.jsHbManager.getJsHbConfig().getJsHbPlayerObjectIdName()));
-//			}
-//			if (_typeSerializer == null) {
-//				if (logger.isTraceEnabled()) {
-//					logger.trace(MessageFormat.format("serializeAsFieldPlayerObjectIdentifier():\n"
-//							+ " ser.serialize(value, gen, prov);\n" + " ser: ''{0}''", ser));
-//				}
-//				ser.serialize(value, gen, prov);
-//			} else {
-//				if (logger.isTraceEnabled()) {
-//					logger.trace(MessageFormat.format("serializeAsFieldPlayerObjectIdentifier():\n"
-//							+ " ser.serialize(value, gen, prov, _typeSerializer);\n" + " ser: ''{0}''\n"
-//									+ " _typeSerializer: " + _typeSerializer, ser, _typeSerializer));
-//				}
-//				ser.serializeWithType(value, gen, prov, _typeSerializer);
-//			}
-//
-//		} finally {
-//			this.currOwner = null;
-//			if (this.jsHbManager.isStarted()) {
-//				JsHbBeanPropertyWriter propertyWriterPop = this.jsHbManager.getJsHbBeanPropertyWriterStepStack().pop();
-//				if (propertyWriterPop != this) {
-//					throw new RuntimeException("This should not happen");
-//				}
-//			}
-//		}
-//	}
-	
 	@Override
 	public String toString() {
         StringBuilder sb = new StringBuilder(40);
         sb
-        	.append("JsHbBeanPropertyWriter with")
+        	.append("PlayerBeanPropertyWriter with")
 //        	.append("componentOwnerClass='").append(componentOwnerClass).append("', ")
         	.append("relationshipOwnerClass='").append(relationshipOwnerClass).append("', ")
         	.append("isPersistent=").append(isPersistent).append(", ")

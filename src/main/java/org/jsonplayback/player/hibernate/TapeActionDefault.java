@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.deser.BeanDeserializerBase;
 import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext;
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
 
-public class JsHbTapeAction extends TapeAction {
+public class TapeActionDefault extends TapeAction {
 	private Object resolvedOwnerValue = null;
 	private boolean isResolvedSettedValue = false;
 	private Object resolvedSettedValue = null;
@@ -120,13 +120,13 @@ public class JsHbTapeAction extends TapeAction {
 		this.defaultDeserializationContext = defaultDeserializationContext;
 	}
 	
-	protected String resolveJavaPropertyName(ObjectMapper objectMapper, IPlayerManager jsHbManager,
+	protected String resolveJavaPropertyName(ObjectMapper objectMapper, IPlayerManager manager,
 			HashMap<Long, Object> creationRefMap) {
 		if (!this.isResolvedJavaPropertyName) {
 			this.isResolvedJavaPropertyName = true;
 			if (this.getFieldName() != null) {
 				SettableBeanProperty settableBeanProperty = this
-						.resolveBeanDeserializer(objectMapper, jsHbManager, creationRefMap)
+						.resolveBeanDeserializer(objectMapper, manager, creationRefMap)
 						.findProperty(this.getFieldName());
 				if (settableBeanProperty == null) {
 					throw new RuntimeException(MessageFormat.format("O field nao existe na entidade:\n{0}", this));
@@ -138,20 +138,20 @@ public class JsHbTapeAction extends TapeAction {
 	}
 
 	/**
-	 * Somente deve ser chamado a partir de JsHbReplayable.preProcessPlayBack.
+	 * Somente deve ser chamado a partir de IReplayable.preProcessPlayBack.
 	 * 
-	 * @param jsHbManager
+	 * @param manager
 	 * @param creationRefMap
 	 * @return
 	 */
-	protected Object resolveOwnerValue(IPlayerManager jsHbManager, HashMap<Long, Object> creationRefMap) {
+	protected Object resolveOwnerValue(IPlayerManager manager, HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedOwnerValue == null) {
 			if (this.getOwnerSignatureStr() != null) {
-				SignatureBean signatureBean = jsHbManager.deserializeSignature(this.getOwnerSignatureStr());
-				this.resolvedOwnerValue = jsHbManager.getBySignature(signatureBean);
+				SignatureBean signatureBean = manager.deserializeSignature(this.getOwnerSignatureStr());
+				this.resolvedOwnerValue = manager.getBySignature(signatureBean);
 			} else if (this.getOwnerCreationId() != null) {
 				try {
-					this.resolvedOwnerValue = this.resolveOwnerPlayerType(jsHbManager, creationRefMap).newInstance();
+					this.resolvedOwnerValue = this.resolveOwnerPlayerType(manager, creationRefMap).newInstance();
 					
 					creationRefMap.put(this.getOwnerCreationId(), this.resolvedOwnerValue);
 				} catch (Exception e) {
@@ -167,7 +167,7 @@ public class JsHbTapeAction extends TapeAction {
 		return this.resolvedOwnerValue;
 	}
 
-	protected Object resolveSettedValue(ObjectMapper objectMapper, IPlayerManager jsHbManager,
+	protected Object resolveSettedValue(ObjectMapper objectMapper, IPlayerManager manager,
 			HashMap<Long, Object> creationRefMap) {
 		if (!this.isResolvedSettedValue) {
 			this.isResolvedSettedValue = true;
@@ -175,12 +175,12 @@ public class JsHbTapeAction extends TapeAction {
 				if (creationRefMap == null) {
 					//nada: estah sendo chamado a partir da deserializacao Jaxrs/Jacson
 				} else {
-					//obtendo do creationRefMap: estah sendo chamado a partir do JsHbReplayable
+					//obtendo do creationRefMap: estah sendo chamado a partir do IReplayable
 					this.resolvedSettedValue = creationRefMap.get(this.getSettedCreationRefId());					
 				}
 			} else if (this.getSettedSignatureStr() != null) {
-				SignatureBean signatureBean = jsHbManager.deserializeSignature(this.getSettedSignatureStr());
-				this.resolvedSettedValue = jsHbManager.getBySignature(signatureBean);
+				SignatureBean signatureBean = manager.deserializeSignature(this.getSettedSignatureStr());
+				this.resolvedSettedValue = manager.getBySignature(signatureBean);
 			} else if (this.getFieldName() != null) {
 				// Tipo nao bean
 				try {
@@ -201,11 +201,11 @@ public class JsHbTapeAction extends TapeAction {
 					if (!"dummyPrp".equals(dummyPrpName)) {
 						throw new RuntimeException("This should not happen!!!!");
 					}
-					SettableBeanProperty settableBeanProperty = this.resolveBeanDeserializer(objectMapper, jsHbManager, creationRefMap).findProperty(this.getFieldName());
+					SettableBeanProperty settableBeanProperty = this.resolveBeanDeserializer(objectMapper, manager, creationRefMap).findProperty(this.getFieldName());
 					JsonDeserializer<Object> jsonDeserializer = settableBeanProperty.getValueDeserializer();
 					//valor simple
 					jsonParser.nextToken();
-					this.resolvedSettedValue = jsonDeserializer.deserialize(jsonParser, this.resolveDefaultDeserializationContext(objectMapper, jsHbManager));
+					this.resolvedSettedValue = jsonDeserializer.deserialize(jsonParser, this.resolveDefaultDeserializationContext(objectMapper, manager));
 					//end object
 					if (jsonParser.nextToken() != JsonToken.END_OBJECT) {
 						throw new RuntimeException("This should not happen!!!!");
@@ -223,12 +223,12 @@ public class JsHbTapeAction extends TapeAction {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected Collection resolveColletion(ObjectMapper objectMapper, IPlayerManager jsHbManager,
+	protected Collection resolveColletion(ObjectMapper objectMapper, IPlayerManager manager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedColletion == null && (this.getActionType() == TapeActionType.COLLECTION_ADD || this.getActionType() == TapeActionType.COLLECTION_REMOVE)) {
 			try {
-				this.resolvedColletion = (Collection) PropertyUtils.getProperty(this.resolveOwnerValue(jsHbManager, creationRefMap),
-						this.resolveJavaPropertyName(objectMapper, jsHbManager, creationRefMap));
+				this.resolvedColletion = (Collection) PropertyUtils.getProperty(this.resolveOwnerValue(manager, creationRefMap),
+						this.resolveJavaPropertyName(objectMapper, manager, creationRefMap));
 			} catch (Exception e) {
 				throw new RuntimeException(MessageFormat.format("This should not happen. action:\n{0}", this), e);
 			}
@@ -236,22 +236,22 @@ public class JsHbTapeAction extends TapeAction {
 		return this.resolvedColletion;
 	}
 
-	protected DefaultDeserializationContext resolveDefaultDeserializationContext(ObjectMapper objectMapper, IPlayerManager jsHbManager) {
-		if (((JsHbTape)this.getTapeOwner()).getDefaultDeserializationContext() == null) {
-			((JsHbTape)this.getTapeOwner()).setDefaultDeserializationContext(((DefaultDeserializationContext) objectMapper
+	protected DefaultDeserializationContext resolveDefaultDeserializationContext(ObjectMapper objectMapper, IPlayerManager manager) {
+		if (((TapeDefault)this.getTapeOwner()).getDefaultDeserializationContext() == null) {
+			((TapeDefault)this.getTapeOwner()).setDefaultDeserializationContext(((DefaultDeserializationContext) objectMapper
 					.getDeserializationContext()).createInstance(objectMapper.getDeserializationConfig(), null,
 							objectMapper.getInjectableValues()));
 		}
-		return ((JsHbTape)this.getTapeOwner()).defaultDeserializationContext;
+		return ((TapeDefault)this.getTapeOwner()).defaultDeserializationContext;
 	}
 	
-	protected BeanDeserializerBase resolveBeanDeserializer(ObjectMapper objectMapper, IPlayerManager jsHbManager,
+	protected BeanDeserializerBase resolveBeanDeserializer(ObjectMapper objectMapper, IPlayerManager manager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedBeanDeserializer == null) {
-			JavaType entJavaType = objectMapper.getTypeFactory().constructType(this.resolveOwnerPlayerType(jsHbManager, creationRefMap));
+			JavaType entJavaType = objectMapper.getTypeFactory().constructType(this.resolveOwnerPlayerType(manager, creationRefMap));
 			try {
 				
-				this.resolvedBeanDeserializer = (BeanDeserializerBase) this.resolveDefaultDeserializationContext(objectMapper, jsHbManager)
+				this.resolvedBeanDeserializer = (BeanDeserializerBase) this.resolveDefaultDeserializationContext(objectMapper, manager)
 						.findRootValueDeserializer(entJavaType);
 //				this.resolvedBeanDeserializer = (BeanDeserializerBase) objectMapper.getDeserializationContext()
 //						.findRootValueDeserializer(entJavaType);
@@ -263,14 +263,14 @@ public class JsHbTapeAction extends TapeAction {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected Class resolveOwnerPlayerType(IPlayerManager jsHbManager,
+	protected Class resolveOwnerPlayerType(IPlayerManager manager,
 			HashMap<Long, Object> creationRefMap) {
 		if (this.resolvedOwnerPlayerType == null) {
 			try {
 				if (this.getOwnerPlayerType() != null) {
 					this.resolvedOwnerPlayerType = Class.forName(this.getOwnerPlayerType());
 				} else if (this.getOwnerSignatureStr() != null) {
-					this.resolveOwnerValue(jsHbManager, creationRefMap);
+					this.resolveOwnerValue(manager, creationRefMap);
 					if (this.resolvedOwnerValue instanceof HibernateProxy) {
 						this.resolvedOwnerPlayerType = this.resolvedOwnerValue.getClass().getSuperclass();						
 					} else {

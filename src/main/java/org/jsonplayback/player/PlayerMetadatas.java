@@ -2,7 +2,7 @@ package org.jsonplayback.player;
 
 import java.util.LinkedHashMap;
 
-import org.jsonplayback.player.hibernate.JsHbBeanPropertyWriter;
+import org.jsonplayback.player.hibernate.PlayerBeanPropertyWriter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -57,7 +57,7 @@ public class PlayerMetadatas implements Cloneable {
 	private Object playerObjectId;
 
 	@JsonIgnore
-	private JsHbBeanPropertyWriter originalPlayerObjectIdPropertyWriter;
+	private PlayerBeanPropertyWriter originalPlayerObjectIdPropertyWriter;
 	@JsonIgnore
 	private Object originalPlayerObjectIdOwner;
 	
@@ -67,10 +67,10 @@ public class PlayerMetadatas implements Cloneable {
 	public void setOriginalPlayerObjectIdOwner(Object originalPlayerObjectIdOwner) {
 		this.originalPlayerObjectIdOwner = originalPlayerObjectIdOwner;
 	}
-	public JsHbBeanPropertyWriter getOriginalPlayerObjectIdPropertyWriter() {
+	public PlayerBeanPropertyWriter getOriginalPlayerObjectIdPropertyWriter() {
 		return originalPlayerObjectIdPropertyWriter;
 	}
-	public void setOriginalPlayerObjectIdPropertyWriter(JsHbBeanPropertyWriter originalPlayerObjectIdPropertyWriter) {
+	public void setOriginalPlayerObjectIdPropertyWriter(PlayerBeanPropertyWriter originalPlayerObjectIdPropertyWriter) {
 		this.originalPlayerObjectIdPropertyWriter = originalPlayerObjectIdPropertyWriter;
 	}
 	public Boolean getIsComponentPlayerObjectId() {

@@ -24,11 +24,11 @@ import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class JsHbResultSet implements ResultSet {
+public class PlayerResultSet implements ResultSet {
 	private Object[] internalValuesArr = null;
 	private Map<String, Object> internalValuesByNameMap = new LinkedHashMap<>();
 	
-	protected JsHbResultSet(Object[] internalValuesArr) {
+	protected PlayerResultSet(Object[] internalValuesArr) {
 		this.internalValuesArr = internalValuesArr;
 		for (int i = 0; i < internalValuesArr.length; i++) {
 			this.internalValuesByNameMap.put("" + i, this.internalValuesArr[i]);

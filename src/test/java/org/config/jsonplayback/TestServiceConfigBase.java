@@ -6,15 +6,15 @@ import javax.annotation.PostConstruct;
 
 import org.hibernate.SessionFactory;
 import org.hsqldb.jdbc.JDBCDataSource;
-import org.jsonplayback.player.IConfig;
+import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.hibernate.IPlayerManagerImplementor;
-import org.jsonplayback.player.hibernate.JsHbBasicClassIntrospector;
-import org.jsonplayback.player.hibernate.JsHbBeanSerializerModifier;
-import org.jsonplayback.player.hibernate.JsHbConfig;
-import org.jsonplayback.player.hibernate.JsHbPlayerManager;
-import org.jsonplayback.player.hibernate.JsHbPlayerSnapshotSerializer;
+import org.jsonplayback.player.hibernate.PlayerBasicClassIntrospector;
+import org.jsonplayback.player.hibernate.PlayerBeanSerializerModifier;
+import org.jsonplayback.player.hibernate.PlayerConfig;
+import org.jsonplayback.player.hibernate.PlayerManagerDefault;
+import org.jsonplayback.player.hibernate.PlayerSnapshotSerializer;
 import org.jsonplayback.player.util.NoOpLoggingSystem;
 import org.jsonplayback.player.util.spring.orm.hibernate3.CustomLocalSessionFactoryBean;
 import org.slf4j.Logger;
@@ -131,61 +131,45 @@ public class TestServiceConfigBase {
     }
     
 	@Bean
-	public IConfig getJsHbConfig(@Autowired SessionFactory sessionFactory) {
-		return new JsHbConfig().configSessionFactory(sessionFactory);
-	}
-    
-//	@Bean
-//	public ObjectMapper getObjectMapper(
-//			@Autowired SessionFactory sessionFactory, 
-//			@Autowired Jackson2ObjectMapperBuilder builder) {		
-//		ObjectMapper mapperNovo = builder.build();
-//		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(new JsHbBasicClassIntrospector()));
-////		if (mapperOriginal != mapperNovo) {
-////			logger.warn("(mapperOriginal != mapperNovo) apos org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.build()");
-////		}
-////		if (mappingJackson2HttpMessageConverter.getObjectMapper() != mapperNovo) {
-////			logger.warn("(mappingJackson2HttpMessageConverter.getObjectMapper() != mapperNovo) apos org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.build()");
-////		}
-//		
-//		return mapperNovo;
-//	}
-	
-	@Bean
-	public IPlayerManager getJsHbManager(@Autowired IConfig jsHbConfig) {
-		return new JsHbPlayerManager().configure(jsHbConfig);
+	public IPlayerConfig getConfig(@Autowired SessionFactory sessionFactory) {
+		return new PlayerConfig().configSessionFactory(sessionFactory);
 	}
 	
 	@Bean
-	public JsHbPlayerSnapshotSerializer getJsHbResultEntitySerializer(@Autowired IPlayerManager jsHbManager) {
-		JsHbPlayerSnapshotSerializer serializer = new JsHbPlayerSnapshotSerializer().configJsHbManager(jsHbManager);
+	public IPlayerManager getManager(@Autowired IPlayerConfig config) {
+		return new PlayerManagerDefault().configure(config);
+	}
+	
+	@Bean
+	public PlayerSnapshotSerializer getPlayerSnapshotSerializer(@Autowired IPlayerManager manager) {
+		PlayerSnapshotSerializer serializer = new PlayerSnapshotSerializer().configManager(manager);
 		return serializer;
 	}
 	
 	/**
 	 * Esse bean nao eh realmente usado, somente injetamos no {@link ObjectMapper}
-	 * @param jsHbManager
+	 * @param manager
 	 * @param mapper
 	 * @param jsonComponentModule
 	 * @return
 	 */
 	@Bean
-	public JsHbBeanSerializerModifier getJsHbBeanSerializerModifier(
-			@Autowired IPlayerManagerImplementor jsHbManager, 
-			@Autowired JsHbPlayerSnapshotSerializer jsHbResultEntitySerializer, 
+	public PlayerBeanSerializerModifier getPlayerBeanSerializerModifier(
+			@Autowired IPlayerManagerImplementor manager, 
+			@Autowired PlayerSnapshotSerializer playerSnapshotSerializer, 
 			@Autowired Jackson2ObjectMapperBuilder builder,
 			@Autowired JsonComponentModule module,
 			@Autowired MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter
 //			@Autowired ObjectMapper mapperNovo
 			){
-		JsHbBeanSerializerModifier modifier = new JsHbBeanSerializerModifier().configJsHbManager(jsHbManager);
-		//jsonComponentModule.addSerializer(JsHbResultEntity.class, jsHbResultEntitySerializer);
+		PlayerBeanSerializerModifier modifier = new PlayerBeanSerializerModifier().configManager(manager);
+		//jsonComponentModule.addSerializer(PlayerSnapshot.class, playerSnapshotSerializer);
 		//mapper.registerModule(jsonComponentModule);
-		module.addSerializer(PlayerSnapshot.class, jsHbResultEntitySerializer);
+		module.addSerializer(PlayerSnapshot.class, playerSnapshotSerializer);
 		module.setSerializerModifier(modifier);
 		ObjectMapper mapperOriginal = mappingJackson2HttpMessageConverter.getObjectMapper();
 		ObjectMapper mapperNovo = builder.build();
-		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(new JsHbBasicClassIntrospector()));
+		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(new PlayerBasicClassIntrospector()));
 //		mapperNovo.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 //		mapperNovo.enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
 		if (mapperOriginal != mapperNovo) {
@@ -195,7 +179,7 @@ public class TestServiceConfigBase {
 			logger.warn("(mappingJackson2HttpMessageConverter.getObjectMapper() != mapperNovo) apos org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.build()");
 		}
 		mappingJackson2HttpMessageConverter.setObjectMapper(mapperNovo);
-		jsHbManager.getJsHbConfig().configObjectMapper(mapperNovo);
+		manager.getConfig().configObjectMapper(mapperNovo);
 		
 		return modifier;
 	}

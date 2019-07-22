@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.introspect.BasicBeanDescription;
 import com.fasterxml.jackson.databind.introspect.BasicClassIntrospector;
 
-public class JsHbBasicClassIntrospector extends BasicClassIntrospector {
+public class PlayerBasicClassIntrospector extends BasicClassIntrospector {
 
 	/**
 	 * 

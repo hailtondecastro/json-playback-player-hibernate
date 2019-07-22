@@ -22,13 +22,13 @@ import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.fasterxml.jackson.databind.type.CollectionType;
 
-public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
+public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 
-	private static Logger logger = LoggerFactory.getLogger(JsHbBeanSerializerModifier.class);
-	private IPlayerManagerImplementor jsHbManager;
+	private static Logger logger = LoggerFactory.getLogger(PlayerBeanSerializerModifier.class);
+	private IPlayerManagerImplementor managerImplementor;
 
-	public JsHbBeanSerializerModifier configJsHbManager(IPlayerManagerImplementor jsHbManager) {
-		this.jsHbManager = jsHbManager;
+	public PlayerBeanSerializerModifier configManager(IPlayerManagerImplementor manager) {
+		this.managerImplementor = manager;
 		return this;
 	}
 
@@ -42,17 +42,17 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 		}
 
 		Class beanClass = beanDesc.getType().getRawClass();
-		boolean beanClassIsPersistent = this.jsHbManager.isPersistentClass(beanClass);
+		boolean beanClassIsPersistent = this.managerImplementor.isPersistentClass(beanClass);
 		String playerObjectIdName = null;
 		if (beanClassIsPersistent) {
-			playerObjectIdName = this.jsHbManager.getPlayerObjectIdName(beanClass);			
+			playerObjectIdName = this.managerImplementor.getPlayerObjectIdName(beanClass);			
 		}
 		
 		for (int i = 0; i < beanProperties.size(); i++) {
 			BeanPropertyWriter beanPropertyWriter = beanProperties.get(i);
 			BeanPropertyDefinition prpDef = prpDefsMap.get(beanPropertyWriter.getName());
 			Class prpClass = beanPropertyWriter.getType().getRawClass();
-			boolean isPersistent = this.jsHbManager.isPersistentClass(prpClass);
+			boolean isPersistent = this.managerImplementor.isPersistentClass(prpClass);
 			boolean isPlayerObjectId = false;
 			boolean isMetadatasPlayerObjectId = false;
 
@@ -68,41 +68,41 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 			}
 
 			BeanPropertyWriter newBeanPropertyWriter = null;
-			if (this.jsHbManager.isPersistentClass(beanClass) || this.jsHbManager.isComponent(beanClass)) {
-				LazyProperty jsHbLazyProperty = beanPropertyWriter.getAnnotation(LazyProperty.class);
-				if (jsHbLazyProperty != null) {
+			if (this.managerImplementor.isPersistentClass(beanClass) || this.managerImplementor.isComponent(beanClass)) {
+				LazyProperty lazyProperty = beanPropertyWriter.getAnnotation(LazyProperty.class);
+				if (lazyProperty != null) {
 					if ((beanPropertyWriter.getType().getRawClass().isArray()
 							&& beanPropertyWriter.getType().getRawClass().getComponentType() == byte.class)
 							|| Blob.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())
 							|| String.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())
 							|| Clob.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())) {								
-					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
-							.configJsHbManager(jsHbManager)
+					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
+							.configManager(managerImplementor)
 								.loadBeanPropertyDefinition(prpDef)
-								.loadJsHbLazyProperty(jsHbLazyProperty);
+								.loadLazyProperty(lazyProperty);
 					}
-				} else if (this.jsHbManager.isComponent(beanClass)) {
-					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
-							.configJsHbManager(jsHbManager)
+				} else if (this.managerImplementor.isComponent(beanClass)) {
+					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
+							.configManager(managerImplementor)
 //							.loadComponentOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsPersistent(isPersistent)
 							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
-				} else if (this.jsHbManager.isRelationship(beanClass, prpDef.getInternalName())) {
-					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter)
-							.configJsHbManager(jsHbManager).loadRelationshipOwnerClass(beanClass)
+				} else if (this.managerImplementor.isRelationship(beanClass, prpDef.getInternalName())) {
+					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
+							.configManager(managerImplementor).loadRelationshipOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
 							.loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
 //					throw new RuntimeException("ISSO TA ERRADO. beanPropertyWriter.getName()?!?!?!");
 				} else {
-					newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter).configJsHbManager(jsHbManager)
+					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter).configManager(managerImplementor)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
 							.loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
 				}
 			} else {
-				newBeanPropertyWriter = new JsHbBeanPropertyWriter(beanPropertyWriter).configJsHbManager(jsHbManager)
+				newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter).configManager(managerImplementor)
 						.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
 						.loadIsPlayerObjectId(isPlayerObjectId)
 						.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
@@ -130,7 +130,7 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 			JsonSerializer<?> serializer) {
 		if (serializer instanceof BeanSerializer) {
 			JsonSerializer<?> newJsonSerializer = super.modifySerializer(config, beanDesc,
-					new JsHbJsonSerializer(serializer).configJsHbManager(this.jsHbManager));
+					new PlayerJsonSerializer(serializer).configManager(this.managerImplementor));
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format("modifySerializer():\n" + " old JsonSerializer=''{0}''\n"
 						+ " new JsonSerializer=''{1}''\n", serializer, newJsonSerializer));
@@ -149,7 +149,7 @@ public class JsHbBeanSerializerModifier extends BeanSerializerModifier {
 	public JsonSerializer<?> modifyCollectionSerializer(SerializationConfig config, CollectionType valueType,
 			BeanDescription beanDesc, JsonSerializer<?> serializer) {
 		JsonSerializer<?> newJsonSerializer = super.modifySerializer(config, beanDesc,
-				new JsHbJsonSerializer(serializer).configJsHbManager(this.jsHbManager));
+				new PlayerJsonSerializer(serializer).configManager(this.managerImplementor));
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("modifyCollectionSerializer():\n" + " old JsonSerializer=''{0}''\n"
 					+ " new JsonSerializer=''{1}''\n", serializer, newJsonSerializer));

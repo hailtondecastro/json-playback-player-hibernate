@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
 
-public class JsHbReplayable implements IReplayable {
-	private static Logger logger = LoggerFactory.getLogger(JsHbReplayable.class);
+public class ReplayableDefault implements IReplayable {
+	private static Logger logger = LoggerFactory.getLogger(ReplayableDefault.class);
 	
 	private static class ClassPropertyKey {
 		private Class entityClass;
@@ -84,14 +84,14 @@ public class JsHbReplayable implements IReplayable {
 	private Tape tape = null;
 	private boolean replayed = false;
 
-	private IPlayerManager jsHbManager;
+	private IPlayerManager manager;
 	
-	public JsHbReplayable configJsHbManager(IPlayerManager jsHbManager) {
-		this.jsHbManager = jsHbManager;
+	public ReplayableDefault configManager(IPlayerManager manager) {
+		this.manager = manager;
 		return this;
 	}
 
-	public JsHbReplayable loadPlayback(Tape tape) {
+	public ReplayableDefault loadPlayback(Tape tape) {
 		this.tape = tape;
 		return this;
 	}
@@ -157,29 +157,29 @@ public class JsHbReplayable implements IReplayable {
 	}
 	
 	private void preProcessPlayBack(Tape tape, HashMap<Long, Object> creationRefMap) {
-		Session ss = this.jsHbManager.getJsHbConfig().getSessionFactory().getCurrentSession();
-		ObjectMapper objectMapper = this.jsHbManager.getJsHbConfig().getObjectMapper();
+		Session ss = this.manager.getConfig().getSessionFactory().getCurrentSession();
+		ObjectMapper objectMapper = this.manager.getConfig().getObjectMapper();
 		Collection collection = null;
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("preProcessPlayBack(). tape before pre processing:\n{0}", tape));
 		}
 		for (TapeAction actionItem : this.tape.getActions()) {
-			JsHbTapeAction jsHbAction = (JsHbTapeAction) actionItem;
-			jsHbAction.setTapeOwner(this.tape);
-			Collection resolvedCollection = jsHbAction.resolveColletion(objectMapper, this.jsHbManager, creationRefMap);
-			switch (jsHbAction.getActionType()) {
+			TapeActionDefault action = (TapeActionDefault) actionItem;
+			action.setTapeOwner(this.tape);
+			Collection resolvedCollection = action.resolveColletion(objectMapper, this.manager, creationRefMap);
+			switch (action.getActionType()) {
 			case CREATE:
-				if (jsHbAction.getOwnerCreationId() == null) {
-					throw new RuntimeException(MessageFormat.format("jsHbCreationId can not be null\naction:\n{0}", jsHbAction));
+				if (action.getOwnerCreationId() == null) {
+					throw new RuntimeException(MessageFormat.format("ownerCreationId can not be null\naction:\n{0}", action));
 				}
-				if (jsHbAction.getOwnerSignatureStr() != null) {
-					throw new RuntimeException(MessageFormat.format("originalSignatureStr can not be null\naction:\n{0}", jsHbAction));
+				if (action.getOwnerSignatureStr() != null) {
+					throw new RuntimeException(MessageFormat.format("originalSignatureStr can not be null\naction:\n{0}", action));
 				}
-				Object ownerValue = jsHbAction.resolveOwnerValue(this.jsHbManager, creationRefMap);
+				Object ownerValue = action.resolveOwnerValue(this.manager, creationRefMap);
 				
-				ClassMetadata classMetadata = this.jsHbManager.getJsHbConfig().getSessionFactory().getClassMetadata(jsHbAction.resolveOwnerPlayerType(jsHbManager, creationRefMap));
+				ClassMetadata classMetadata = this.manager.getConfig().getSessionFactory().getClassMetadata(action.resolveOwnerPlayerType(manager, creationRefMap));
 				if (classMetadata != null) {
-					PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(jsHbAction.resolveOwnerPlayerType(jsHbManager, creationRefMap));
+					PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(action.resolveOwnerPlayerType(manager, creationRefMap));
 					for (int i = 0; i < propertyDescriptors.length; i++) {
 						PropertyDescriptor propertyDescriptorItem = propertyDescriptors[i];
 						if (!("class".equals(propertyDescriptorItem.getName()))) {
@@ -209,40 +209,40 @@ public class JsHbReplayable implements IReplayable {
 				
 				break;
 			case SAVE:
-				if (jsHbAction.getOwnerCreationId() == null) {
-					throw new RuntimeException(MessageFormat.format("ownerCreationId can not be null\naction:\n{0}", jsHbAction));
+				if (action.getOwnerCreationId() == null) {
+					throw new RuntimeException(MessageFormat.format("ownerCreationId can not be null\naction:\n{0}", action));
 				}
-				if (jsHbAction.getOwnerSignatureStr() != null) {
-					throw new RuntimeException(MessageFormat.format("ownerSignatureStr can not be not null\naction:\n{0}", jsHbAction));
+				if (action.getOwnerSignatureStr() != null) {
+					throw new RuntimeException(MessageFormat.format("ownerSignatureStr can not be not null\naction:\n{0}", action));
 				}
 				
 				break;
 			case DELETE:
-				if (jsHbAction.getOwnerCreationId() != null) {
-					throw new RuntimeException(MessageFormat.format("ownerCreationRefId can not be not null\naction:\n{0}", jsHbAction));
+				if (action.getOwnerCreationId() != null) {
+					throw new RuntimeException(MessageFormat.format("ownerCreationRefId can not be not null\naction:\n{0}", action));
 				}
-				if (jsHbAction.getOwnerSignatureStr() == null) {
-					throw new RuntimeException(MessageFormat.format("ownerSignatureStr can not be null\naction:\n{0}", jsHbAction));
+				if (action.getOwnerSignatureStr() == null) {
+					throw new RuntimeException(MessageFormat.format("ownerSignatureStr can not be null\naction:\n{0}", action));
 				}
 				//nada
 				break;
 			case COLLECTION_ADD:
-				if (jsHbAction.getFieldName() == null) {
-					throw new RuntimeException(MessageFormat.format("fieldName can not be not null\naction:\n{0}", jsHbAction));
+				if (action.getFieldName() == null) {
+					throw new RuntimeException(MessageFormat.format("fieldName can not be not null\naction:\n{0}", action));
 				}
 				collection = (Collection) resolvedCollection;
 				
 				break;
 			case COLLECTION_REMOVE:
-				if (jsHbAction.getFieldName() == null) {
-					throw new RuntimeException(MessageFormat.format("fieldName can not be not null\naction:\n{0}", jsHbAction));
+				if (action.getFieldName() == null) {
+					throw new RuntimeException(MessageFormat.format("fieldName can not be not null\naction:\n{0}", action));
 				}
 				collection = (Collection) resolvedCollection;
 				
 				break;
 			case SET_FIELD:
-				if (jsHbAction.getFieldName() == null) {
-					throw new RuntimeException(MessageFormat.format("fieldName can not be not null\naction:\n{0}", jsHbAction));
+				if (action.getFieldName() == null) {
+					throw new RuntimeException(MessageFormat.format("fieldName can not be not null\naction:\n{0}", action));
 				}
 				
 				break;
@@ -264,33 +264,33 @@ public class JsHbReplayable implements IReplayable {
 		
 		List<IChangeActionListener> actionListenersList = null;
 		HashMap<Long, Object> creationRefMap = new HashMap<>();
-		Session ss = this.jsHbManager.getJsHbConfig().getSessionFactory().getCurrentSession();
-		ObjectMapper objectMapper = this.jsHbManager.getJsHbConfig().getObjectMapper();
+		Session ss = this.manager.getConfig().getSessionFactory().getCurrentSession();
+		ObjectMapper objectMapper = this.manager.getConfig().getObjectMapper();
 		
 		this.preProcessPlayBack(this.tape, creationRefMap);
 		
 		for (TapeAction actionItem : this.tape.getActions()) {
-			JsHbTapeAction jsHbAction = (JsHbTapeAction) actionItem;
+			TapeActionDefault action = (TapeActionDefault) actionItem;
 			// before events
-			Object resolvedOwnerValue = jsHbAction.resolveOwnerValue(this.jsHbManager, creationRefMap);
-			String resolvedJavaPropertyName = jsHbAction.resolveJavaPropertyName(objectMapper, this.jsHbManager, creationRefMap);
+			Object resolvedOwnerValue = action.resolveOwnerValue(this.manager, creationRefMap);
+			String resolvedJavaPropertyName = action.resolveJavaPropertyName(objectMapper, this.manager, creationRefMap);
 			@SuppressWarnings("rawtypes")
-			Collection resolvedCollection = jsHbAction.resolveColletion(objectMapper, this.jsHbManager, creationRefMap);
-			Object resolvedSettedValue = jsHbAction.resolveSettedValue(objectMapper, this.jsHbManager, creationRefMap);
+			Collection resolvedCollection = action.resolveColletion(objectMapper, this.manager, creationRefMap);
+			Object resolvedSettedValue = action.resolveSettedValue(objectMapper, this.manager, creationRefMap);
 			
 			ChangeActionEventArgs<Object> actionEventArgs = new ChangeActionEventArgs<Object>(
 					resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection,
-					jsHbAction.getActionType());
+					action.getActionType());
 			
-			if (jsHbAction.getFieldName() != null) {
-				ClassPropertyKey classPropertyKey = new ClassPropertyKey(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap),
+			if (action.getFieldName() != null) {
+				ClassPropertyKey classPropertyKey = new ClassPropertyKey(action.resolveOwnerPlayerType(this.manager, creationRefMap),
 						resolvedJavaPropertyName);
 				
-				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.manager, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onBeforeChange(actionEventArgs);
 					}
@@ -300,7 +300,7 @@ public class JsHbReplayable implements IReplayable {
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onBeforeChange(actionEventArgs);
 					}
@@ -310,17 +310,17 @@ public class JsHbReplayable implements IReplayable {
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onBeforeChange(actionEventArgs);
 					}
 				}
 			} else {
-				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.manager, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onBeforeChange(actionEventArgs);
 					}
@@ -330,7 +330,7 @@ public class JsHbReplayable implements IReplayable {
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onBeforeChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onBeforeChange(actionEventArgs);
 					}
@@ -340,7 +340,7 @@ public class JsHbReplayable implements IReplayable {
 			@SuppressWarnings("rawtypes")
 			Collection collection = null;
 			
-			switch (jsHbAction.getActionType()) {
+			switch (action.getActionType()) {
 			case CREATE:
 				//nada: feito no preprocessamento		
 				break;
@@ -362,10 +362,10 @@ public class JsHbReplayable implements IReplayable {
 				break;
 			case SET_FIELD:
 				try {
-					SettableBeanProperty settableBeanProperty = jsHbAction.resolveBeanDeserializer(objectMapper, this.jsHbManager, creationRefMap).findProperty(jsHbAction.getFieldName()); 
+					SettableBeanProperty settableBeanProperty = action.resolveBeanDeserializer(objectMapper, this.manager, creationRefMap).findProperty(action.getFieldName()); 
 					settableBeanProperty.set(resolvedOwnerValue, resolvedSettedValue);
 				} catch (IOException e) {
-					throw new RuntimeException(MessageFormat.format("This should not happen.\naction:\n{0}", jsHbAction));
+					throw new RuntimeException(MessageFormat.format("This should not happen.\naction:\n{0}", action));
 				}
 				break;
 			default:
@@ -373,25 +373,25 @@ public class JsHbReplayable implements IReplayable {
 			}
 
 			// after events
-			if (jsHbAction.getFieldName() != null) {
-				ClassPropertyKey classPropertyKey = new ClassPropertyKey(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap),
+			if (action.getFieldName() != null) {
+				ClassPropertyKey classPropertyKey = new ClassPropertyKey(action.resolveOwnerPlayerType(this.manager, creationRefMap),
 						resolvedJavaPropertyName);
 
 				actionListenersList = this.listenersByPrpsMap.get(classPropertyKey);
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onAfterChange(actionEventArgs);
 					}
 				}
 
-				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.manager, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onAfterChange(actionEventArgs);
 					}
@@ -401,17 +401,17 @@ public class JsHbReplayable implements IReplayable {
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onAfterChange(actionEventArgs);
 					}
 				}
 			} else {
-				actionListenersList = this.listenersByClassMap.get(jsHbAction.resolveOwnerPlayerType(this.jsHbManager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.manager, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onAfterChange(actionEventArgs);
 					}
@@ -421,7 +421,7 @@ public class JsHbReplayable implements IReplayable {
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
-							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, jsHbAction.getActionType()));
+							logger.trace(MessageFormat.format("replay(). running {0}.onAfterChange({1}, {2}, {3}, {4}, {5}) for", actionListenerItem.getName(), resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection, action.getActionType()));
 						}
 						actionListenerItem.onAfterChange(actionEventArgs);
 					}
@@ -433,11 +433,11 @@ public class JsHbReplayable implements IReplayable {
 	@Override
 	public <E> IFluentChangeListener<E> fluentChangeListener(Class<E> targetClass) {
 		// TODO Auto-generated method stub
-		return new JsHbFluentChangeListenerDefault<E>(this, targetClass);
+		return new PlayerFluentChangeListenerDefault<E>(this, targetClass);
 	}
 	
 	public IFluentChangeListener<?> fluentChangeListener() {
-		return new JsHbFluentChangeListenerDefault<>(this, null);
+		return new PlayerFluentChangeListenerDefault<>(this, null);
 	}
 }
 /*gerando conflito*/

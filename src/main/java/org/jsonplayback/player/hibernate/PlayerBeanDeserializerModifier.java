@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 
-public class JsHbBeanDeserializerModifier extends BeanDeserializerModifier {
+public class PlayerBeanDeserializerModifier extends BeanDeserializerModifier {
 	@Override
 	public List<BeanPropertyDefinition> updateProperties(DeserializationConfig config, BeanDescription beanDesc,
 			List<BeanPropertyDefinition> propDefs) {

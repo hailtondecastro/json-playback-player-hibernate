@@ -9,24 +9,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.hibernate.SessionFactory;
-import org.jsonplayback.player.IConfig;
+import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IGetBySignatureListener;
 import org.jsonplayback.player.SignatureCrypto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class JsHbConfig implements IConfig, Cloneable {
-
-//	private String jsHbIdName = "jsHbId";
-//	private String jsHbIdRefName = "jsHbIdRef";
-//	private String jsHbSignatureName = "jsHbSignature";
-//	private String jsHbIsLazyUninitializedName = "jsHbIsLazyUninitialized";
-//	private String jsHbIsComponentName = "jsHbIsComponent";
-//	private String jsHbIsAssociativeName = "jsHbIsAssociative";
-//	private String jsHbIsLazyPropertyName = "jsHbIsLazyProperty";
-//	private String jsHbPlayerObjectIdName = "jsHbPlayerObjectId";
-	private String jsHbMetadatasName = "$jsHbMetadatas$";
+public class PlayerConfig implements IPlayerConfig, Cloneable {
+	private String playerMetadatasName = "$metadatas$";
 	private Set<Class> neverSignedClasses = new HashSet<>();
 	private Set<Class> nonLazybleClasses = new HashSet<>();
 	private List<IGetBySignatureListener> listeners = new ArrayList<>();
@@ -34,50 +25,29 @@ public class JsHbConfig implements IConfig, Cloneable {
 	private ObjectMapper objectMapper;
 	private SignatureCrypto signatureCrypto;
 	private boolean serialiseBySignatureAllRelationship = false;
-	private boolean ignoreAllJsHbLazyProperty = false;
+	private boolean ignoreAllLazyProperty = false;
 	
 	@Override
-	public boolean isIgnoreAllJsHbLazyProperty() {
-		return ignoreAllJsHbLazyProperty;
+	public boolean isIgnoreAllLazyProperty() {
+		return ignoreAllLazyProperty;
 	}
 
 	@Override
-	public IConfig configIgnoreAllJsHbLazyProperty(boolean ignoreAllJsHbLazyProperty) {
-		this.ignoreAllJsHbLazyProperty = ignoreAllJsHbLazyProperty;
+	public IPlayerConfig configIgnoreAllLazyProperty(boolean ignoreAllLazyProperty) {
+		this.ignoreAllLazyProperty = ignoreAllLazyProperty;
 		return this;
 	}
 
 	@Override
-	public String getJsHbMetadatasName() {
-		return jsHbMetadatasName;
+	public String getPlayerMetadatasName() {
+		return playerMetadatasName;
 	}
 
 	@Override
-	public IConfig configJsHbMetadatasName(String jsHbMetadatasName) {
-		this.jsHbMetadatasName = jsHbMetadatasName;
+	public IPlayerConfig configPlayerMetadatasName(String playerMetadatasName) {
+		this.playerMetadatasName = playerMetadatasName;
 		return this;
 	}
-
-//	public String getJsHbIsLazyPropertyName() {
-//		return jsHbIsLazyPropertyName;
-//	}
-//
-//	@Override
-//	public IJsHbConfig setJsHbIsLazyPropertyName(String jsHbIsLazyPropertyName) {
-//		this.jsHbIsLazyPropertyName = jsHbIsLazyPropertyName;
-//		return this;
-//	}
-//
-//	@Override
-//	public String getJsHbIsAssociativeName() {
-//		return jsHbIsAssociativeName;
-//	}
-//
-//	@Override
-//	public IJsHbConfig setJsHbIsAssociativeName(String jsHbIsAssociativeName) {
-//		this.jsHbIsAssociativeName = jsHbIsAssociativeName;
-//		return this;
-//	}
 
 	@Override
 	public ObjectMapper getObjectMapper() {
@@ -85,7 +55,7 @@ public class JsHbConfig implements IConfig, Cloneable {
 	}
 
 	@Override
-	public IConfig configObjectMapper(ObjectMapper objectMapper) {
+	public IPlayerConfig configObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 		return this;
 	}
@@ -96,70 +66,23 @@ public class JsHbConfig implements IConfig, Cloneable {
 	}
 
 	@Override
-	public IConfig configSerialiseBySignatureAllRelationship(boolean serialiseBySignatureAllRelationship) {
+	public IPlayerConfig configSerialiseBySignatureAllRelationship(boolean serialiseBySignatureAllRelationship) {
 		this.serialiseBySignatureAllRelationship = serialiseBySignatureAllRelationship;
 		return this;
 	}
 
-//	/*
-//	 * (non-Javadoc)
-//	 * 
-//	 * @see
-//	 * org.jsonplayback.implemantation.JsHbConfig
-//	 * #configJsHbPlayerObjectIdName(java.lang.String)
-//	 */
-//	@Override
-//	public IJsHbConfig configJsHbPlayerObjectIdName(String jsHbPlayerObjectIdName) {
-//		this.jsHbPlayerObjectIdName = jsHbPlayerObjectIdName;
-//		return this;
-//	}
-
 	@Override
-	public IConfig configNeverSignedClasses(Set<Class> neverSignedClasses) {
+	public IPlayerConfig configNeverSignedClasses(Set<Class> neverSignedClasses) {
 		this.neverSignedClasses = neverSignedClasses;
 		return this;
 	}
 
-//	@Override
-//	public IJsHbConfig configJsHbSignatureName(String jsHbSignatureName) {
-//		this.jsHbSignatureName = jsHbSignatureName;
-//		return this;
-//	}
 
 	@Override
-	public IConfig configSessionFactory(SessionFactory sessionFactory) {
+	public IPlayerConfig configSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 		return this;
 	}
-
-//	@Override
-//	public IJsHbConfig configJsHbIsLazyUninitializedName(String jsHbIsLazyUninitializedName) {
-//		this.jsHbIsLazyUninitializedName = jsHbIsLazyUninitializedName;
-//		return this;
-//	}
-//
-//	@Override
-//	public IJsHbConfig configJsHbIdRefName(String jsHbIdRefName) {
-//		this.jsHbIdRefName = jsHbIdRefName;
-//		return this;
-//	}
-	
-//	@Override
-//	public IJsHbConfig configJsHbIdName(String jsHbIdName) {
-//		this.jsHbIdName = jsHbIdName;
-//		return this;
-//	}
-//
-//	@Override
-//	public IJsHbConfig configJsHbIsComponentName(String jsHbIsComponentName) {
-//		this.jsHbIsComponentName = jsHbIsComponentName;
-//		return this;
-//	}
-//	
-//	@Override
-//	public String getJsHbIsComponentName() {
-//		return this.jsHbIsComponentName = jsHbIsComponentName;
-//	}
 
 	@Override
 	public List<IGetBySignatureListener> getListeners() {
@@ -182,40 +105,15 @@ public class JsHbConfig implements IConfig, Cloneable {
 		return this.neverSignedClasses;
 	}
 
-//	@Override
-//	public String getJsHbIdName() {
-//		return jsHbIdName;
-//	}
-//
-//	@Override
-//	public String getJsHbIdRefName() {
-//		return jsHbIdRefName;
-//	}
-//
-//	@Override
-//	public String getJsHbSignatureName() {
-//		return jsHbSignatureName;
-//	}
-//
-//	@Override
-//	public String getJsHbIsLazyUninitializedName() {
-//		return jsHbIsLazyUninitializedName;
-//	}
-
-//	@Override
-//	public String getJsHbPlayerObjectIdName() {
-//		return jsHbPlayerObjectIdName;
-//	}
-
 	@Override
 	public Set<Class> getNonLazybleClasses() {
 		return nonLazybleClasses;
 	}
 
 	@Override
-	public JsHbConfig clone() {
+	public PlayerConfig clone() {
 		try {
-			return (JsHbConfig) super.clone();
+			return (PlayerConfig) super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
@@ -235,12 +133,7 @@ public class JsHbConfig implements IConfig, Cloneable {
 			thisAsMap.put("sessionFactory", this.getSessionFactory() != null? this.getSessionFactory().getClass(): "null");
 			thisAsMap.put("signatureCrypto", this.getSignatureCrypto()!= null? this.getSignatureCrypto().getClass(): "null");
 			thisAsMap.put("neverSignedClasses", this.getNeverSignedClasses());
-			thisAsMap.put("jsHbMetadatasName", this.getJsHbMetadatasName());
-//			thisAsMap.put("jsHbIdName", this.getJsHbIdName());
-//			thisAsMap.put("jsHbIdRefName", this.getJsHbIdRefName());
-//			thisAsMap.put("jsHbSignatureName", this.getJsHbSignatureName());
-//			thisAsMap.put("jsHbIsLazyUninitializedName", this.getJsHbIsLazyUninitializedName());
-//			thisAsMap.put("jsHbPlayerObjectIdName", this.getJsHbPlayerObjectIdName());
+			thisAsMap.put("playerMetadatasName", this.getPlayerMetadatasName());
 			thisAsMap.put("nonLazybleClasses", this.getNonLazybleClasses());
 			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(thisAsMap);
 		} catch (JsonProcessingException e) {

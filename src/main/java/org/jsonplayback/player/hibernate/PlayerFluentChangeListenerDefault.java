@@ -8,12 +8,12 @@ import org.jsonplayback.player.IFluentChangeListener;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.ChangeActionEventArgs;
 
-public class JsHbFluentChangeListenerDefault<E> implements IFluentChangeListener<E> {
+public class PlayerFluentChangeListenerDefault<E> implements IFluentChangeListener<E> {
 
-	private IReplayable jsHbReplayable;
+	private IReplayable replayable;
 
-	public JsHbFluentChangeListenerDefault(IReplayable jsHbReplayable, Class<E> classTarget) {
-		this.jsHbReplayable = jsHbReplayable;
+	public PlayerFluentChangeListenerDefault(IReplayable replayable, Class<E> classTarget) {
+		this.replayable = replayable;
 		this.classTarget = classTarget;
 	}
 
@@ -60,10 +60,10 @@ public class JsHbFluentChangeListenerDefault<E> implements IFluentChangeListener
 			Consumer<ChangeActionEventArgs<E>> forAllPropertiesCallback) {
 
 		if (this.classTarget != null) {
-			this.jsHbReplayable.addChangeActionListenerForClass(this.classTarget,
+			this.replayable.addChangeActionListenerForClass(this.classTarget,
 					new ChangeActionListener(name, this.classTarget, forAllPropertiesCallback, null));
 		} else {
-			this.jsHbReplayable.addChangeActionListener(
+			this.replayable.addChangeActionListener(
 					new ChangeActionListener(name, this.classTarget, forAllPropertiesCallback, null));
 		}
 
@@ -73,29 +73,20 @@ public class JsHbFluentChangeListenerDefault<E> implements IFluentChangeListener
 	@Override
 	public IFluentChangeListener<E> onBeforeForProperty(String name, Function<E, ?> prpFunction,
 			Consumer<ChangeActionEventArgs<E>> forPropertyCallback) {
-		this.jsHbReplayable.addChangeActionListenerForProperty(this.classTarget, prpFunction,
+		this.replayable.addChangeActionListenerForProperty(this.classTarget, prpFunction,
 				new ChangeActionListener(name, this.classTarget, forPropertyCallback, null));
 
 		return this;
 	}
 
-	// @Override
-	// public IJsHbFluentChangeListener<E> onAfterForAll(String name,
-	// Consumer<JsHbChangeActionEventArgs<Object>> forAllClassiesCallback) {
-	// return this.jsHbReplayable.addChangeActionListener(
-	// new ChangeActionListener(name, Object.class, null,
-	// forAllClassiesCallback));
-	// return this;
-	// }
-
 	@Override
 	public IFluentChangeListener<E> onAfterForClass(String name,
 			Consumer<ChangeActionEventArgs<E>> forAllPropertiesCallback) {
 		if (this.classTarget != null) {
-			this.jsHbReplayable.addChangeActionListenerForClass((Class<E>) this.classTarget,
+			this.replayable.addChangeActionListenerForClass((Class<E>) this.classTarget,
 					new ChangeActionListener(name, this.classTarget, null, forAllPropertiesCallback));
 		} else {
-			this.jsHbReplayable.addChangeActionListener(
+			this.replayable.addChangeActionListener(
 					new ChangeActionListener(name, this.classTarget, null, forAllPropertiesCallback));
 		}
 
@@ -105,7 +96,7 @@ public class JsHbFluentChangeListenerDefault<E> implements IFluentChangeListener
 	@Override
 	public IFluentChangeListener<E> onAfterForProperty(String name, Function<E, ?> prpFunction,
 			Consumer<ChangeActionEventArgs<E>> forPropertyCallback) {
-		this.jsHbReplayable.addChangeActionListenerForProperty(this.classTarget, prpFunction,
+		this.replayable.addChangeActionListenerForProperty(this.classTarget, prpFunction,
 				new ChangeActionListener(name, this.classTarget, null, forPropertyCallback));
 
 		return this;
@@ -114,6 +105,6 @@ public class JsHbFluentChangeListenerDefault<E> implements IFluentChangeListener
 	@Override
 	public IReplayable complete() {
 		// TODO Auto-generated method stub
-		return this.jsHbReplayable;
+		return this.replayable;
 	}
 }

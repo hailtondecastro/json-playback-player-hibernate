@@ -38,7 +38,7 @@ public interface IPlayerManagerImplementor extends IPlayerManager {
 	
 	boolean isPersistentClass(Class clazz);
 
-	Stack<JsHbBeanPropertyWriter> getJsHbBeanPropertyWriterStepStack();
+	Stack<PlayerBeanPropertyWriter> getPlayerBeanPropertyWriterStepStack();
 
 //	Stack<String> getCurrentCompositePathStack();
 //	Object getCurrentCompositeOwner();
@@ -47,13 +47,13 @@ public interface IPlayerManagerImplementor extends IPlayerManager {
 
 	String getPlayerObjectIdName(Class clazz);
 
-	Stack<JsHbJsonSerializer> getJsHbJsonSerializerStepStack();
+	Stack<PlayerJsonSerializer> getPlayerJsonSerializerStepStack();
 	
 	SignatureBean generateComponentSignature(AssociationAndComponentTrackInfo entityAndComponentTrackInfo);
 
-	Stack<PlayerMetadatas> getJsHbBackendMetadatasWritingStack();
+	Stack<PlayerMetadatas> getPlayerMetadatasWritingStack();
 
-	SignatureBean generateLazySignatureForJsHbLazyProperty(Class<?> ownerClass, String fieldName, Object ownerValue,
+	SignatureBean generateLazySignatureForLazyProperty(Class<?> ownerClass, String fieldName, Object ownerValue,
 			Object fieldValue);
 	
 	String getCurrentPathFromLastEntity();

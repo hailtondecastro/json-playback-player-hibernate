@@ -11,7 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext;
 
-public class JsHbTape extends Tape {
+public class TapeDefault extends Tape {
 	/**
 	 * Cache!
 	 */
@@ -31,19 +31,19 @@ public class JsHbTape extends Tape {
 			LinkedHashMap<String, Object> thisAsMap = new LinkedHashMap<>();
 			ArrayList<Object> actionList = new ArrayList<>();
 			for (TapeAction actionItem : this.getActions()) {
-				JsHbTapeAction jsHbActionItem = (JsHbTapeAction) actionItem;
+				TapeActionDefault tapeActionItem = (TapeActionDefault) actionItem;
 				
 				LinkedHashMap<String, Object> actionAsMap = new LinkedHashMap<>();
-				actionAsMap.put("ownerSignatureStr", jsHbActionItem.getOwnerSignatureStr());
-				actionAsMap.put("ownerCreationId", jsHbActionItem.getOwnerCreationId());
-				actionAsMap.put("ownerCreationRefId", jsHbActionItem.getOwnerCreationRefId());
-				actionAsMap.put("settedSignatureStr", jsHbActionItem.getSettedSignatureStr());
-				actionAsMap.put("settedCreationId", jsHbActionItem.getSettedCreationId());
-				actionAsMap.put("settedCreationRefId", jsHbActionItem.getSettedCreationRefId());
-				actionAsMap.put("ownerPlayerType", jsHbActionItem.getOwnerPlayerType());
-				actionAsMap.put("actionType", jsHbActionItem.getActionType());
-				actionAsMap.put("fieldName", jsHbActionItem.getFieldName());
-				actionAsMap.put("simpleSettedValue", jsHbActionItem.getSimpleSettedValue());
+				actionAsMap.put("ownerSignatureStr", tapeActionItem.getOwnerSignatureStr());
+				actionAsMap.put("ownerCreationId", tapeActionItem.getOwnerCreationId());
+				actionAsMap.put("ownerCreationRefId", tapeActionItem.getOwnerCreationRefId());
+				actionAsMap.put("settedSignatureStr", tapeActionItem.getSettedSignatureStr());
+				actionAsMap.put("settedCreationId", tapeActionItem.getSettedCreationId());
+				actionAsMap.put("settedCreationRefId", tapeActionItem.getSettedCreationRefId());
+				actionAsMap.put("ownerPlayerType", tapeActionItem.getOwnerPlayerType());
+				actionAsMap.put("actionType", tapeActionItem.getActionType());
+				actionAsMap.put("fieldName", tapeActionItem.getFieldName());
+				actionAsMap.put("simpleSettedValue", tapeActionItem.getSimpleSettedValue());
 				actionList.add(actionAsMap);
 			}
 			thisAsMap.put("actions", actionList);

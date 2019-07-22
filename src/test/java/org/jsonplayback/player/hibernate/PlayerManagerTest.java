@@ -71,8 +71,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes=TestServiceConfigBase.class)
 @TestExecutionListeners(listeners={DependencyInjectionTestExecutionListener.class})
-public class JsHbManagerTest {
-	public static final Logger log = LoggerFactory.getLogger(JsHbManagerTest.class);
+public class PlayerManagerTest {
+	public static final Logger log = LoggerFactory.getLogger(PlayerManagerTest.class);
 	
 	@Autowired
 	private SessionFactory sessionFactory;
@@ -86,7 +86,7 @@ public class JsHbManagerTest {
     }    
     
     @Autowired
-    IPlayerManager jsHbManager;
+    IPlayerManager manager;
     
     @Before
     public void setUp() throws Exception {
@@ -220,17 +220,17 @@ public class JsHbManagerTest {
 	@Test
 	public void masterATest() throws Exception {		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".masterATest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterATest_result_generated.json";
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
 				//SchemaExport
 				
-				//Configuration hbConfiguration = JsHbManagerTest.this.localSessionFactoryBean.getConfiguration();
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
 				
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
@@ -239,29 +239,29 @@ public class JsHbManagerTest {
 				System.out.println("$$$$: " + masterAEnt.getDatetimeA());
 				System.out.println("$$$$: " + masterAEnt.getDatetimeA().getTime());
 			
-				JsHbManagerTest
+				PlayerManagerTest
 					.this
-						.jsHbManager
+						.manager
 						.overwriteConfigurationTemporarily(
-							JsHbManagerTest
+							PlayerManagerTest
 								.this
-									.jsHbManager
-										.getJsHbConfig()
+									.manager
+										.getConfig()
 											.clone()
 											.configSerialiseBySignatureAllRelationship(true));
 				
-				PlayerSnapshot<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(masterAEnt);
+				PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
 				
 				FileOutputStream fos;
 				try {
 					fos = new FileOutputStream(generatedFileResult);
-					JsHbManagerTest
+					PlayerManagerTest
 						.this
-							.jsHbManager
-								.getJsHbConfig()
+							.manager
+								.getConfig()
 									.getObjectMapper()
 										.writerWithDefaultPrettyPrinter()
-											.writeValue(fos, jsHbResultEntity);
+											.writeValue(fos, playerSnapshot);
 					
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -274,13 +274,13 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 		
 		ClassLoader classLoader = getClass().getClassLoader();
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".masterATest_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterATest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -307,11 +307,11 @@ public class JsHbManagerTest {
 	public void masterLazyPrpOverSizedTest() throws Exception {
 		try {
 			Session ss = this.sessionFactory.openSession();
-			String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_generated.json";
+			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_generated.json";
 			
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			
-			JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
+			PlayerManagerTest.this.manager.startJsonWriteIntersept();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 	
 				@Override
@@ -373,16 +373,16 @@ public class JsHbManagerTest {
 				}
 				
 			});
-			JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
+			PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 			
-			JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
+			PlayerManagerTest.this.manager.startJsonWriteIntersept();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 	
 				@Override
 				public Object doInTransaction(TransactionStatus transactionStatus) {
 					//SchemaExport
 					
-					//Configuration hbConfiguration = JsHbManagerTest.this.localSessionFactoryBean.getConfiguration();
+					//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
 					
 					SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 					sqlLogInspetor.enable();
@@ -391,29 +391,29 @@ public class JsHbManagerTest {
 					System.out.println("$$$$: " + masterAEnt.getDatetimeA());
 					System.out.println("$$$$: " + masterAEnt.getDatetimeA().getTime());
 					
-					JsHbManagerTest
+					PlayerManagerTest
 						.this
-							.jsHbManager
+							.manager
 							.overwriteConfigurationTemporarily(
-								JsHbManagerTest
+								PlayerManagerTest
 									.this
-										.jsHbManager
-											.getJsHbConfig()
+										.manager
+											.getConfig()
 												.clone()
 												.configSerialiseBySignatureAllRelationship(true));
 					
-					PlayerSnapshot<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(masterAEnt);
+					PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
 					
 					FileOutputStream fos;
 					try {
 						fos = new FileOutputStream(generatedFileResult);
-						JsHbManagerTest
+						PlayerManagerTest
 							.this
-								.jsHbManager
-									.getJsHbConfig()
+								.manager
+									.getConfig()
 										.getObjectMapper()
 											.writerWithDefaultPrettyPrinter()
-												.writeValue(fos, jsHbResultEntity);
+												.writeValue(fos, playerSnapshot);
 						
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
@@ -426,13 +426,13 @@ public class JsHbManagerTest {
 				}
 				
 			});
-			JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
+			PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 			
 			ClassLoader classLoader = getClass().getClassLoader();
 			BufferedReader brExpected = 
 				new BufferedReader(
 					new InputStreamReader(
-						classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_expected.json")
+						classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_expected.json")
 					)
 				);
 			BufferedReader brGenerated = 
@@ -468,17 +468,17 @@ public class JsHbManagerTest {
 //		}
 		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".masterADetailATest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterADetailATest_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
 				//SchemaExport
 				
-				//Configuration hbConfiguration = JsHbManagerTest.this.localSessionFactoryBean.getConfiguration();
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
 				
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
@@ -487,29 +487,29 @@ public class JsHbManagerTest {
 				//doing lazy-load
 				masterAEnt.getDetailAEntCol().size();
 				
-				JsHbManagerTest
+				PlayerManagerTest
 					.this
-						.jsHbManager
+						.manager
 						.overwriteConfigurationTemporarily(
-							JsHbManagerTest
+							PlayerManagerTest
 								.this
-									.jsHbManager
-										.getJsHbConfig()
+									.manager
+										.getConfig()
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<MasterAEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(masterAEnt);
+				PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
 				
 				FileOutputStream fos;
 				try {
 					fos = new FileOutputStream(generatedFileResult);
-					JsHbManagerTest
+					PlayerManagerTest
 						.this
-							.jsHbManager
-								.getJsHbConfig()
+							.manager
+								.getConfig()
 									.getObjectMapper()
 										.writerWithDefaultPrettyPrinter()
-											.writeValue(fos, jsHbResultEntity);
+											.writeValue(fos, playerSnapshot);
 					
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -522,13 +522,13 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 		
 		ClassLoader classLoader = getClass().getClassLoader();
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".masterADetailATest_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterADetailATest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -559,17 +559,17 @@ public class JsHbManagerTest {
 //		}
 		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
 				//SchemaExport
 				
-				//Configuration hbConfiguration = JsHbManagerTest.this.localSessionFactoryBean.getConfiguration();
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
 				
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
@@ -578,31 +578,31 @@ public class JsHbManagerTest {
 				//doing lazy-load
 				masterAEnt.getDetailAEntCol().size();
 				
-				JsHbManagerTest.this
-					.jsHbManager
+				PlayerManagerTest.this
+					.manager
 					.overwriteConfigurationTemporarily(
-						JsHbManagerTest
+						PlayerManagerTest
 							.this
-								.jsHbManager
-									.getJsHbConfig()
+								.manager
+									.getConfig()
 										.clone()
 										.configSerialiseBySignatureAllRelationship(true));
 				
-				SignatureBean signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
-				Collection<DetailAEnt> detailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
-				PlayerSnapshot<Collection<DetailAEnt>> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(detailAEntCol);
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
+				PlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCol);
 				
 				FileOutputStream fos;
 				
 				try {
 					fos = new FileOutputStream(generatedFileResult);
-					JsHbManagerTest
+					PlayerManagerTest
 						.this
-							.jsHbManager
-								.getJsHbConfig()
+							.manager
+								.getConfig()
 									.getObjectMapper()
 										.writerWithDefaultPrettyPrinter()
-											.writeValue(fos, jsHbResultEntity);
+											.writeValue(fos, playerSnapshot);
 					
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -615,13 +615,13 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 		
 		ClassLoader classLoader = getClass().getClassLoader();
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -647,17 +647,17 @@ public class JsHbManagerTest {
 	@Test
 	public void masterBTest() throws Exception {		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".masterBTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBTest_result_generated.json";
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
 				//SchemaExport
 				
-				//Configuration hbConfiguration = JsHbManagerTest.this.localSessionFactoryBean.getConfiguration();
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
 				
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
@@ -669,29 +669,29 @@ public class JsHbManagerTest {
 				System.out.println("$$$$: " + masterBEnt.getDatetimeA());
 				System.out.println("$$$$: " + masterBEnt.getDatetimeA().getTime());
 			
-				JsHbManagerTest
+				PlayerManagerTest
 					.this
-						.jsHbManager
+						.manager
 						.overwriteConfigurationTemporarily(
-							JsHbManagerTest
+							PlayerManagerTest
 								.this
-									.jsHbManager
-										.getJsHbConfig()
+									.manager
+										.getConfig()
 											.clone()
 											.configSerialiseBySignatureAllRelationship(true));
 				
-				PlayerSnapshot<MasterBEnt> jsHbResultEntity = JsHbManagerTest.this.jsHbManager.createPlayerSnapshot(masterBEnt);
+				PlayerSnapshot<MasterBEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterBEnt);
 				
 				FileOutputStream fos;
 				try {
 					fos = new FileOutputStream(generatedFileResult);
-					JsHbManagerTest
+					PlayerManagerTest
 						.this
-							.jsHbManager
-								.getJsHbConfig()
+							.manager
+								.getConfig()
 									.getObjectMapper()
 										.writerWithDefaultPrettyPrinter()
-											.writeValue(fos, jsHbResultEntity);
+											.writeValue(fos, playerSnapshot);
 					
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -704,13 +704,13 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 		
 		ClassLoader classLoader = getClass().getClassLoader();
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+JsHbManagerTest.class.getName()+".masterBTest_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterBTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -741,38 +741,38 @@ public class JsHbManagerTest {
 //		}
 		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+JsHbManagerTest.class.getName()+".detailABySigTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		JsHbManagerTest.this.jsHbManager.startJsonWriteIntersept();
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
 				//SchemaExport
 				
-				//Configuration hbConfiguration = JsHbManagerTest.this.localSessionFactoryBean.getConfiguration();
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
 				
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
 								
-				SignatureBean signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
-				MasterBEnt masterBEnt = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				MasterBEnt masterBEnt = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
-				Collection<DetailAEnt> detailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
-				MasterBComp masterBComp = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
+				MasterBComp masterBComp = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
-				Collection<DetailAEnt> compDetailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				Collection<DetailAEnt> compDetailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19");
-				MasterBCompComp masterBCompComp = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);				
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19");
+				MasterBCompComp masterBCompComp = PlayerManagerTest.this.manager.getBySignature(signatureBean);				
 				
-				signatureBean = JsHbManagerTest.this.jsHbManager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
-				Collection<DetailAEnt> compCompDetailAEntCol = JsHbManagerTest.this.jsHbManager.getBySignature(signatureBean);
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
+				Collection<DetailAEnt> compCompDetailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				
 				
 				Assert.assertThat("masterBEnt.getMasterBComp(), sameInstance(masterBComp)", masterBEnt.getMasterBComp(), sameInstance(masterBComp));
@@ -789,7 +789,7 @@ public class JsHbManagerTest {
 			}
 			
 		});
-		JsHbManagerTest.this.jsHbManager.stopJsonWriteIntersept();
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 	}
 //eyJjbGF6ek5hbWUiOiJici5nb3Yuc2VycHJvLndlYmFuYWxpc2UuanNIYlN1cGVyU3luYy5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ
 }

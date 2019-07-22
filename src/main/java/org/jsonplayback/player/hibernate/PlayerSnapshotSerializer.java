@@ -10,16 +10,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-public class JsHbPlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot> {
+public class PlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot> {
 
-	public JsHbPlayerSnapshotSerializer(){
+	public PlayerSnapshotSerializer(){
 		
 	}
 	
-	private IPlayerManager jsHbManager;
+	private IPlayerManager manager;
 	
-	public JsHbPlayerSnapshotSerializer configJsHbManager(IPlayerManager jsHbManager) {
-		this.jsHbManager = jsHbManager;
+	public PlayerSnapshotSerializer configManager(IPlayerManager manager) {
+		this.manager = manager;
 		return this;
 	}
 	
@@ -28,7 +28,7 @@ public class JsHbPlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot>
 	public void serialize(PlayerSnapshot value, JsonGenerator gen, SerializerProvider serializers)
 			throws IOException, JsonProcessingException {
 		try {
-			this.jsHbManager.startJsonWriteIntersept();
+			this.manager.startJsonWriteIntersept();
 
 			final JsonSerializer<Object> defaultJsonSerializer = serializers.findValueSerializer(Object.class);
 			
@@ -37,7 +37,7 @@ public class JsHbPlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot>
 			serializers.findValueSerializer(value.getWrappedSnapshot().getClass()).serialize(value.getWrappedSnapshot(), gen, serializers);
 			gen.writeEndObject();
 		} finally {
-			this.jsHbManager.stopJsonWriteIntersept();
+			this.manager.stopJsonWriteIntersept();
 		}
 	}
 }

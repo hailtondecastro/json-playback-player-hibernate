@@ -19,82 +19,76 @@ import com.fasterxml.jackson.core.util.JsonGeneratorDelegate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
-	private static Logger logger = LoggerFactory.getLogger(JsHbJsonGeneratorDelegate.class);
+public class PlayerJsonGeneratorDelegate extends JsonGeneratorDelegate {
+	private static Logger logger = LoggerFactory.getLogger(PlayerJsonGeneratorDelegate.class);
 	
-	IPlayerManagerImplementor jsHbManager;
+	IPlayerManagerImplementor manager;
 	private SerializerProvider serializers;
 
-	public JsHbJsonGeneratorDelegate configSerializers(SerializerProvider serializers) {
+	public PlayerJsonGeneratorDelegate configSerializers(SerializerProvider serializers) {
 		this.serializers = serializers;
 		return this;
 	}
 
-	public JsHbJsonGeneratorDelegate configJsHbManager(IPlayerManagerImplementor jsHbManager) {
-		this.jsHbManager = jsHbManager;
+	public PlayerJsonGeneratorDelegate configManager(IPlayerManagerImplementor manager) {
+		this.manager = manager;
 		return this;
 	}
 	
-	public JsHbJsonGeneratorDelegate(JsonGenerator d) {
+	public PlayerJsonGeneratorDelegate(JsonGenerator d) {
 		super(d);
 	}
 	
 	@Override
 	public void writeStartObject(Object forValue) throws IOException {
 		this.delegate.writeStartObject(forValue);
-		if (!this.jsHbManager.isStarted()) {
+		if (!this.manager.isStarted()) {
 			if (logger.isTraceEnabled()) {
-				logger.trace("Not Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). !this.jsHbManager.isStarted()");
+				logger.trace("Not Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). !this.manager.isStarted()");
 			}
 			this.delegate.writeStartObject();
 		} else if (forValue instanceof PlayerSnapshot) {
 			if (logger.isTraceEnabled()) {
-				logger.trace("Not Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). forValue instanceof JsHbResultEntity");
+				logger.trace("Not Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). forValue instanceof PlayerSnapshot");
 			}
 			this.delegate.writeStartObject();
-		} else if (this.jsHbManager.getIdByObjectMap().containsKey(new IdentityRefKey(forValue))) {
-			throw new RuntimeException(MessageFormat.format("Serializing an object that has been serialized and referenced. {0}: {1}", this.jsHbManager.getIdByObjectMap().get(forValue), forValue));
+		} else if (this.manager.getIdByObjectMap().containsKey(new IdentityRefKey(forValue))) {
+			throw new RuntimeException(MessageFormat.format("Serializing an object that has been serialized and referenced. {0}: {1}", this.manager.getIdByObjectMap().get(forValue), forValue));
 		} else {
-			this.jsHbManager.currIdPlusPlus();
-			this.jsHbManager.getObjectByIdMap().put(this.jsHbManager.getCurrId(), forValue);
-			this.jsHbManager.getIdByObjectMap().put(new IdentityRefKey(forValue), this.jsHbManager.getCurrId());
+			this.manager.currIdPlusPlus();
+			this.manager.getObjectByIdMap().put(this.manager.getCurrId(), forValue);
+			this.manager.getIdByObjectMap().put(new IdentityRefKey(forValue), this.manager.getCurrId());
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
 						"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Setting \"{0}\": {1}",
-						"backendMetadatas.id", this.jsHbManager.getCurrId()));
+						"backendMetadatas.id", this.manager.getCurrId()));
 			}
 			PlayerMetadatas backendMetadatas = new PlayerMetadatas();
-			backendMetadatas.setId(this.jsHbManager.getCurrId());
-//			this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIdName());
-//			this.writeNumber(this.jsHbManager.getCurrId());
+			backendMetadatas.setId(this.manager.getCurrId());
 			
-			if (this.jsHbManager.isPersistentClass(forValue.getClass()) && !this.jsHbManager.isNeverSigned(forValue.getClass())) {
-				SignatureBean signatureBean = this.jsHbManager.generateSignature(forValue);
-				String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
+			if (this.manager.isPersistentClass(forValue.getClass()) && !this.manager.isNeverSigned(forValue.getClass())) {
+				SignatureBean signatureBean = this.manager.generateSignature(forValue);
+				String signatureStr = this.manager.serializeSignature(signatureBean);
 				if (logger.isTraceEnabled()) {
 					logger.trace(MessageFormat.format(
 							"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is a persistent class. Setting \"{0}\": \"{1}\"",
 							"backendMetadatas.signature", signatureStr));
 				}
 				backendMetadatas.setSignature(signatureStr);
-//				this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
-//				this.writeString(signatureStr);
-				if (this.jsHbManager.getJsHbBeanPropertyWriterStepStack().size() > 0) {
+				if (this.manager.getPlayerBeanPropertyWriterStepStack().size() > 0) {
 					if (logger.isTraceEnabled()) {
 						logger.trace(MessageFormat.format(
 								"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is an associative class property. Setting \"{0}\": \"{1}\"",
 								"backendMetadatas.isAssociative", true));
 					}
 					backendMetadatas.setIsAssociative(true);
-//					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsAssociativeName());
-//					this.writeBoolean(true);
 				}
-				this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findPlayerObjectId(forValue, this, serializers, backendMetadatas);
+				this.manager.getPlayerJsonSerializerStepStack().peek().findPlayerObjectId(forValue, this, serializers, backendMetadatas);
 			} else {
-				AssociationAndComponentTrackInfo aacTrackInfo = this.jsHbManager.getCurrentAssociationAndComponentTrackInfo();
-				if (aacTrackInfo != null && !this.jsHbManager.isNeverSigned(forValue.getClass())) {
-					SignatureBean signatureBean = this.jsHbManager.generateComponentSignature(aacTrackInfo);
-					String signatureStr = this.jsHbManager.serializeSignature(signatureBean);
+				AssociationAndComponentTrackInfo aacTrackInfo = this.manager.getCurrentAssociationAndComponentTrackInfo();
+				if (aacTrackInfo != null && !this.manager.isNeverSigned(forValue.getClass())) {
+					SignatureBean signatureBean = this.manager.generateComponentSignature(aacTrackInfo);
+					String signatureStr = this.manager.serializeSignature(signatureBean);
 					if (logger.isTraceEnabled()) {
 						if (logger.isTraceEnabled()) {
 							Map<String, Object> anyLogMap = new LinkedHashMap<>();
@@ -114,33 +108,28 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 					}
 					backendMetadatas.setSignature(signatureStr);
 					backendMetadatas.setIsComponent(true);
-//					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbSignatureName());
-//					this.writeString(signatureStr);
-//					this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbIsComponentName());
-//					this.writeBoolean(true);
-					this.jsHbManager.getJsHbJsonSerializerStepStack().peek().findPlayerObjectId(forValue, this, serializers, backendMetadatas);
-					//this.jsHbManager.getJsHbJsonSerializerStepStackTL().peek().writePlayerObjectId(forValue, this, serializers);
+					this.manager.getPlayerJsonSerializerStepStack().peek().findPlayerObjectId(forValue, this, serializers, backendMetadatas);
 				} else {
 				}
 			}
 			
 			
-			//I can be writing a JsHbbackendMetadatas.playerObjectId  
+			//I can be writing a PlayerMetadatas.playerObjectId  
 			if (forValue != null
-					&& this.jsHbManager.isComponent(forValue.getClass())
-					&& this.jsHbManager.getJsHbBackendMetadatasWritingStack().size() > 0
-					&& forValue == this.jsHbManager.getJsHbBackendMetadatasWritingStack().peek().getPlayerObjectId()) {
+					&& this.manager.isComponent(forValue.getClass())
+					&& this.manager.getPlayerMetadatasWritingStack().size() > 0
+					&& forValue == this.manager.getPlayerMetadatasWritingStack().peek().getPlayerObjectId()) {
 				backendMetadatas.setIsComponent(true);
 				backendMetadatas.setIsComponentPlayerObjectId(true);
 			}
 			
 			try {
-				this.jsHbManager.getJsHbBackendMetadatasWritingStack().push(backendMetadatas);
-				this.writeFieldName(this.jsHbManager.getJsHbConfig().getJsHbMetadatasName());
+				this.manager.getPlayerMetadatasWritingStack().push(backendMetadatas);
+				this.writeFieldName(this.manager.getConfig().getPlayerMetadatasName());
 				this.writeObject(backendMetadatas);				
 			} finally {
-				if (this.jsHbManager.getJsHbBackendMetadatasWritingStack() != null) {
-					PlayerMetadatas backendMetadatasPoped = this.jsHbManager.getJsHbBackendMetadatasWritingStack().pop();
+				if (this.manager.getPlayerMetadatasWritingStack() != null) {
+					PlayerMetadatas backendMetadatasPoped = this.manager.getPlayerMetadatasWritingStack().pop();
 					if (backendMetadatasPoped != backendMetadatas) {
 						throw new RuntimeException("This should not happen");
 					}					
@@ -149,7 +138,7 @@ public class JsHbJsonGeneratorDelegate extends JsonGeneratorDelegate {
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
 						"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). Injecting field \"{0}\": {1}",
-						this.jsHbManager.getJsHbConfig().getJsHbMetadatasName(), backendMetadatas));
+						this.manager.getConfig().getPlayerMetadatasName(), backendMetadatas));
 			}
 		}
 			}

@@ -44,7 +44,7 @@ import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
-import org.jsonplayback.player.IConfig;
+import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.IdentityRefKey;
@@ -64,18 +64,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
-public class JsHbPlayerManager implements IPlayerManagerImplementor {
-	private static Logger logger = LoggerFactory.getLogger(JsHbPlayerManager.class);
+public class PlayerManagerDefault implements IPlayerManagerImplementor {
+	private static Logger logger = LoggerFactory.getLogger(PlayerManagerDefault.class);
 	
-	private IConfig jsHbConfig = new JsHbConfig();
+	private IPlayerConfig config = new PlayerConfig();
 	ThreadLocal<Long> currIdTL = new ThreadLocal<Long>();
 	ThreadLocal<Map<Long, Object>> objectByIdMapTL = new ThreadLocal<>();
 	ThreadLocal<Map<IdentityRefKey, Long>> idByObjectMapTL = new ThreadLocal<>();
 	ThreadLocal<Map<IdentityRefKey, PlayerMetadatas>> metadatasCacheMapTL = new ThreadLocal<>();
-	ThreadLocal<IConfig> temporaryConfigurationTL = new ThreadLocal<IConfig>();
-	ThreadLocal<Stack<JsHbBeanPropertyWriter>> jsHbBeanPropertyWriterStepStackTL = new ThreadLocal<Stack<JsHbBeanPropertyWriter>>();
-	ThreadLocal<Stack<JsHbJsonSerializer>> JsHbJsonSerializerStepStackTL = new ThreadLocal<Stack<JsHbJsonSerializer>>(); 
-	ThreadLocal<Stack<PlayerMetadatas>> jsHbBackendMetadatasWritingStackTL = new ThreadLocal<Stack<PlayerMetadatas>>();
+	ThreadLocal<IPlayerConfig> temporaryConfigurationTL = new ThreadLocal<IPlayerConfig>();
+	ThreadLocal<Stack<PlayerBeanPropertyWriter>> playerBeanPropertyWriterStepStackTL = new ThreadLocal<Stack<PlayerBeanPropertyWriter>>();
+	ThreadLocal<Stack<PlayerJsonSerializer>> playerJsonSerializerStepStackTL = new ThreadLocal<Stack<PlayerJsonSerializer>>(); 
+	ThreadLocal<Stack<PlayerMetadatas>> playerMetadatasWritingStackTL = new ThreadLocal<Stack<PlayerMetadatas>>();
 
 //	ThreadLocal<Stack<String>> currentCompositePathStackTL = new ThreadLocal<>();
 //	ThreadLocal<Object> currentCompositeOwner = new ThreadLocal<>();
@@ -86,18 +86,18 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 			logger.trace(
 					MessageFormat.format("createResultEntity for {0}", result != null ? result.getClass() : "null"));
 		}
-		return new PlayerSnapshot<T>(result).configJsHbManager(this);
+		return new PlayerSnapshot<T>(result).configManager(this);
 	}
 
 	@Override
-	public JsHbPlayerManager configure(IConfig jsHbConfig) {
-		if (jsHbConfig == null) {
-			throw new IllegalArgumentException("jsHbConfig can not be null");
+	public PlayerManagerDefault configure(IPlayerConfig config) {
+		if (config == null) {
+			throw new IllegalArgumentException("config can not be null");
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug(MessageFormat.format("configure.  jsHbConfig:\n{0}", jsHbConfig));
+			logger.debug(MessageFormat.format("configure.  config:\n{0}", config));
 		}
-		this.jsHbConfig = jsHbConfig;
+		this.config = config;
 		return this;
 	}
 
@@ -121,8 +121,8 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		if (logger.isDebugEnabled()) {
 			logger.debug("collectAssociationAndCompositiesMap()");
 		}
-		for (String entityName : this.jsHbConfig.getSessionFactory().getAllClassMetadata().keySet()) {
-			ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(entityName);
+		for (String entityName : this.config.getSessionFactory().getAllClassMetadata().keySet()) {
+			ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(entityName);
 			
 			Class<?> ownerRootClass;
 			try {
@@ -393,8 +393,8 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		signatureBeanJson.setIsComp(signatureBean.getIsComp());
 
 		String result = "FOO BAA";
-		if (this.jsHbConfig.getSignatureCrypto() != null) {
-			result = this.jsHbConfig.getSignatureCrypto().encrypt(result);
+		if (this.config.getSignatureCrypto() != null) {
+			result = this.config.getSignatureCrypto().encrypt(result);
 		}
 
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -410,8 +410,8 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 			throw new RuntimeException("Isso nao deveria acontencer!", e);
 		}
 		String resultStr = writer.toString();
-		if (this.jsHbConfig.getSignatureCrypto() != null) {
-			resultStr = this.jsHbConfig.getSignatureCrypto().encrypt(resultStr);
+		if (this.config.getSignatureCrypto() != null) {
+			resultStr = this.config.getSignatureCrypto().encrypt(resultStr);
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
 						"serializeSignature(). encrypting. original json signature: ''{0}'', encripted signature: ''{1}''",
@@ -432,8 +432,8 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	public SignatureBean deserializeSignature(String signatureStr) {
 		String decryptedSignatureStr = signatureStr;
 
-		if (this.jsHbConfig.getSignatureCrypto() != null) {
-			decryptedSignatureStr = this.jsHbConfig.getSignatureCrypto().decrypt(signatureStr);
+		if (this.config.getSignatureCrypto() != null) {
+			decryptedSignatureStr = this.config.getSignatureCrypto().decrypt(signatureStr);
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
 						"serializeSignature(). decrypting. original json signature: ''{0}'', dncripted signature: ''{1}''",
@@ -552,7 +552,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		if (!this.isRelationship(ownerClass, fieldName)) {
 			throw new RuntimeException("This is not a relationship: " + ownerClass + "->" + fieldName);
 		}
-		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(ownerClass);
+		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(ownerClass);
 		
 		Type prpType = null;
 		if (classMetadata != null) {
@@ -605,7 +605,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 			// on hb-3
 //			CollectionType collType = (CollectionType) assType;
 //			idValue = collType.getKeyOfOwner(ownerValue,
-//					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+//					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
 			signatureBean.setClazz(ownerClass);
 			signatureBean.setIsColl(true);
 			signatureBean.setPropertyName(fieldName);
@@ -619,25 +619,12 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 			// This will cause two signatures for the same instance!?!?!?!?
 			// signatureBean.setIsAssoc(true);
 
-//			classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(assType.getReturnedClass());
+//			classMetadata = this.config.getSessionFactory().getClassMetadata(assType.getReturnedClass());
 //			idValue = classMetadata.getIdentifier(fieldValue,
-//					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+//					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
 //			signatureBean.setClazz(assType.getReturnedClass());
 		}
 		// signatureBean.setEntityName(classMetadata.getEntityName());
-
-//		JsHbStatment jsHbStatment = new JsHbStatment();
-
-//		Type hbIdType = classMetadata.getIdentifierType();
-//		try {
-//			hbIdType.nullSafeSet(jsHbStatment, idValue, 0,
-//					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
-//		} catch (HibernateException e) {
-//			throw new RuntimeException("This should not happen", e);
-//		} catch (SQLException e) {
-//			throw new RuntimeException("This should not happen", e);
-//		}
-//		signatureBean.setRawKeyValues(jsHbStatment.getInternalValues());
 		
 		if (logger.isTraceEnabled()) {
 			logger.trace(
@@ -648,15 +635,15 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	}
 
 	@Override
-	public SignatureBean generateLazySignatureForJsHbLazyProperty(Class<?> ownerClass, String fieldName,
+	public SignatureBean generateLazySignatureForLazyProperty(Class<?> ownerClass, String fieldName,
 			Object ownerValue, Object fieldValue) {
 		if (fieldValue instanceof byte[] || fieldValue instanceof Blob || fieldValue instanceof String
 				|| fieldValue instanceof Clob) {
 			// nothing
 		} else {
-			throw new RuntimeException("fieldValue type does not support JsHbLazyProperty: " + fieldValue.getClass());
+			throw new RuntimeException("fieldValue type does not support LazyProperty: " + fieldValue.getClass());
 		}
-		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(ownerClass);
+		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(ownerClass);
 
 		Type prpType = null;
 		if (classMetadata != null) {
@@ -701,23 +688,23 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		signatureBean.setClazz(entityClass);
 		signatureBean.setEntityName(entityClass.getName());
 		signatureBean.setPropertyName(null);
-		JsHbStatment jsHbStatment = new JsHbStatment();
+		PlayerStatment playerStatment = new PlayerStatment();
 
-		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(entityClass);
+		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(entityClass);
 
 		@SuppressWarnings("deprecation")
 		Object idValue = classMetadata.getIdentifier(hibernateProxy,
-				(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+				(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
 		Type hbIdType = classMetadata.getIdentifierType();
 		try {
-			hbIdType.nullSafeSet(jsHbStatment, idValue, 0,
-					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+			hbIdType.nullSafeSet(playerStatment, idValue, 0,
+					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen", e);
 		} catch (SQLException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
-		signatureBean.setRawKeyValues(jsHbStatment.getInternalValues());
+		signatureBean.setRawKeyValues(playerStatment.getInternalValues());
 		
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
@@ -746,23 +733,23 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		signatureBean.setClazz(entityClass);
 		signatureBean.setEntityName(entityClass.getName());
 		signatureBean.setPropertyName(null);
-		JsHbStatment jsHbStatment = new JsHbStatment();
+		PlayerStatment playerStatment = new PlayerStatment();
 
-		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(entityClass);
+		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(entityClass);
 
 		@SuppressWarnings("deprecation")
 		Object idValue = classMetadata.getIdentifier(nonHibernateProxy,
-				(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+				(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
 		Type hbIdType = classMetadata.getIdentifierType();
 		try {
-			hbIdType.nullSafeSet(jsHbStatment, idValue, 0,
-					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+			hbIdType.nullSafeSet(playerStatment, idValue, 0,
+					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen", e);
 		} catch (SQLException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
-		signatureBean.setRawKeyValues(jsHbStatment.getInternalValues());
+		signatureBean.setRawKeyValues(playerStatment.getInternalValues());
 		
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("generateSignature(Object nonHibernateProxy). signatureBean:\n{0}",
@@ -778,7 +765,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 			logger.trace(MessageFormat.format("getBySignature(). Begin. \nsignatureBean:\n{0}", signature));
 		}
 		
-		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(signature.getClazz());
+		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(signature.getClazz());
 
 		Type hbIdType = classMetadata.getIdentifierType();
 
@@ -787,13 +774,13 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		}
 		
 //		Serializable idValue = (Serializable) hbIdType.resolve(signature.getRawKeyValues(),
-//				(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession(), null);
+//				(SessionImplementor) this.config.getSessionFactory().getCurrentSession(), null);
 		Serializable idValue = null;
 		
-		JsHbResultSet jsHbResultSet = new JsHbResultSet(signature.getRawKeyValues());
+		PlayerResultSet playerResultSet = new PlayerResultSet(signature.getRawKeyValues());
 		try {
-			idValue = (Serializable) hbIdType.nullSafeGet(jsHbResultSet, jsHbResultSet.getColumnNames(),
-					(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession(), null);
+			idValue = (Serializable) hbIdType.nullSafeGet(playerResultSet, playerResultSet.getColumnNames(),
+					(SessionImplementor) this.config.getSessionFactory().getCurrentSession(), null);
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen. prpType: ");
 		} catch (SQLException e) {
@@ -805,7 +792,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 				idValue = (Serializable) ((Object[])idValue)[0];
 			}
 		}
-		Object owner = this.jsHbConfig.getSessionFactory().getCurrentSession().get(signature.getClazz(), idValue);
+		Object owner = this.config.getSessionFactory().getCurrentSession().get(signature.getClazz(), idValue);
 
 		Object result = owner;
 
@@ -837,7 +824,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 //			}
 //			Collection persistentCollection = (Collection) classMetadata.getPropertyValue(owner,
 //					signature.getPropertyName(),
-//					this.jsHbConfig.getSessionFactory().getCurrentSession().getEntityMode());
+//					this.config.getSessionFactory().getCurrentSession().getEntityMode());
 //			for (Object item : persistentCollection) {
 //				resultColl.add(item);
 //			}
@@ -859,20 +846,13 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean isNeverSigned(Class clazz) {
-		return this.jsHbConfig.getNeverSignedClasses().contains(clazz);
+		return this.config.getNeverSignedClasses().contains(clazz);
 	}
-
-//	@SuppressWarnings("rawtypes")
-//	@Override
-//	public boolean isPersistentClassOrComponent(Class clazz) {
-//		return this.isComponent(clazz)
-//				|| this.jsHbConfig.getSessionFactory().getClassMetadata(clazz) != null;
-//	}
 	
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean isPersistentClass(Class clazz) {
-		return this.jsHbConfig.getSessionFactory().getClassMetadata(clazz) != null;
+		return this.config.getSessionFactory().getClassMetadata(clazz) != null;
 	}
 
 	@Override
@@ -886,23 +866,23 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		}
 
 		@SuppressWarnings("deprecation")
-		Object idValue = this.jsHbConfig.getSessionFactory().getClassMetadata(entityClass).getIdentifier(object,
-				(SessionImplementor) this.jsHbConfig.getSessionFactory().getCurrentSession());
+		Object idValue = this.config.getSessionFactory().getClassMetadata(entityClass).getIdentifier(object,
+				(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
 		return idValue;
 	}
 	
 	@Override
 	public String getPlayerObjectIdName(Class clazz) {
 
-		return this.jsHbConfig.getSessionFactory().getClassMetadata(clazz).getIdentifierPropertyName();
+		return this.config.getSessionFactory().getClassMetadata(clazz).getIdentifierPropertyName();
 	}
 
 	@Override
-	public IConfig getJsHbConfig() {
+	public IPlayerConfig getConfig() {
 		if (this.temporaryConfigurationTL.get() != null) {
 			return this.temporaryConfigurationTL.get();
 		} else {
-			return this.jsHbConfig;
+			return this.config;
 		}
 	}
 
@@ -925,9 +905,9 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		this.objectByIdMapTL.set(new HashMap<Long, Object>());
 		this.idByObjectMapTL.set(new HashMap<IdentityRefKey, Long>());
 		this.metadatasCacheMapTL.set(new HashMap<>());
-		this.jsHbBeanPropertyWriterStepStackTL.set(new Stack<JsHbBeanPropertyWriter>());
-		this.JsHbJsonSerializerStepStackTL.set(new Stack<JsHbJsonSerializer>());
-		this.jsHbBackendMetadatasWritingStackTL.set(new Stack<PlayerMetadatas>());
+		this.playerBeanPropertyWriterStepStackTL.set(new Stack<PlayerBeanPropertyWriter>());
+		this.playerJsonSerializerStepStackTL.set(new Stack<PlayerJsonSerializer>());
+		this.playerMetadatasWritingStackTL.set(new Stack<PlayerMetadatas>());
 //		this.currentCompositeOwner.set(null);
 //		this.currentCompositePathStackTL.set(new Stack<>());
 	}
@@ -941,9 +921,9 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		this.objectByIdMapTL.set(null);
 		this.idByObjectMapTL.set(null);
 		this.metadatasCacheMapTL.set(null);
-		this.jsHbBeanPropertyWriterStepStackTL.set(null);
-		this.JsHbJsonSerializerStepStackTL.set(null);
-		this.jsHbBackendMetadatasWritingStackTL.set(null);
+		this.playerBeanPropertyWriterStepStackTL.set(null);
+		this.playerJsonSerializerStepStackTL.set(null);
+		this.playerMetadatasWritingStackTL.set(null);
 //		this.currentCompositeOwner.set(null);
 //		this.currentCompositePathStackTL.set(null);
 		
@@ -975,18 +955,18 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	}
 
 	@Override
-	public Stack<JsHbBeanPropertyWriter> getJsHbBeanPropertyWriterStepStack() {
-		return this.jsHbBeanPropertyWriterStepStackTL.get();
+	public Stack<PlayerBeanPropertyWriter> getPlayerBeanPropertyWriterStepStack() {
+		return this.playerBeanPropertyWriterStepStackTL.get();
 	}
 	
 	@Override
-	public Stack<JsHbJsonSerializer> getJsHbJsonSerializerStepStack() {
-		return this.JsHbJsonSerializerStepStackTL.get();
+	public Stack<PlayerJsonSerializer> getPlayerJsonSerializerStepStack() {
+		return this.playerJsonSerializerStepStackTL.get();
 	}
 
 	@Override
-	public Stack<PlayerMetadatas> getJsHbBackendMetadatasWritingStack() {
-		return jsHbBackendMetadatasWritingStackTL.get();
+	public Stack<PlayerMetadatas> getPlayerMetadatasWritingStack() {
+		return playerMetadatasWritingStackTL.get();
 	}
 
 	@Override
@@ -1015,7 +995,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 			throw new IllegalArgumentException("fieldName can not be null");
 		}
 		
-		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(clazz);
+		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(clazz);
 		CompositeType compositeType = null;
 		if (classMetadata == null) {
 			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(clazz, fieldName);
@@ -1088,62 +1068,10 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	@Override
 	public boolean isComponent(Class<?> componentClass) {
 		return this.compositiesSet.contains(componentClass);
-//		if (clazz == null) {
-//			throw new IllegalArgumentException("clazz can not be null");
-//		}
-//		if (fieldName == null || fieldName.trim().isEmpty()) {
-//			throw new IllegalArgumentException("fieldName can not be null");
-//		}
-//		ClassMetadata classMetadata = this.jsHbConfig.getSessionFactory().getClassMetadata(clazz);
-//		CompositeType compositeType = null;
-//		if (classMetadata == null) {
-//			HbComponentTypeEntry componentTypeEntry = new HbComponentTypeEntry(clazz, fieldName);
-//			compositeType = this.compositiesMap.get(componentTypeEntry);
-//			if (compositeType == null) {
-//				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz + ". Does this exception makes any sense?!");
-//			}
-//		}
-//		
-//		Type prpType = null;
-//		if (classMetadata != null) {
-//			for (int i = 0; i < classMetadata.getPropertyNames().length; i++) {
-//				String prpNameItem = classMetadata.getPropertyNames()[i];
-//				if (prpNameItem.equals(fieldName)) {
-//					prpType = classMetadata.getPropertyTypes()[i];
-//					break;
-//				}
-//			}			
-//		} else {
-//			for (int i = 0; i < compositeType.getPropertyNames().length; i++) {
-//				String prpNameItem = compositeType.getPropertyNames()[i];
-//				if (prpNameItem.equals(fieldName)) {
-//					prpType = compositeType.getSubtypes()[i];
-//					break;
-//				}
-//			}
-//		}
-//		
-//		boolean resultBool = false;
-//		if (prpType == null) {
-//			resultBool =  false;
-//		} else {
-//			if (prpType instanceof ComponentType) {
-//				resultBool =  true;
-//			} else {
-//				resultBool =  false;
-//			}
-//		}
-//		
-//		if (logger.isTraceEnabled()) {
-//			logger.trace(
-//					MessageFormat.format("isComponent(). clazz: ''{0}''; fieldName: ''{1}''. return: {2}", clazz, fieldName, resultBool));
-//		}
-//		
-//		return resultBool;
 	}
 
 	@Override
-	public IPlayerManager overwriteConfigurationTemporarily(IConfig newConfig) {
+	public IPlayerManager overwriteConfigurationTemporarily(IPlayerConfig newConfig) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("overwriteConfigurationTemporarily(). newConfig:\n {0}'", newConfig));
 		}
@@ -1152,13 +1080,13 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	}
 	
 	@Override
-	public IPlayerManager cloneWithNewConfiguration(IConfig newConfig) {
+	public IPlayerManager cloneWithNewConfiguration(IPlayerConfig newConfig) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("cloneWithNewConfiguration(). newConfig:\n {0}'", newConfig));
 		}
-		IPlayerManager jsHbManagerCloned = new JsHbPlayerManager();
-		jsHbManagerCloned = jsHbManagerCloned.configure(newConfig);
-		return jsHbManagerCloned;
+		IPlayerManager managerCloned = new PlayerManagerDefault();
+		managerCloned = managerCloned.configure(newConfig);
+		return managerCloned;
 	}
 
 	@Override
@@ -1169,28 +1097,28 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("prepareReplayable(). tape:\n {0}'", tape));
 		}
-		return new JsHbReplayable().configJsHbManager(this).loadPlayback(tape);
+		return new ReplayableDefault().configManager(this).loadPlayback(tape);
 	}
 
 	@Override
 	public AssociationAndComponentTrackInfo getCurrentAssociationAndComponentTrackInfo() {
 		List<String> pathList = new ArrayList<>();
 		Object lastEntityOwner = null;
-		Stack<JsHbJsonSerializer> serStepTackLocal = new Stack<>();
-		serStepTackLocal.addAll(this.JsHbJsonSerializerStepStackTL.get());
+		Stack<PlayerJsonSerializer> serStepTackLocal = new Stack<>();
+		serStepTackLocal.addAll(this.playerJsonSerializerStepStackTL.get());
 		// ignoring last one
 		serStepTackLocal.pop();
-		for (JsHbJsonSerializer jsHbJsonSerializer : serStepTackLocal) {
-			Object currBean = jsHbJsonSerializer.getCurrSerializationBean();
+		for (PlayerJsonSerializer playerJsonSerializer : serStepTackLocal) {
+			Object currBean = playerJsonSerializer.getCurrSerializationBean();
 			if (currBean instanceof PlayerMetadatas) {
 				currBean = ((PlayerMetadatas) currBean).getOriginalPlayerObjectIdOwner();
 			}
-			if (jsHbJsonSerializer.getCurrSerializationBean() != null && this.isPersistentClass(currBean.getClass())) {
+			if (playerJsonSerializer.getCurrSerializationBean() != null && this.isPersistentClass(currBean.getClass())) {
 				lastEntityOwner = currBean;
 			}
 		}
 
-		for (JsHbBeanPropertyWriter jbHbBeanPropertyWriter : this.getJsHbBeanPropertyWriterStepStack()) {
+		for (PlayerBeanPropertyWriter jbHbBeanPropertyWriter : this.getPlayerBeanPropertyWriterStepStack()) {
 			if (jbHbBeanPropertyWriter.getCurrOwner() != null 
 					&& this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
 				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
@@ -1221,7 +1149,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	public String getCurrentPathFromLastEntity() {
 		List<String> pathList = new ArrayList<>();
 		Object lastEntityOwner = null;
-		for (JsHbBeanPropertyWriter jbHbBeanPropertyWriter : this.getJsHbBeanPropertyWriterStepStack()) {
+		for (PlayerBeanPropertyWriter jbHbBeanPropertyWriter : this.getPlayerBeanPropertyWriterStepStack()) {
 			if (this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
 				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
 				pathList.clear();
@@ -1241,7 +1169,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	public boolean isCurrentPathFromLastEntityAnEntityRelationship() {
 		List<String> pathList = new ArrayList<>();
 		Object lastEntityOwner = null;
-		for (JsHbBeanPropertyWriter jbHbBeanPropertyWriter : this.getJsHbBeanPropertyWriterStepStack()) {
+		for (PlayerBeanPropertyWriter jbHbBeanPropertyWriter : this.getPlayerBeanPropertyWriterStepStack()) {
 			if (this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
 				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
 				pathList.clear();
@@ -1269,7 +1197,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 	public IDirectRawWriterWrapper needDirectWrite(SignatureBean signature) {
 		JsonSerializer<Object> jsonSerializer = null;
 		try {
-			jsonSerializer = this.jsHbConfig.getObjectMapper().getSerializerProvider()
+			jsonSerializer = this.config.getObjectMapper().getSerializerProvider()
 					.findValueSerializer(signature.getClazz());
 		} catch (JsonMappingException e) {
 			throw new RuntimeException("This should not happen", e);
@@ -1280,18 +1208,18 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 			final Object objectToRawWrite = this.getBySignature(signature);
 			while (iterator.hasNext()) {
 				PropertyWriter propertyWriter = (PropertyWriter) iterator.next();
-				if (propertyWriter instanceof JsHbBeanPropertyWriter) {
-					JsHbBeanPropertyWriter jsHbBeanPropertyWriter = (JsHbBeanPropertyWriter) propertyWriter;
-					if (jsHbBeanPropertyWriter.getBeanPropertyDefinition().getInternalName()
+				if (propertyWriter instanceof PlayerBeanPropertyWriter) {
+					PlayerBeanPropertyWriter playerBeanPropertyWriter = (PlayerBeanPropertyWriter) propertyWriter;
+					if (playerBeanPropertyWriter.getBeanPropertyDefinition().getInternalName()
 							.equals(signature.getPropertyName())) {
-						final LazyProperty jsHbLazyPropertyAnn = jsHbBeanPropertyWriter
+						final LazyProperty lazyPropertyAnn = playerBeanPropertyWriter
 								.getAnnotation(LazyProperty.class);
-						if (jsHbLazyPropertyAnn != null && jsHbLazyPropertyAnn.directRawWrite()) {
+						if (lazyPropertyAnn != null && lazyPropertyAnn.directRawWrite()) {
 							return new IDirectRawWriterWrapper() {
 
 								@Override
-								public LazyProperty getJsHbLazyProperty() {
-									return jsHbLazyPropertyAnn;
+								public LazyProperty getLazyProperty() {
+									return lazyPropertyAnn;
 								}
 
 								@Override
@@ -1304,7 +1232,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 												// nothing
 											} else if (objectToRawWrite instanceof Blob) {
 												Blob blob = (Blob) objectToRawWrite;
-												byte[] buffer = new byte[jsHbLazyPropertyAnn.bufferSize()];
+												byte[] buffer = new byte[lazyPropertyAnn.bufferSize()];
 												int offset = 0;
 												int latReadedCount = 0;
 												InputStream inputStream = blob.getBinaryStream();
@@ -1320,9 +1248,9 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 											} else if (objectToRawWrite instanceof Clob) {
 												Clob clob = (Clob) objectToRawWrite;
 												int latReadedCount = 0;
-												Charset charset = Charset.forName(jsHbLazyPropertyAnn.charset());
+												Charset charset = Charset.forName(lazyPropertyAnn.charset());
 												CharBuffer charBuffer = CharBuffer
-														.allocate(jsHbLazyPropertyAnn.bufferSize());
+														.allocate(lazyPropertyAnn.bufferSize());
 
 												Reader r = clob.getCharacterStream();
 												WritableByteChannel channel = Channels.newChannel(outputStream);
@@ -1339,7 +1267,7 @@ public class JsHbPlayerManager implements IPlayerManagerImplementor {
 												outputStream.flush();
 											} else if (objectToRawWrite instanceof String) {
 												String str = (String) objectToRawWrite;
-												Charset charset = Charset.forName(jsHbLazyPropertyAnn.charset());
+												Charset charset = Charset.forName(lazyPropertyAnn.charset());
 												WritableByteChannel channel = Channels.newChannel(outputStream);
 												channel.write(charset.encode(str));
 												outputStream.flush();
