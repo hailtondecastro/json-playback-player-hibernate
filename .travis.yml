@@ -1,4 +1,6 @@
 language: java
+jdk: openjdk8
+
 before_install:
   - ls -la
   - echo $GPG_PASSPHRASE | gpg --import travis.gpg
