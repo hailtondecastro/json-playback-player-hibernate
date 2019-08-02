@@ -161,7 +161,7 @@ public class TestServiceConfigBase {
 			@Autowired JsonComponentModule module,
 			@Autowired MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter
 //			@Autowired ObjectMapper mapperNovo
-			){
+			) {
 		PlayerBeanSerializerModifier modifier = new PlayerBeanSerializerModifier().configManager(manager);
 		//jsonComponentModule.addSerializer(PlayerSnapshot.class, playerSnapshotSerializer);
 		//mapper.registerModule(jsonComponentModule);

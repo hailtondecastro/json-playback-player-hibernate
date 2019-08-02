@@ -15,4 +15,4 @@ deploy:
   on:
     tags: true
     all_branches: true
-    condition: $TRAVIS_TAG = deploy
+    condition: $TRAVIS_TAG =~ ^(deploy_.*|publish_.*)$
