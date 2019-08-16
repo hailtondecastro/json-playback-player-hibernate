@@ -42,7 +42,7 @@
           "$idRef$" : 3
         }
       },
-      "hbVersion" : 1,
+      "hbVersion" : 2,
       "detailAComp" : {
         "$metadatas$" : {
           "$iAmPlayerMetadatas$" : true,
@@ -50,36 +50,30 @@
           "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjAiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
           "$isComponent$" : true
         },
-        "masterB" : {
-          "$metadatas$" : {
-            "$iAmPlayerMetadatas$" : true,
-            "$id$" : 5,
-            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
-            "$isLazyUninitialized$" : true,
-            "$isAssociative$" : true,
-            "$playerObjectId$" : {
-              "$metadatas$" : {
-                "$iAmPlayerMetadatas$" : true,
-                "$id$" : 6,
-                "$isComponent$" : true,
-                "$isComponentPlayerObjectId$" : true
-              },
-              "idA" : 1,
-              "idB" : 1
-            }
-          }
-        },
         "detailACompComp" : {
           "$metadatas$" : {
             "$iAmPlayerMetadatas$" : true,
-            "$id$" : 7,
+            "$id$" : 5,
             "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIwIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
             "$isComponent$" : true
           },
           "masterB" : {
             "$metadatas$" : {
               "$iAmPlayerMetadatas$" : true,
-              "$idRef$" : 5
+              "$id$" : 6,
+              "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+              "$isLazyUninitialized$" : true,
+              "$isAssociative$" : true,
+              "$playerObjectId$" : {
+                "$metadatas$" : {
+                  "$iAmPlayerMetadatas$" : true,
+                  "$id$" : 7,
+                  "$isComponent$" : true,
+                  "$isComponentPlayerObjectId$" : true
+                },
+                "idA" : 1,
+                "idB" : 1
+              }
             }
           }
         },
@@ -127,7 +121,7 @@
         "masterB" : {
           "$metadatas$" : {
             "$iAmPlayerMetadatas$" : true,
-            "$idRef$" : 5
+            "$idRef$" : 6
           }
         },
         "detailACompComp" : {
@@ -140,7 +134,7 @@
           "masterB" : {
             "$metadatas$" : {
               "$iAmPlayerMetadatas$" : true,
-              "$idRef$" : 5
+              "$idRef$" : 6
             }
           }
         },
@@ -188,7 +182,7 @@
         "masterB" : {
           "$metadatas$" : {
             "$iAmPlayerMetadatas$" : true,
-            "$idRef$" : 5
+            "$idRef$" : 6
           }
         },
         "detailACompComp" : {
@@ -201,7 +195,7 @@
           "masterB" : {
             "$metadatas$" : {
               "$iAmPlayerMetadatas$" : true,
-              "$idRef$" : 5
+              "$idRef$" : 6
             }
           }
         },

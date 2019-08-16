@@ -58,6 +58,7 @@ Framework for integrate entity object graph operations (field, collections modif
     pub   rsa4096 2019-07-08 [SC]
           2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F
     uid                      hailtondecastro (...) <hailtondecastro@gmail.com>
+  $ git config --global user.signingkey 2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F
   $ # Show GPG key
   $ gpg --armor --export 7B34C45B030EAE3F
   $ # Reassinando os commit ate o master

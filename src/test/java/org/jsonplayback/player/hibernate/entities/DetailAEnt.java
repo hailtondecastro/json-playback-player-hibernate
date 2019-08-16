@@ -34,9 +34,6 @@ public class DetailAEnt {
 	public void setVcharB(String vcharB) {
 		this.vcharB = vcharB;
 	}
-	public DetailAComp getDetailAComponent() {
-		return detailAComp;
-	}
 	public void setDetailAComp(DetailAComp detailAComp) {
 		this.detailAComp = detailAComp;
 	}
