@@ -33,6 +33,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.criterion.Order;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
@@ -92,7 +93,7 @@ public class PlayerManagerTest {
     public void setUp() throws Exception {
     	//System.setProperty("user.timezone", "GMT");
     	java.util.TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-		this.localSessionFactoryBean.dropDatabaseSchema();
+    	this.localSessionFactoryBean.dropDatabaseSchema();			
 		this.localSessionFactoryBean.createDatabaseSchema();
 		Session ss = this.sessionFactory.openSession();
 		Transaction tx = null;
@@ -207,6 +208,128 @@ public class PlayerManagerTest {
 		}
     }
 
+    public void setUpCustom(int  masterCount) throws Exception {
+		this.localSessionFactoryBean.dropDatabaseSchema();			
+		this.localSessionFactoryBean.createDatabaseSchema();
+		Session ss = this.sessionFactory.openSession();
+		
+		Transaction tx = null;
+		
+		int bigLoopCount = (int) Math.floor((double)(masterCount - 1) / (double)10);
+		
+		try {
+			//SchemaExport
+			tx = ss.beginTransaction();
+			
+			SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+			sqlLogInspetor.enable();
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
+			List objectsToSaveList = new ArrayList<>();
+			for (int iBigLoop = 0; iBigLoop < (bigLoopCount + 1); iBigLoop++) {
+				int iBigLoopIncremment = iBigLoop * 10;
+				MasterAEnt[] detailACompIdMasterAEntArr = new MasterAEnt[3];
+				int[] detailACompIdMasterAEntSubIdArr = new int[]{0, 0, 0};
+				MasterBEnt[] detailAComponentMasterBEntArr = new MasterBEnt[3];
+				for (int i = 0; i < 10; i++) {
+					MasterAEnt masterAEnt = new MasterAEnt();
+					masterAEnt.setId(i + iBigLoopIncremment);				
+					masterAEnt.setVcharA(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
+					masterAEnt.setVcharB(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
+					masterAEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
+					masterAEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
+//					System.out.println("####: " + masterAEnt.getDatetimeA());
+//					System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
+					masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
+					masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
+					masterAEnt.setBlobB(ss.connection().createBlob());
+					OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
+					os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+					os.flush();
+					os.close();
+					
+					masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+					masterAEnt.setBlobLazyB(ss.connection().createBlob());
+					os = masterAEnt.getBlobLazyB().setBinaryStream(1);
+					os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+					os.flush();
+					os.close();
+					
+					masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i + iBigLoopIncremment));
+					masterAEnt.setClobLazyB(ss.connection().createClob());
+					Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
+					w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
+					w.flush();
+					w.close();
+					
+					//ss.save(masterAEnt);
+					objectsToSaveList.add(masterAEnt);
+					if (i < detailACompIdMasterAEntArr.length) {
+						detailACompIdMasterAEntArr[i] = masterAEnt;
+					}
+				}
+				
+				for (int i = 0; i < 10; i++) {
+					MasterBEnt masterBEnt = new MasterBEnt();
+					MasterBCompId compId = new MasterBCompId();
+					compId.setIdA(1 + iBigLoopIncremment);
+					compId.setIdB(i);
+					masterBEnt.setCompId(compId);				
+					masterBEnt.setVcharA(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
+					masterBEnt.setVcharB(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
+					masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
+					masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
+					masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+					masterBEnt.setBlobB(ss.connection().createBlob());
+					masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
+					OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
+					os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+					os.flush();
+					os.close();
+					//ss.save(masterBEnt);
+					objectsToSaveList.add(masterBEnt);
+					if (i < detailAComponentMasterBEntArr.length) {
+						detailAComponentMasterBEntArr[i] = masterBEnt;
+					}
+				}
+				for (int i = 0; i < 10; i++) {
+					DetailAEnt detailAEnt = new DetailAEnt();
+					DetailACompId compId = new DetailACompId();
+					DetailAComp component = new DetailAComp();
+					int detailACompIdMasterAEntIndex = i % detailACompIdMasterAEntArr.length;
+					int detailAComponentMasterBEntIndex = i % detailAComponentMasterBEntArr.length;
+					compId.setMasterA(detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex]);
+					compId.setSubId(detailACompIdMasterAEntSubIdArr[detailACompIdMasterAEntIndex]++);
+					detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex].getDetailAEntCol().add(detailAEnt);
+					detailAEnt.setCompId(compId);				
+					component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
+					component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
+					component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+					component.setBlobB(ss.connection().createBlob());
+					component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
+					detailAEnt.setDetailAComp(component);
+					detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
+					OutputStream os = component.getBlobB().setBinaryStream(1);
+					os.write(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+					os.flush();
+					os.close();
+					//ss.save(detailAEnt);
+				}
+				
+				for (Object itemToSave : objectsToSaveList) {
+					ss.save(itemToSave);
+				}
+			}
+			
+
+			
+			sqlLogInspetor.disable();
+		} finally {
+			tx.commit();
+			ss.close();
+		}
+    }
+
+    
     @After
     public void tearDown() throws Exception {
     }
@@ -302,6 +425,95 @@ public class PlayerManagerTest {
 			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
 		}
 	}
+	
+	@Test
+	public void masterAList1000Test() throws Exception {		
+		this.setUpCustom(1000);
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				@SuppressWarnings("unchecked")
+				List<MasterAEnt> masterAEntList = 
+						ss
+							.createCriteria(MasterAEnt.class)
+							.addOrder(Order.asc("id")).list();
+				
+				PlayerManagerTest
+					.this
+						.manager
+						.overwriteConfigurationTemporarily(
+							PlayerManagerTest
+								.this
+									.manager
+										.getConfig()
+											.clone()
+											.configSerialiseBySignatureAllRelationship(true));
+				
+				PlayerSnapshot<List<MasterAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEntList);
+				
+				FileOutputStream fos;
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, playerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
 	
 	@Test
 	public void masterLazyPrpOverSizedTest() throws Exception {
