@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,8 @@ import org.jsonplayback.player.hibernate.entities.MasterBComp;
 import org.jsonplayback.player.hibernate.entities.MasterBCompComp;
 import org.jsonplayback.player.hibernate.entities.MasterBCompId;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
+import org.jsonplayback.player.hibernate.nonentities.DetailAWrapper;
+import org.jsonplayback.player.hibernate.nonentities.MasterAWrapper;
 import org.jsonplayback.player.util.SqlLogInspetor;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -787,9 +790,24 @@ public class PlayerManagerTest {
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
 				
-				MasterAEnt masterAEnt = (MasterAEnt) ss.crea(MasterAEnt.class, 1);
-				//doing lazy-load
-				masterAEnt.getDetailAEntCol().size();
+				@SuppressWarnings("unchecked")
+				List<MasterAEnt> masterAEntList = 
+						ss
+							.createCriteria(MasterAEnt.class)
+							.addOrder(Order.asc("id")).list();
+				List<MasterAWrapper> masterAWrapperList = new ArrayList<>();
+				for (MasterAEnt masterAEnt : masterAEntList) {
+					MasterAWrapper masterAWrapper = new MasterAWrapper();
+					masterAWrapper.setMasterA(masterAEnt);
+					masterAWrapper.setDetailAWrapperList(new ArrayList<>());
+					masterAWrapper.setDetailAEntCol(new ArrayList<>(masterAEnt.getDetailAEntCol()));
+					for (DetailAEnt detailAEnt : masterAEnt.getDetailAEntCol()) {
+						DetailAWrapper detailAWrapper = new DetailAWrapper();
+						detailAWrapper.setDetailA(detailAEnt);
+						masterAWrapper.getDetailAWrapperList().add(detailAWrapper);
+					}
+					masterAWrapperList.add(masterAWrapper);
+				}
 				
 				PlayerManagerTest
 					.this
@@ -800,9 +818,9 @@ public class PlayerManagerTest {
 									.manager
 										.getConfig()
 											.clone()
-											.configSerialiseBySignatureAllRelationship(false));
+											.configSerialiseBySignatureAllRelationship(true));
 				
-				PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
+				PlayerSnapshot<List<MasterAWrapper>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAWrapperList);
 				
 				FileOutputStream fos;
 				try {
