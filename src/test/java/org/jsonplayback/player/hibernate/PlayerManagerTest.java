@@ -432,9 +432,101 @@ public class PlayerManagerTest {
 	
 	@Test
 	public void masterAList1000Test() throws Exception {		
-		this.setUpCustom(1000);
+		try {
+			this.setUpCustom(1000);
+			Session ss = this.sessionFactory.openSession();
+			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
+			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+			PlayerManagerTest.this.manager.startJsonWriteIntersept();
+			transactionTemplate.execute(new TransactionCallback<Object>() {
+				
+				@Override
+				public Object doInTransaction(TransactionStatus arg0) {
+					//SchemaExport
+					
+					//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+					
+					SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+					sqlLogInspetor.enable();
+					
+					@SuppressWarnings("unchecked")
+					List<MasterAEnt> masterAEntList = 
+					ss
+					.createCriteria(MasterAEnt.class)
+					.addOrder(Order.asc("id")).list();
+					
+					PlayerManagerTest
+					.this
+					.manager
+					.overwriteConfigurationTemporarily(
+							PlayerManagerTest
+							.this
+							.manager
+							.getConfig()
+							.clone()
+							.configSerialiseBySignatureAllRelationship(true));
+					
+					PlayerSnapshot<List<MasterAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEntList);
+					
+					FileOutputStream fos;
+					try {
+						fos = new FileOutputStream(generatedFileResult);
+						PlayerManagerTest
+						.this
+						.manager
+						.getConfig()
+						.getObjectMapper()
+						.writerWithDefaultPrettyPrinter()
+						.writeValue(fos, playerSnapshot);
+						
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						throw new RuntimeException("Unexpected", e);
+					}
+					
+					sqlLogInspetor.disable();
+					
+					return null;
+				}
+				
+			});
+			PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+			
+			ClassLoader classLoader = getClass().getClassLoader();
+			BufferedReader brExpected = 
+					new BufferedReader(
+							new InputStreamReader(
+									classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_expected.json")
+									)
+							);
+			BufferedReader brGenerated = 
+					new BufferedReader(
+							new InputStreamReader(
+									new FileInputStream(generatedFileResult)
+									)
+							);
+			
+			String strLineExpected;
+			String strLineGenerated;
+			int lineCount = 1;
+			while ((strLineExpected = brExpected.readLine()) != null)   {
+				strLineExpected = strLineExpected.trim();
+				strLineGenerated = brGenerated.readLine();
+				if (strLineGenerated != null) {
+					strLineGenerated = strLineGenerated.trim();
+				}
+				Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+			}
+		} finally {
+			//resetting database
+			this.setUp();
+		}
+	}
+	
+	@Test
+	public void masterAListFirstTwiceTest() throws Exception {
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAListFirstTwiceTest_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -448,12 +540,10 @@ public class PlayerManagerTest {
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
 				
-				@SuppressWarnings("unchecked")
-				List<MasterAEnt> masterAEntList = 
-						ss
-							.createCriteria(MasterAEnt.class)
-							.addOrder(Order.asc("id")).list();
-				
+				MasterAEnt masterAEnt = (MasterAEnt) ss.get(MasterAEnt.class, 1);
+				List<MasterAEnt> masterAEntList = new ArrayList<>();
+				masterAEntList.add(masterAEnt);
+				masterAEntList.add(masterAEnt);				
 				PlayerManagerTest
 					.this
 						.manager
@@ -495,7 +585,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_expected.json")
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterAListFirstTwiceTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -517,7 +607,6 @@ public class PlayerManagerTest {
 			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
 		}
 	}
-	
 	
 	@Test
 	public void masterBList10Test() throws Exception {		
