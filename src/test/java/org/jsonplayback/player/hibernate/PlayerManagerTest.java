@@ -431,6 +431,101 @@ public class PlayerManagerTest {
 	}
 	
 	@Test
+	public void masterABlobLazyBNullTest() throws Exception {		
+		try {
+			Session ss = this.sessionFactory.openSession();
+			String generatedFileResult = "target/" + PlayerManagerTest.class.getName()
+					+ ".masterABlobLazyBNullTest_result_generated.json";
+
+			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+			PlayerManagerTest.this.manager.startJsonWriteIntersept();
+			transactionTemplate.execute(new TransactionCallback<Object>() {
+
+				@Override
+				public Object doInTransaction(TransactionStatus arg0) {
+					// SchemaExport
+
+					// Configuration hbConfiguration =
+					// PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+
+					SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+					sqlLogInspetor.enable();
+
+					MasterAEnt masterAEnt = (MasterAEnt) ss.get(MasterAEnt.class, 1);
+					masterAEnt.setBlobLazyB(null);
+					arg0.flush();
+					return null;
+				}
+			});
+
+			transactionTemplate = new TransactionTemplate(this.transactionManager);
+			transactionTemplate.execute(new TransactionCallback<Object>() {
+
+				@Override
+				public Object doInTransaction(TransactionStatus arg0) {
+					// SchemaExport
+
+					// Configuration hbConfiguration =
+					// PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+
+					SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+					sqlLogInspetor.enable();
+
+					MasterAEnt masterAEnt = (MasterAEnt) ss.get(MasterAEnt.class, 1);
+					System.out.println("$$$$: " + masterAEnt.getDatetimeA());
+					System.out.println("$$$$: " + masterAEnt.getDatetimeA().getTime());
+
+					PlayerManagerTest.this.manager.overwriteConfigurationTemporarily(PlayerManagerTest.this.manager
+							.getConfig().clone().configSerialiseBySignatureAllRelationship(true));
+
+					PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager
+							.createPlayerSnapshot(masterAEnt);
+
+					FileOutputStream fos;
+					try {
+						fos = new FileOutputStream(generatedFileResult);
+						PlayerManagerTest.this.manager.getConfig().getObjectMapper().writerWithDefaultPrettyPrinter()
+								.writeValue(fos, playerSnapshot);
+
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						throw new RuntimeException("Unexpected", e);
+					}
+
+					sqlLogInspetor.disable();
+
+					return null;
+				}
+
+			});
+			PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+
+			ClassLoader classLoader = getClass().getClassLoader();
+			BufferedReader brExpected = new BufferedReader(
+					new InputStreamReader(classLoader.getResourceAsStream("jsonplayback/"
+							+ PlayerManagerTest.class.getName() + ".masterABlobLazyBNullTest_result_expected.json")));
+			BufferedReader brGenerated = new BufferedReader(
+					new InputStreamReader(new FileInputStream(generatedFileResult)));
+
+			String strLineExpected;
+			String strLineGenerated;
+			int lineCount = 1;
+			while ((strLineExpected = brExpected.readLine()) != null) {
+				strLineExpected = strLineExpected.trim();
+				strLineGenerated = brGenerated.readLine();
+				if (strLineGenerated != null) {
+					strLineGenerated = strLineGenerated.trim();
+				}
+				Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+			}
+		} finally {
+			// resetting database
+			this.setUp();
+		}
+	}
+	
+	
+	@Test
 	public void masterAList1000Test() throws Exception {		
 		try {
 			this.setUpCustom(1000);
