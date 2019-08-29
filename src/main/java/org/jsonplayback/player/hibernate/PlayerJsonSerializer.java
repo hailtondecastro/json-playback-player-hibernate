@@ -5,18 +5,20 @@ import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IdentityRefKey;
-import org.jsonplayback.player.PlayerSnapshot;
-import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
+import org.jsonplayback.player.PlayerMetadatas;
+import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +71,28 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 
 	private PlayerBeanPropertyWriter hbIdPropertyWriter = null;
 
+	public PlayerBeanPropertyWriter getPropertyWritter(String propertyName)
+			throws IOException, JsonProcessingException {
+		if (this.delegate instanceof BeanSerializer) {
+			BeanSerializer beanSerializer = (BeanSerializer) this.delegate;
+			Iterator<PropertyWriter> iterator = beanSerializer.properties();
+			while (iterator.hasNext()) {
+				PropertyWriter propertyWriter = (PropertyWriter) iterator.next();
+				if (propertyWriter instanceof PlayerBeanPropertyWriter) {
+					PlayerBeanPropertyWriter playerBeanPropertyWriter = (PlayerBeanPropertyWriter) propertyWriter;
+					if (playerBeanPropertyWriter.getBeanPropertyDefinition().getInternalName().equals(propertyName)) {
+						return playerBeanPropertyWriter;
+					}
+				} else {
+					throw new RuntimeException("This should not happen! " + BeanSerializer.class);
+				}
+			}
+		} else {
+			throw new RuntimeException("this.delegate is not " + BeanSerializer.class);
+		}
+		throw new RuntimeException("This should not happen! " + BeanSerializer.class);
+	}
+	
 	public void findPlayerObjectId(Object value, JsonGenerator gen, SerializerProvider serializers, PlayerMetadatas backendMetadatas)
 			throws IOException, JsonProcessingException {
 		if (this.delegate instanceof BeanSerializer) {
@@ -104,6 +128,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 			throws IOException, JsonProcessingException {
 		try {
 			if (this.manager.isStarted()) {
+				this.trackRegisteredComponentOwnerIfNeeded(value, serializers);
 				this.manager.getPlayerJsonSerializerStepStack().push(this);
 				this.getCurrSerializationBeanStackTL().get().push(value);
 			}
@@ -157,6 +182,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 						throw new RuntimeException("This should not happen");
 					}
 				}
+				this.untrackRegisteredComponentIfNeeded(value, serializers);
 			}
 		}
 	}
@@ -619,6 +645,76 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 		}
 	}
 
+	protected void trackRegisteredComponentOwnerIfNeeded(Object instance, SerializerProvider serializers) throws JsonProcessingException, IOException {
+		List<OwnerAndProperty> ownerPath = this.manager.getRegisteredComponentOwnerList(instance);
+		if (ownerPath.size() > 0) {
+			for (OwnerAndProperty ownerAndProperty : ownerPath) {
+				JsonSerializer<?> jsonSerializer = serializers.findValueSerializer(ownerAndProperty.getOwner().getClass());
+				if (jsonSerializer instanceof PlayerJsonSerializer) {
+					PlayerJsonSerializer playerJsonSerializer = (PlayerJsonSerializer) jsonSerializer;
+					PlayerBeanPropertyWriter playerBeanPropertyWriter = playerJsonSerializer.getPropertyWritter(ownerAndProperty.getProperty());
+					
+					playerJsonSerializer.getCurrSerializationBeanStackTL().get().push(ownerAndProperty.getOwner());
+					playerBeanPropertyWriter.getCurrOwnerStackTL().get().push(ownerAndProperty.getOwner());
+					this.manager.getPlayerJsonSerializerStepStack().push(playerJsonSerializer);
+					this.manager.getPlayerBeanPropertyWriterStepStack().push(playerBeanPropertyWriter);
+					
+					if (this.manager.isPersistentClass(ownerAndProperty.getOwner().getClass())) {
+						Object hbId = this.manager.getHibernateObjectId(ownerAndProperty.getOwner());
+						PlayerMetadatas dammyMetadatas = new PlayerMetadatas();
+						dammyMetadatas.setPlayerObjectId(hbId);
+						this.manager.getPlayerMetadatasWritingStack().push(dammyMetadatas);
+					}
+				} else {
+					throw new RuntimeException("This should not happen!");
+				}
+			}
+		};
+	}
+	
+	protected void untrackRegisteredComponentIfNeeded(Object instance, SerializerProvider serializers) throws JsonProcessingException, IOException {
+		List<OwnerAndProperty> ownerPath = this.manager.getRegisteredComponentOwnerList(instance);
+		List<OwnerAndProperty> ownerReversedPath = new ArrayList<>(ownerPath);
+		Collections.reverse(ownerReversedPath);
+		
+		if (ownerPath.size() > 0) {
+			for (OwnerAndProperty ownerAndProperty : ownerReversedPath) {
+				JsonSerializer<?> jsonSerializer = serializers.findValueSerializer(ownerAndProperty.getOwner().getClass());
+				if (jsonSerializer instanceof PlayerJsonSerializer) {
+					PlayerJsonSerializer playerJsonSerializer = (PlayerJsonSerializer) jsonSerializer;
+					PlayerBeanPropertyWriter playerBeanPropertyWriter = playerJsonSerializer.getPropertyWritter(ownerAndProperty.getProperty());
+					
+					Object owner = playerJsonSerializer.getCurrSerializationBeanStackTL().get().pop();
+					if (ownerAndProperty.getOwner() != owner) {
+						throw new RuntimeException("This should not happen!");
+					}
+					owner = playerBeanPropertyWriter.getCurrOwnerStackTL().get().pop();
+					if (ownerAndProperty.getOwner() != owner) {
+						throw new RuntimeException("This should not happen!");
+					}
+					PlayerJsonSerializer poppedPlayerJsonSerializer = this.manager.getPlayerJsonSerializerStepStack().pop();
+					if (poppedPlayerJsonSerializer != playerJsonSerializer) {
+						throw new RuntimeException("This should not happen!");
+					}	
+					PlayerBeanPropertyWriter poppedPlayerBeanPropertyWriter = this.manager.getPlayerBeanPropertyWriterStepStack().pop();
+					if (poppedPlayerBeanPropertyWriter != playerBeanPropertyWriter) {
+						throw new RuntimeException("This should not happen!");
+					}
+					
+					if (this.manager.isPersistentClass(ownerAndProperty.getOwner().getClass())) {
+						Object hbId = this.manager.getHibernateObjectId(ownerAndProperty.getOwner());
+						PlayerMetadatas dammyMetadatas = this.manager.getPlayerMetadatasWritingStack().pop();
+						if (hbId != dammyMetadatas.getPlayerObjectId()) {
+							throw new RuntimeException("This should not happen!");	
+						}
+					}
+				} else {
+					throw new RuntimeException("This should not happen!");
+				}
+			}
+		};
+	}
+	
 	@SuppressWarnings("rawtypes")
 	private String generateJsonStringForLog(Map anyMap) {
 		ObjectMapper objectMapper = new ObjectMapper();

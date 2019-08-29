@@ -20,6 +20,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,11 +50,12 @@ import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.IdentityRefKey;
-import org.jsonplayback.player.PlayerSnapshot;
-import org.jsonplayback.player.Tape;
-import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
+import org.jsonplayback.player.PlayerMetadatas;
+import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
+import org.jsonplayback.player.Tape;
+import org.jsonplayback.player.util.ReflectionNamesDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +76,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	ThreadLocal<Map<IdentityRefKey, Long>> idByObjectMapTL = new ThreadLocal<>();
 	ThreadLocal<Map<IdentityRefKey, PlayerMetadatas>> metadatasCacheMapTL = new ThreadLocal<>();
 	ThreadLocal<IPlayerConfig> temporaryConfigurationTL = new ThreadLocal<IPlayerConfig>();
+	ThreadLocal<Map<IdentityRefKey, OwnerAndProperty>> registeredComponentOwnersTL = new ThreadLocal<>();
 	ThreadLocal<Stack<PlayerBeanPropertyWriter>> playerBeanPropertyWriterStepStackTL = new ThreadLocal<Stack<PlayerBeanPropertyWriter>>();
 	ThreadLocal<Stack<PlayerJsonSerializer>> playerJsonSerializerStepStackTL = new ThreadLocal<Stack<PlayerJsonSerializer>>(); 
 	ThreadLocal<Stack<PlayerMetadatas>> playerMetadatasWritingStackTL = new ThreadLocal<Stack<PlayerMetadatas>>();
@@ -901,6 +905,9 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 				}
 			}
 		}
+		if (this.registeredComponentOwnersTL.get() == null) {
+			this.registeredComponentOwnersTL.set(new HashMap<>());
+		}
 		this.currIdTL.set(0L);
 		this.objectByIdMapTL.set(new HashMap<Long, Object>());
 		this.idByObjectMapTL.set(new HashMap<IdentityRefKey, Long>());
@@ -908,6 +915,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		this.playerBeanPropertyWriterStepStackTL.set(new Stack<PlayerBeanPropertyWriter>());
 		this.playerJsonSerializerStepStackTL.set(new Stack<PlayerJsonSerializer>());
 		this.playerMetadatasWritingStackTL.set(new Stack<PlayerMetadatas>());
+		//this.registeredComponentOwnersTL.set(new HashMap<>());
 //		this.currentCompositeOwner.set(null);
 //		this.currentCompositePathStackTL.set(new Stack<>());
 	}
@@ -928,6 +936,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 //		this.currentCompositePathStackTL.set(null);
 		
 		this.temporaryConfigurationTL.set(null);
+		this.registeredComponentOwnersTL.set(new HashMap<>());
 	}
 
 	private void validateStarted() {
@@ -1099,7 +1108,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 		return new ReplayableDefault().configManager(this).loadPlayback(tape);
 	}
-
+	
 	@Override
 	public AssociationAndComponentTrackInfo getCurrentAssociationAndComponentTrackInfo() {
 		List<String> pathList = new ArrayList<>();
@@ -1290,6 +1299,45 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public <O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc) {
+		Object owned = propertyFunc.apply(owner);
+		if (owned == null) {
+			throw new RuntimeException("propertyFunc can not returm null!");
+		}
+		IdentityRefKey identityRefKey = new IdentityRefKey(owned);
+		Class<O> ownerClass;
+		if (owner instanceof HibernateProxy) {
+			ownerClass = (Class<O>) owner.getClass().getSuperclass();
+		} else {
+			ownerClass = (Class<O>) owner.getClass();
+		}
+		OwnerAndProperty ownerAndProperty = new OwnerAndProperty();
+		ownerAndProperty.setOwner(owner);
+		ownerAndProperty.setProperty(ReflectionNamesDiscovery.fieldByGetMethod(propertyFunc, ownerClass));
+		this.registeredComponentOwnersTL.get().put(identityRefKey, ownerAndProperty);
+		return this;
+	}
+
+	@Override
+	public List<OwnerAndProperty> getRegisteredComponentOwnerList(Object instance) {
+		ArrayList<OwnerAndProperty> resultList = new ArrayList<>();
+		OwnerAndProperty currOwnerAndProperty = null;
+		IdentityRefKey currIdentityRefKey = new IdentityRefKey(instance);
+		do {
+			currOwnerAndProperty = this.registeredComponentOwnersTL.get().get(currIdentityRefKey);				
+			if (currOwnerAndProperty != null) {
+				resultList.add(currOwnerAndProperty);
+				currIdentityRefKey = new IdentityRefKey(currOwnerAndProperty.getOwner());
+			} else {
+				currIdentityRefKey = new IdentityRefKey(new Object());
+			}
+		} while (currOwnerAndProperty != null);
+		Collections.reverse(resultList);
+		return resultList;
+	}	
+	
 //	@Override
 //	public Stack<String> getCurrentCompositePathStack() {
 //		// TODO Auto-generated method stub

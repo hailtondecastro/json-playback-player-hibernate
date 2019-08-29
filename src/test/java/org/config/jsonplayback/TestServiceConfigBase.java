@@ -76,11 +76,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
 public class TestServiceConfigBase {
 	
+	static {
+    	System.setProperty("hsqldb.reconfig_logging", "false");
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());		
+	}
+	
 	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(TestServiceConfigBase.class);
 	
     @PostConstruct
 	public void init() {
+    	System.setProperty("hsqldb.reconfig_logging", "false");
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());
     }    
     
     @Autowired

@@ -4,6 +4,8 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -60,8 +62,9 @@ public class ReflectionNamesDiscovery {
         METHOD_FULL_NAME,
     }
     
-    public static <T> String fieldByGetMethod(Function<T, ? extends Object> callback, Class<? extends T> targetClass) {
+    private static <T> String fieldByGetMethodPrivate(Function<T, ? extends Object> callback, Class<? extends T> targetClass) {
         T beanProxy = getProxyInstance(targetClass);
+        pathEntriesTD.set(new ArrayList<>());
         lastElemntTypeTD.set(ElemntType.FIELD_BY_GET);
         lastCalledNameTD.set(null);
         
@@ -70,8 +73,28 @@ public class ReflectionNamesDiscovery {
         if (logger.isTraceEnabled())
             logger.trace("retornando 'fildByGetMethod': " + lastCalledNameTD.get());
         String result = lastCalledNameTD.get();
-        lastCalledNameTD.set(null);
         return result;
+    }
+    
+    public static <T> String fieldByGetMethod(Function<T, ? extends Object> callback, Class<? extends T> targetClass) {
+    	try {
+    		return fieldByGetMethodPrivate(callback, targetClass);			
+		} finally {
+			lastCalledNameTD.set(null);
+			lastElemntTypeTD.set(null);
+			pathEntriesTD.set(null);
+		}
+    }
+    
+    public static <T> List<PathEntry> fieldByGetMethodEntries(Function<T, ? extends Object> callback, Class<? extends T> targetClass) {
+    	try {
+    		fieldByGetMethodPrivate(callback, targetClass);
+    		return pathEntriesTD.get();
+		} finally {
+			lastCalledNameTD.set(null);
+			lastElemntTypeTD.set(null);
+			pathEntriesTD.set(null);
+		}
     }
     
     public static <T, R> String method(Function<T, R> callback, Class<? extends T> targetClass) {
@@ -101,6 +124,7 @@ public class ReflectionNamesDiscovery {
     static Pattern fieldFromMethodPattern = Pattern.compile("^get(.)(.*)$");
     static ThreadLocal<String> lastCalledNameTD = new ThreadLocal<String>();
     static ThreadLocal<ElemntType> lastElemntTypeTD = new ThreadLocal<ElemntType>();
+    static ThreadLocal<List<PathEntry>> pathEntriesTD = new ThreadLocal<List<PathEntry>>();
     static MethodFilter methodFilter = new MethodFilter() {
         
         @Override
@@ -123,8 +147,14 @@ public class ReflectionNamesDiscovery {
                 	} else {
                 		lastCalledNameTD.set("");
                 	}
+                	String fieldName = matcher.group(1).toLowerCase() + matcher.group(2);
                     lastCalledNameTD.set(lastCalledNameTD.get() +
-                            matcher.group(1).toLowerCase() + matcher.group(2));
+                    		fieldName);
+                    PathEntry pathEntry = new PathEntry();
+                    pathEntry.setDirectOwnerType(self.getClass().getSuperclass());
+                    pathEntry.setDirectFieldName(fieldName);
+                    pathEntry.setDirectFieldType(thisMethod.getReturnType());
+                    pathEntriesTD.get().add(pathEntry);
                 } else {
                     throw new RuntimeException(
                             "Somente os metodos get podem ser chamados. Metodo chamado: "

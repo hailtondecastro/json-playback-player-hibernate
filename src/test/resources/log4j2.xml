@@ -8,7 +8,7 @@
   <Appenders>
     <Console
     		name="Console">
-      <PatternLayout pattern="[%-8t] - %-5level - %c{-1} %m%n"/>
+      <PatternLayout pattern="%d %p %5X{pid} %c{1.} %m%n"/>
     </Console>
     <RollingFile
 		   	name="RollingFile"

@@ -3,14 +3,13 @@ package org.jsonplayback.player.hibernate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
 import org.hibernate.SessionFactory;
-import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IGetBySignatureListener;
+import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.SignatureCrypto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -118,7 +117,8 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 			throw new RuntimeException("This should not happen", e);
 		}
 	}
-
+	
+	
 	@Override
 	public String toString() {
 		ObjectMapper objectMapper = new ObjectMapper();

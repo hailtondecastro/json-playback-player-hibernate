@@ -1,13 +1,7 @@
 package org.jsonplayback.player;
 
-import java.util.Map;
-import java.util.Stack;
+import java.util.function.Function;
 
-import org.hibernate.collection.PersistentCollection;
-import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
-import org.jsonplayback.player.hibernate.PlayerBeanPropertyWriter;
-import org.jsonplayback.player.hibernate.PlayerJsonSerializer;
 import org.jsonplayback.player.hibernate.PlayerManagerDefault;
 
 public interface IPlayerManager {
@@ -81,5 +75,7 @@ public interface IPlayerManager {
 
 
 	IPlayerManager cloneWithNewConfiguration(IPlayerConfig newConfig);
+	
+	<O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc);
 }
 /*gerando conflito*/

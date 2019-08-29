@@ -1,5 +1,6 @@
 package org.jsonplayback.player.hibernate;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -61,4 +62,6 @@ public interface IPlayerManagerImplementor extends IPlayerManager {
 	boolean isCurrentPathFromLastEntityAnEntityRelationship();
 
 	Map<IdentityRefKey, PlayerMetadatas> getMetadatasCacheMap();
+
+	List<OwnerAndProperty> getRegisteredComponentOwnerList(Object instance);
 }
