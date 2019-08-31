@@ -107,8 +107,8 @@ public class PlayerManagerTest {
 			
 			Configuration hbConfiguration = this.localSessionFactoryBean.getConfiguration();
 			
-			SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
-			sqlLogInspetor.enable();
+			//SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+			//sqlLogInspetor.enable();
 			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
 			
 			MasterAEnt[] detailACompIdMasterAEntArr = new MasterAEnt[3];
@@ -204,7 +204,7 @@ public class PlayerManagerTest {
 				ss.save(itemToSave);
 			}
 			
-			sqlLogInspetor.disable();
+			//sqlLogInspetor.disable();
 		} finally {
 			tx.commit();
 			ss.close();
@@ -224,8 +224,8 @@ public class PlayerManagerTest {
 			//SchemaExport
 			tx = ss.beginTransaction();
 			
-			SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
-			sqlLogInspetor.enable();
+			//SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+			//sqlLogInspetor.enable();
 			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
 			List objectsToSaveList = new ArrayList<>();
 			for (int iBigLoop = 0; iBigLoop < (bigLoopCount + 1); iBigLoop++) {
@@ -325,7 +325,7 @@ public class PlayerManagerTest {
 			
 
 			
-			sqlLogInspetor.disable();
+			//sqlLogInspetor.disable();
 		} finally {
 			tx.commit();
 			ss.close();
@@ -453,6 +453,7 @@ public class PlayerManagerTest {
 					MasterAEnt masterAEnt = (MasterAEnt) ss.get(MasterAEnt.class, 1);
 					masterAEnt.setBlobLazyB(null);
 					arg0.flush();
+					sqlLogInspetor.disable();
 					return null;
 				}
 			});
@@ -1498,6 +1499,199 @@ public class PlayerManagerTest {
 			new BufferedReader(
 				new InputStreamReader(
 					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+
+
+	@Test
+	public void detailAFirstSecontTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailAFirstSecontTest_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				MasterAEnt masterAEnt = (MasterAEnt) ss.get(MasterAEnt.class, 1);
+				//doing lazy-load
+				masterAEnt.getDetailAEntCol().size();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
+				ArrayList<DetailAEnt> detailAEntCuttedCol = new ArrayList<>();
+				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(0));
+				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(1));
+				PlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCuttedCol);
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, playerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailAFirstSecontTest_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+
+	@Test
+	public void detailASecontThirdTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailASecontThirdTest_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				MasterAEnt masterAEnt = (MasterAEnt) ss.get(MasterAEnt.class, 1);
+				//doing lazy-load
+				masterAEnt.getDetailAEntCol().size();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
+				ArrayList<DetailAEnt> detailAEntCuttedCol = new ArrayList<>();
+				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(1));
+				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(2));
+				PlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCuttedCol);
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, playerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailASecontThirdTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
