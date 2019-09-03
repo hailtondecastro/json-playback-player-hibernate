@@ -37,6 +37,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.hibernate.HibernateException;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.engine.SessionImplementor;
+import org.hibernate.loader.PropertyPath;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.AssociationType;
@@ -55,6 +56,7 @@ import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.Tape;
+import org.jsonplayback.player.util.PathEntry;
 import org.jsonplayback.player.util.ReflectionNamesDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1299,10 +1301,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc) {
-		Object owned = propertyFunc.apply(owner);
+	private <O> void registerComponentOwnerPriv(O owner, String propertyName, Object owned) {
 		if (owned == null) {
 			throw new RuntimeException("propertyFunc can not returm null!");
 		}
@@ -1315,11 +1314,65 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 		OwnerAndProperty ownerAndProperty = new OwnerAndProperty();
 		ownerAndProperty.setOwner(owner);
-		ownerAndProperty.setProperty(ReflectionNamesDiscovery.fieldByGetMethod(propertyFunc, ownerClass));
+		ownerAndProperty.setProperty(propertyName);
 		this.registeredComponentOwnersTL.get().put(identityRefKey, ownerAndProperty);
+	}
+	
+	/**
+	 * Here you can NOT use nested properties.
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc) {
+		Object owned = propertyFunc.apply(owner);
+		Class<O> ownerClass;
+		if (owner instanceof HibernateProxy) {
+			ownerClass = (Class<O>) owner.getClass().getSuperclass();
+		} else {
+			ownerClass = (Class<O>) owner.getClass();
+		}
+		String propertyName = ReflectionNamesDiscovery.fieldByGetMethod(propertyFunc, ownerClass);
+		this.registerComponentOwnerPriv(owner, propertyName, owned);
 		return this;
 	}
 
+	/**
+	 * Here you can use nested properties.
+	 */
+	@Override
+	public <O, T> IPlayerManager registerComponentOwner(Class<O> ownerClass, T targetOwned, Function<O, T> propertyFunc) {
+		List<PathEntry> pathEntries = ReflectionNamesDiscovery.fieldByGetMethodEntries(propertyFunc, ownerClass);
+		Object ownerInst = null;
+		for (int i = 0; i < pathEntries.size(); i++) {
+			PathEntry pathEntry = pathEntries.get(i);
+			try {
+				if (ownerInst == null) {
+					ownerInst = pathEntry.getDirectOwnerType().newInstance();
+				}
+			} catch (ReflectiveOperationException e) {
+				throw new RuntimeException("pathEntry.getDirectOwnerType().newInstance() fail for " + pathEntry.getDirectOwnerType());
+			}
+			Object ownedInst = null; 
+			if (i < pathEntries.size() - 1) {
+				try {
+					ownedInst = pathEntry.getDirectFieldType().newInstance();
+				} catch (ReflectiveOperationException e) {
+					throw new RuntimeException("pathEntry.getDirectOwnerType().newInstance() fail for " + pathEntry.getDirectOwnerType());
+				}
+			} else {
+				ownedInst = targetOwned;
+			}
+			try {
+				PropertyUtils.setProperty(ownerInst, pathEntry.getDirectFieldName(), ownedInst);
+			} catch (ReflectiveOperationException e) {
+				throw new RuntimeException("could not set field " + pathEntry.getDirectFieldName() + " for " + pathEntry.getDirectOwnerType());
+			}
+			this.registerComponentOwnerPriv(ownerInst, pathEntry.getDirectFieldName(), ownedInst);
+			ownerInst = ownedInst;
+		}
+		return this;
+	}
+	
 	@Override
 	public List<OwnerAndProperty> getRegisteredComponentOwnerList(Object instance) {
 		ArrayList<OwnerAndProperty> resultList = new ArrayList<>();

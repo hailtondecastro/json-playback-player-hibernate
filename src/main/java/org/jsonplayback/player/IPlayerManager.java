@@ -77,5 +77,6 @@ public interface IPlayerManager {
 	IPlayerManager cloneWithNewConfiguration(IPlayerConfig newConfig);
 	
 	<O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc);
+	<O, T> IPlayerManager registerComponentOwner(Class<O> ownerClass, T targetOwned, Function<O, T> propertyFunc);
 }
 /*gerando conflito*/

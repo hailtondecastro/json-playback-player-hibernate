@@ -39,6 +39,7 @@ import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.entities.DetailAComp;
+import org.jsonplayback.player.hibernate.entities.DetailACompComp;
 import org.jsonplayback.player.hibernate.entities.DetailACompId;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterAEnt;
@@ -876,7 +877,296 @@ public class PlayerManagerTest {
 			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
 		}
 	}
+	
+	@Test
+	public void detailACompIdListDummyOwner10Test() throws Exception {		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_generated.json";
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				@SuppressWarnings("unchecked")
+				List<DetailAEnt> detailAEntList = 
+						ss
+							.createCriteria(DetailAEnt.class)
+							.addOrder(Order.asc("compId.masterA.id"))
+							.addOrder(Order.asc("compId.subId")).list();
+				
+				List<DetailACompId> detailACompIdList = new ArrayList<>();
+				for (DetailAEnt detailAEnt : detailAEntList) {
+					detailACompIdList.add(detailAEnt.getCompId());
+					PlayerManagerTest.this.manager.registerComponentOwner(DetailAEnt.class, detailAEnt.getCompId(), d -> d.getCompId());
+				}
+				
+				PlayerManagerTest
+					.this
+						.manager
+						.overwriteConfigurationTemporarily(
+							PlayerManagerTest
+								.this
+									.manager
+										.getConfig()
+											.clone()
+											.configSerialiseBySignatureAllRelationship(false));
+				
+				PlayerSnapshot<List<DetailACompId>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
+				
+				FileOutputStream fos;
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, playerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	
+	@Test
+	public void detailACompCompListDummyOwner10Test() throws Exception {		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_generated.json";
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				@SuppressWarnings("unchecked")
+				List<DetailAEnt> detailAEntList = 
+						ss
+							.createCriteria(DetailAEnt.class)
+							.addOrder(Order.asc("compId.masterA.id"))
+							.addOrder(Order.asc("compId.subId")).list();
+				
+				List<DetailACompComp> detailACompIdList = new ArrayList<>();
+				for (DetailAEnt detailAEnt : detailAEntList) {
+					detailACompIdList.add(detailAEnt.getDetailAComp().getDetailACompComp());
+					PlayerManagerTest.this.manager.registerComponentOwner(
+							DetailAEnt.class, 
+							detailAEnt.getDetailAComp().getDetailACompComp(),
+							d -> d.getDetailAComp().getDetailACompComp());
+				}
+				
+				PlayerManagerTest
+					.this
+						.manager
+						.overwriteConfigurationTemporarily(
+							PlayerManagerTest
+								.this
+									.manager
+										.getConfig()
+											.clone()
+											.configSerialiseBySignatureAllRelationship(false));
+				
+				PlayerSnapshot<List<DetailACompComp>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
+				
+				FileOutputStream fos;
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, playerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+		
+	
+	@Test
+	public void detailACompCompList10Test() throws Exception {		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_generated.json";
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				@SuppressWarnings("unchecked")
+				List<DetailAEnt> detailAEntList = 
+						ss
+							.createCriteria(DetailAEnt.class)
+							.addOrder(Order.asc("compId.masterA.id"))
+							.addOrder(Order.asc("compId.subId")).list();
+				
+				List<DetailACompComp> detailACompIdList = new ArrayList<>();
+				for (DetailAEnt detailAEnt : detailAEntList) {
+					detailACompIdList.add(detailAEnt.getDetailAComp().getDetailACompComp());
+					PlayerManagerTest.this.manager.registerComponentOwner(detailAEnt, d -> d.getDetailAComp());
+					PlayerManagerTest.this.manager.registerComponentOwner(detailAEnt.getDetailAComp(), dc -> dc.getDetailACompComp());
+				}
+				
+				PlayerManagerTest
+					.this
+						.manager
+						.overwriteConfigurationTemporarily(
+							PlayerManagerTest
+								.this
+									.manager
+										.getConfig()
+											.clone()
+											.configSerialiseBySignatureAllRelationship(false));
+				
+				PlayerSnapshot<List<DetailACompComp>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
+				
+				FileOutputStream fos;
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, playerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+		
+	
 	@Test
 	public void masterBList10BizarreTest() throws Exception {		
 		Session ss = this.sessionFactory.openSession();
