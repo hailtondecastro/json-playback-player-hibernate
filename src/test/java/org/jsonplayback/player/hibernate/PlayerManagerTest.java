@@ -99,238 +99,251 @@ public class PlayerManagerTest {
     	java.util.TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
     	this.localSessionFactoryBean.dropDatabaseSchema();			
 		this.localSessionFactoryBean.createDatabaseSchema();
-		Session ss = this.sessionFactory.openSession();
-		Transaction tx = null;
 		
-		try {
-			//SchemaExport
-			tx = ss.beginTransaction();			
-			
-			Configuration hbConfiguration = this.localSessionFactoryBean.getConfiguration();
-			
-			//SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
-			//sqlLogInspetor.enable();
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
-			
-			MasterAEnt[] detailACompIdMasterAEntArr = new MasterAEnt[3];
-			int[] detailACompIdMasterAEntSubIdArr = new int[]{0, 0, 0};
-			MasterBEnt[] detailAComponentMasterBEntArr = new MasterBEnt[3];
-			List objectsToSaveList = new ArrayList<>();
-			for (int i = 0; i < 10; i++) {
-				MasterAEnt masterAEnt = new MasterAEnt();
-				masterAEnt.setId(i);				
-				masterAEnt.setVcharA(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharA", i));
-				masterAEnt.setVcharB(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharB", i));
-				masterAEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
-				masterAEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
-//				System.out.println("####: " + masterAEnt.getDatetimeA());
-//				System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
-				masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
-				masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
-				masterAEnt.setBlobB(ss.connection().createBlob());
-				OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
-				os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
-				os.flush();
-				os.close();
-				
-				masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i).getBytes(StandardCharsets.UTF_8));
-				masterAEnt.setBlobLazyB(ss.connection().createBlob());
-				os = masterAEnt.getBlobLazyB().setBinaryStream(1);
-				os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i).getBytes(StandardCharsets.UTF_8));
-				os.flush();
-				os.close();
-				
-				masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
-				masterAEnt.setClobLazyB(ss.connection().createClob());
-				Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
-				w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
-				w.flush();
-				w.close();
-				
-				//ss.save(masterAEnt);
-				objectsToSaveList.add(masterAEnt);
-				if (i < detailACompIdMasterAEntArr.length) {
-					detailACompIdMasterAEntArr[i] = masterAEnt;
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus status) {
+				Session ss = PlayerManagerTest.this.sessionFactory.getCurrentSession();
+				try {
+					//SchemaExport
+					//tx = ss.beginTransaction();			
+					
+					final Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+					
+					//SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+					//sqlLogInspetor.enable();
+					final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
+					
+					MasterAEnt[] detailACompIdMasterAEntArr = new MasterAEnt[3];
+					int[] detailACompIdMasterAEntSubIdArr = new int[]{0, 0, 0};
+					MasterBEnt[] detailAComponentMasterBEntArr = new MasterBEnt[3];
+					List objectsToSaveList = new ArrayList<>();
+					for (int i = 0; i < 10; i++) {
+						MasterAEnt masterAEnt = new MasterAEnt();
+						masterAEnt.setId(i);				
+						masterAEnt.setVcharA(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharA", i));
+						masterAEnt.setVcharB(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharB", i));
+						masterAEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
+						masterAEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
+//						System.out.println("####: " + masterAEnt.getDatetimeA());
+//						System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
+						masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
+						masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
+						masterAEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
+						os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
+						os.flush();
+						os.close();
+						
+						masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i).getBytes(StandardCharsets.UTF_8));
+						masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						os = masterAEnt.getBlobLazyB().setBinaryStream(1);
+						os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i).getBytes(StandardCharsets.UTF_8));
+						os.flush();
+						os.close();
+						
+						masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
+						masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createClob());
+						Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
+						w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
+						w.flush();
+						w.close();
+						
+						//ss.save(masterAEnt);
+						objectsToSaveList.add(masterAEnt);
+						if (i < detailACompIdMasterAEntArr.length) {
+							detailACompIdMasterAEntArr[i] = masterAEnt;
+						}
+					}
+					
+					for (int i = 0; i < 10; i++) {
+						MasterBEnt masterBEnt = new MasterBEnt();
+						MasterBCompId compId = new MasterBCompId();
+						compId.setIdA(i);
+						compId.setIdB(i);
+						masterBEnt.setCompId(compId);				
+						masterBEnt.setVcharA(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharA", i));
+						masterBEnt.setVcharB(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharB", i));
+						masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
+						masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
+						masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
+						masterBEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
+						OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
+						os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
+						os.flush();
+						os.close();
+						//ss.save(masterBEnt);
+						objectsToSaveList.add(masterBEnt);
+						if (i < detailAComponentMasterBEntArr.length) {
+							detailAComponentMasterBEntArr[i] = masterBEnt;
+						}
+					}
+					for (int i = 0; i < 10; i++) {
+						DetailAEnt detailAEnt = new DetailAEnt();
+						DetailACompId compId = new DetailACompId();
+						DetailAComp component = new DetailAComp();
+						int detailACompIdMasterAEntIndex = i % detailACompIdMasterAEntArr.length;
+						int detailAComponentMasterBEntIndex = i % detailAComponentMasterBEntArr.length;
+						compId.setMasterA(detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex]);
+						compId.setSubId(detailACompIdMasterAEntSubIdArr[detailACompIdMasterAEntIndex]++);
+						detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex].getDetailAEntCol().add(detailAEnt);
+						detailAEnt.setCompId(compId);				
+						component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i));
+						component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i));
+						component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
+						component.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
+						detailAEnt.setDetailAComp(component);
+						detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
+						OutputStream os = component.getBlobB().setBinaryStream(1);
+						os.write(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
+						os.flush();
+						os.close();
+						//ss.save(detailAEnt);
+					}
+					
+					for (Object itemToSave : objectsToSaveList) {
+						ss.save(itemToSave);
+					}
+					
+					//sqlLogInspetor.disable();
+				} catch (Exception e) {
+					throw new RuntimeException("Unexpected", e);
+				} finally {
+					//tx.commit();
+					ss.flush();
 				}
+				
+				return null;
 			}
 			
-			for (int i = 0; i < 10; i++) {
-				MasterBEnt masterBEnt = new MasterBEnt();
-				MasterBCompId compId = new MasterBCompId();
-				compId.setIdA(i);
-				compId.setIdB(i);
-				masterBEnt.setCompId(compId);				
-				masterBEnt.setVcharA(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharA", i));
-				masterBEnt.setVcharB(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharB", i));
-				masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
-				masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
-				masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
-				masterBEnt.setBlobB(ss.connection().createBlob());
-				masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
-				OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
-				os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
-				os.flush();
-				os.close();
-				//ss.save(masterBEnt);
-				objectsToSaveList.add(masterBEnt);
-				if (i < detailAComponentMasterBEntArr.length) {
-					detailAComponentMasterBEntArr[i] = masterBEnt;
-				}
-			}
-			for (int i = 0; i < 10; i++) {
-				DetailAEnt detailAEnt = new DetailAEnt();
-				DetailACompId compId = new DetailACompId();
-				DetailAComp component = new DetailAComp();
-				int detailACompIdMasterAEntIndex = i % detailACompIdMasterAEntArr.length;
-				int detailAComponentMasterBEntIndex = i % detailAComponentMasterBEntArr.length;
-				compId.setMasterA(detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex]);
-				compId.setSubId(detailACompIdMasterAEntSubIdArr[detailACompIdMasterAEntIndex]++);
-				detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex].getDetailAEntCol().add(detailAEnt);
-				detailAEnt.setCompId(compId);				
-				component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i));
-				component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i));
-				component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
-				component.setBlobB(ss.connection().createBlob());
-				component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
-				detailAEnt.setDetailAComp(component);
-				detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
-				OutputStream os = component.getBlobB().setBinaryStream(1);
-				os.write(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
-				os.flush();
-				os.close();
-				//ss.save(detailAEnt);
-			}
-			
-			for (Object itemToSave : objectsToSaveList) {
-				ss.save(itemToSave);
-			}
-			
-			//sqlLogInspetor.disable();
-		} finally {
-			tx.commit();
-			ss.close();
-		}
+		});
     }
 
     public void setUpCustom(int  masterCount) throws Exception {
 		this.localSessionFactoryBean.dropDatabaseSchema();			
 		this.localSessionFactoryBean.createDatabaseSchema();
-		Session ss = this.sessionFactory.openSession();
 		
-		Transaction tx = null;
-		
-		int bigLoopCount = (int) Math.floor((double)(masterCount - 1) / (double)10);
-		
-		try {
-			//SchemaExport
-			tx = ss.beginTransaction();
-			
-			//SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
-			//sqlLogInspetor.enable();
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
-			List objectsToSaveList = new ArrayList<>();
-			for (int iBigLoop = 0; iBigLoop < (bigLoopCount + 1); iBigLoop++) {
-				int iBigLoopIncremment = iBigLoop * 10;
-				MasterAEnt[] detailACompIdMasterAEntArr = new MasterAEnt[3];
-				int[] detailACompIdMasterAEntSubIdArr = new int[]{0, 0, 0};
-				MasterBEnt[] detailAComponentMasterBEntArr = new MasterBEnt[3];
-				for (int i = 0; i < 10; i++) {
-					MasterAEnt masterAEnt = new MasterAEnt();
-					masterAEnt.setId(i + iBigLoopIncremment);				
-					masterAEnt.setVcharA(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
-					masterAEnt.setVcharB(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
-					masterAEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
-					masterAEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
-//					System.out.println("####: " + masterAEnt.getDatetimeA());
-//					System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
-					masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
-					masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
-					masterAEnt.setBlobB(ss.connection().createBlob());
-					OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
-					os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-					os.flush();
-					os.close();
-					
-					masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-					masterAEnt.setBlobLazyB(ss.connection().createBlob());
-					os = masterAEnt.getBlobLazyB().setBinaryStream(1);
-					os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-					os.flush();
-					os.close();
-					
-					masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i + iBigLoopIncremment));
-					masterAEnt.setClobLazyB(ss.connection().createClob());
-					Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
-					w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
-					w.flush();
-					w.close();
-					
-					//ss.save(masterAEnt);
-					objectsToSaveList.add(masterAEnt);
-					if (i < detailACompIdMasterAEntArr.length) {
-						detailACompIdMasterAEntArr[i] = masterAEnt;
-					}
-				}
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+			@Override
+			public Object doInTransaction(TransactionStatus status) {
+				int bigLoopCount = (int) Math.floor((double)(masterCount - 1) / (double)10);
 				
-				for (int i = 0; i < 10; i++) {
-					MasterBEnt masterBEnt = new MasterBEnt();
-					MasterBCompId compId = new MasterBCompId();
-					compId.setIdA(1 + iBigLoopIncremment);
-					compId.setIdB(i);
-					masterBEnt.setCompId(compId);				
-					masterBEnt.setVcharA(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
-					masterBEnt.setVcharB(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
-					masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
-					masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
-					masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-					masterBEnt.setBlobB(ss.connection().createBlob());
-					masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
-					OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
-					os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-					os.flush();
-					os.close();
-					//ss.save(masterBEnt);
-					objectsToSaveList.add(masterBEnt);
-					if (i < detailAComponentMasterBEntArr.length) {
-						detailAComponentMasterBEntArr[i] = masterBEnt;
+				Session ss = PlayerManagerTest.this.sessionFactory.getCurrentSession();
+				try {
+					
+					//SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+					//sqlLogInspetor.enable();
+					DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
+					List objectsToSaveList = new ArrayList<>();
+					for (int iBigLoop = 0; iBigLoop < (bigLoopCount + 1); iBigLoop++) {
+						int iBigLoopIncremment = iBigLoop * 10;
+						MasterAEnt[] detailACompIdMasterAEntArr = new MasterAEnt[3];
+						int[] detailACompIdMasterAEntSubIdArr = new int[]{0, 0, 0};
+						MasterBEnt[] detailAComponentMasterBEntArr = new MasterBEnt[3];
+						for (int i = 0; i < 10; i++) {
+							MasterAEnt masterAEnt = new MasterAEnt();
+							masterAEnt.setId(i + iBigLoopIncremment);				
+							masterAEnt.setVcharA(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
+							masterAEnt.setVcharB(MessageFormat.format("MasterAEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
+							masterAEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
+							masterAEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
+//							System.out.println("####: " + masterAEnt.getDatetimeA());
+//							System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
+							masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
+							masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
+							masterAEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+							OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
+							os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+							os.flush();
+							os.close();
+							
+							masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+							masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+							os = masterAEnt.getBlobLazyB().setBinaryStream(1);
+							os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+							os.flush();
+							os.close();
+							
+							masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i + iBigLoopIncremment));
+							masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createClob());
+							Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
+							w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
+							w.flush();
+							w.close();
+							
+							//ss.save(masterAEnt);
+							objectsToSaveList.add(masterAEnt);
+							if (i < detailACompIdMasterAEntArr.length) {
+								detailACompIdMasterAEntArr[i] = masterAEnt;
+							}
+						}
+						
+						for (int i = 0; i < 10; i++) {
+							MasterBEnt masterBEnt = new MasterBEnt();
+							MasterBCompId compId = new MasterBCompId();
+							compId.setIdA(1 + iBigLoopIncremment);
+							compId.setIdB(i);
+							masterBEnt.setCompId(compId);				
+							masterBEnt.setVcharA(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
+							masterBEnt.setVcharB(MessageFormat.format("MasterBEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
+							masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
+							masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
+							masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+							masterBEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+							masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
+							OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
+							os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+							os.flush();
+							os.close();
+							//ss.save(masterBEnt);
+							objectsToSaveList.add(masterBEnt);
+							if (i < detailAComponentMasterBEntArr.length) {
+								detailAComponentMasterBEntArr[i] = masterBEnt;
+							}
+						}
+						for (int i = 0; i < 10; i++) {
+							DetailAEnt detailAEnt = new DetailAEnt();
+							DetailACompId compId = new DetailACompId();
+							DetailAComp component = new DetailAComp();
+							int detailACompIdMasterAEntIndex = i % detailACompIdMasterAEntArr.length;
+							int detailAComponentMasterBEntIndex = i % detailAComponentMasterBEntArr.length;
+							compId.setMasterA(detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex]);
+							compId.setSubId(detailACompIdMasterAEntSubIdArr[detailACompIdMasterAEntIndex]++);
+							detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex].getDetailAEntCol().add(detailAEnt);
+							detailAEnt.setCompId(compId);				
+							component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
+							component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
+							component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+							component.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+							component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
+							detailAEnt.setDetailAComp(component);
+							detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
+							OutputStream os = component.getBlobB().setBinaryStream(1);
+							os.write(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
+							os.flush();
+							os.close();
+							//ss.save(detailAEnt);
+						}
+						
+						for (Object itemToSave : objectsToSaveList) {
+							ss.save(itemToSave);
+						}
 					}
+					
+					//sqlLogInspetor.disable();
+				} catch (Exception e) {
+					throw new RuntimeException("Unexpected", e);
+				} finally {
+					ss.flush();
 				}
-				for (int i = 0; i < 10; i++) {
-					DetailAEnt detailAEnt = new DetailAEnt();
-					DetailACompId compId = new DetailACompId();
-					DetailAComp component = new DetailAComp();
-					int detailACompIdMasterAEntIndex = i % detailACompIdMasterAEntArr.length;
-					int detailAComponentMasterBEntIndex = i % detailAComponentMasterBEntArr.length;
-					compId.setMasterA(detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex]);
-					compId.setSubId(detailACompIdMasterAEntSubIdArr[detailACompIdMasterAEntIndex]++);
-					detailACompIdMasterAEntArr[detailACompIdMasterAEntIndex].getDetailAEntCol().add(detailAEnt);
-					detailAEnt.setCompId(compId);				
-					component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
-					component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
-					component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-					component.setBlobB(ss.connection().createBlob());
-					component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
-					detailAEnt.setDetailAComp(component);
-					detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
-					OutputStream os = component.getBlobB().setBinaryStream(1);
-					os.write(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-					os.flush();
-					os.close();
-					//ss.save(detailAEnt);
-				}
-				
-				for (Object itemToSave : objectsToSaveList) {
-					ss.save(itemToSave);
-				}
+				return null;
 			}
-			
-
-			
-			//sqlLogInspetor.disable();
-		} finally {
-			tx.commit();
-			ss.close();
-		}
+		});
     }
 
     
@@ -1302,7 +1315,7 @@ public class PlayerManagerTest {
 							byteBuffer.put(byteArr);
 						} while (byteBuffer.remaining() > byteArr.length);
 						byteBuffer.flip();
-						masterAEnt.setBlobLazyB(ss.connection().createBlob());
+						masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
 						OutputStream os = masterAEnt.getBlobLazyB().setBinaryStream(1);
 						os.write(byteBuffer.array(), 0, byteBuffer.limit());
 						os.flush();
@@ -1323,7 +1336,7 @@ public class PlayerManagerTest {
 							cBuffer.put(charArr);
 						} while (cBuffer.remaining() > charArr.length);
 						cBuffer.flip();
-						masterAEnt.setClobLazyB(ss.connection().createClob());
+						masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createClob());
 						Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
 						w.write(cBuffer.toString());
 						w.flush();

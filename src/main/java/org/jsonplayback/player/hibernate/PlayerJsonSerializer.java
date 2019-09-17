@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import org.hibernate.collection.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.LazyProperty;
@@ -266,7 +265,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 				} else {
 					return false;
 				}
-			} else if (valueToSerialize instanceof PersistentCollection) {
+			} else if (this.manager.getHbSupport().isPersistentCollection(valueToSerialize)) {
 				return false;
 			} else {
 				return false;
@@ -449,14 +448,15 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 					return false;
 				}
 			}
-		} else if (valueToSerialize instanceof PersistentCollection) {
-			PersistentCollection pcvalue = (PersistentCollection) valueToSerialize;
-			if (this.manager.getConfig().isSerialiseBySignatureAllRelationship() || !pcvalue.wasInitialized()) {
+		} else if (this.manager.getHbSupport().isPersistentCollection(valueToSerialize)) {
+			//PersistentCollection pcvalue = (PersistentCollection) valueToSerialize;
+			//if (this.manager.getConfig().isSerialiseBySignatureAllRelationship() || !pcvalue.wasInitialized()) {
+			if (this.manager.getConfig().isSerialiseBySignatureAllRelationship() || this.manager.getHbSupport().isCollectionLazyUnitialized(valueToSerialize)) {
 				gen.writeStartObject();
 				PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 				backendMetadatas.setIsLazyUninitialized(true);
 				backendMetadatas.setIsAssociative(true);
-				SignatureBean signatureBean = this.manager.generateLazySignature(pcvalue);
+				SignatureBean signatureBean = this.manager.generateLazySignature((Collection<?>) valueToSerialize);
 				String signatureStr = this.manager.serializeSignature(signatureBean);
 				backendMetadatas.setSignature(signatureStr);
 				try {
@@ -510,7 +510,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 
 					SignatureBean signatureBean = null;
 						
-					if (aacTrackInfo.getEntityAndComponentPath().getCollType() != null) {
+					if (this.manager.getHbSupport().isComponentByTrack(aacTrackInfo)) {
 						signatureBean = this.manager.generateLazySignatureForCollRelashionship(
 							currPropertyWriter.getCurrOwner().getClass(),
 							currPropertyWriter.getBeanPropertyDefinition().getInternalName(),

@@ -26,25 +26,24 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.hibernate.HibernateException;
-import org.hibernate.collection.PersistentCollection;
 import org.hibernate.engine.SessionImplementor;
-import org.hibernate.loader.PropertyPath;
-import org.hibernate.metadata.ClassMetadata;
+//import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
+import org.jsonplayback.hbsupport.Hb3Support;
+import org.jsonplayback.hbsupport.HbSupport;
 import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
 import org.jsonplayback.player.IPlayerConfig;
@@ -70,7 +69,18 @@ import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 public class PlayerManagerDefault implements IPlayerManagerImplementor {
+	private static final String HBVERSION = "jsonplayback.hbversion"; 
 	private static Logger logger = LoggerFactory.getLogger(PlayerManagerDefault.class);
+	private static Properties envPrps = new Properties(); 
+	
+	static {
+		InputStream is = PlayerManagerDefault.class.getClassLoader().getResourceAsStream("environment.properties");
+		try {
+			envPrps.load(is);
+		} catch (IOException e) {
+			throw new RuntimeException("This should not happen", e);
+		}
+	}
 	
 	private IPlayerConfig config = new PlayerConfig();
 	ThreadLocal<Long> currIdTL = new ThreadLocal<Long>();
@@ -104,11 +114,18 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.debug(MessageFormat.format("configure.  config:\n{0}", config));
 		}
 		this.config = config;
+		this.hibernateVersion = HibernateVersion.valueOf(envPrps.getProperty(HBVERSION));
+		
+		if (this.hibernateVersion.equals(HibernateVersion.HB3)) {
+			this.hbSupport = new Hb3Support(this);
+		} else {
+			throw new RuntimeException("hibernate version not supported: " + this.hibernateVersion);
+		}
+//		else if (envPrps.getProperty(HBVERSION).equals("HB3")) {
+//			this.hbSupport = new Hb3Support(this);
+//		}
 		return this;
 	}
-
-	private Map<AssociationAndComponentPathKey, AssociationAndComponentPath> associationAndCompositiesMap = new HashMap<>();
-	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	private boolean initialed = false;
 
@@ -117,259 +134,88 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (logger.isDebugEnabled()) {
 			logger.debug("init()");
 		}
-		this.associationAndCompositiesMap.clear();
-		this.collectAssociationAndCompositiesMap();
+		this.getHbSupport().init();
 		this.initialed = true;
 		return this;
 	}
-
-	private void collectAssociationAndCompositiesMap() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("collectAssociationAndCompositiesMap()");
-		}
-		for (String entityName : this.config.getSessionFactory().getAllClassMetadata().keySet()) {
-			ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(entityName);
-			
-			Class<?> ownerRootClass;
-			try {
-				ownerRootClass = Class.forName(classMetadata.getEntityName());
-			} catch (ClassNotFoundException e) {
-				throw new RuntimeException(classMetadata.getEntityName() + " not supported.", e);
-			}
-
-			List<Type> allPrpsAndId = new ArrayList<>();
-			List<String> allPrpsAndIdNames = new ArrayList<>();
-			allPrpsAndId.addAll(Arrays.asList(classMetadata.getPropertyTypes()));
-			allPrpsAndId.add(classMetadata.getIdentifierType());
-			allPrpsAndIdNames.addAll(Arrays.asList(classMetadata.getPropertyNames()));
-			allPrpsAndIdNames.add(classMetadata.getIdentifierPropertyName());
-			for (int i = 0; i < allPrpsAndId.size(); i++) {
-				Type prpType = allPrpsAndId.get(i);
-				String prpName = allPrpsAndIdNames.get(i);
-				AssociationAndComponentPathKey aacKeyFromRoot;
-				if (prpType instanceof CompositeType) {
-					Stack<String> pathStack = new Stack<>();
-					Stack<CompositeType> compositeTypePathStack = new Stack<>();
-					pathStack.push(prpName);
-					this.collectAssociationAndCompositiesMapRecursive(classMetadata, null, (CompositeType) prpType,
-							pathStack, compositeTypePathStack);
-				} else if (prpType instanceof EntityType) {
-					EntityType entityType = (EntityType) prpType;
-
-					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
-
-					AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
-					relEacPath.setAacKey(aacKeyFromRoot);
-					relEacPath.setCompositeTypePath(new CompositeType[] {});
-					relEacPath.setCompType(null);
-					relEacPath.setRelEntity(entityType);
-					relEacPath.setCollType(null);
-					relEacPath.setCompositePrpPath(new String[] {});
-					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
-				} else if (prpType instanceof CollectionType) {
-					CollectionType collType = (CollectionType) prpType;
-
-					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
-
-					AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
-					relEacPath.setAacKey(aacKeyFromRoot);
-					relEacPath.setCompositeTypePath(new CompositeType[] {});
-					relEacPath.setCompType(null);
-					relEacPath.setRelEntity(null);
-					relEacPath.setCollType(collType);
-					relEacPath.setCompositePrpPath(new String[] {});
-					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
-				}
-			}
-		}
-		for (AssociationAndComponentPathKey key : this.associationAndCompositiesMap.keySet()) {
-			AssociationAndComponentPath aacPath = this.associationAndCompositiesMap.get(key);
-			if (aacPath.getCompType() != null) {
-				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getCompType().getReturnedClass();
-			this.compositiesSet.add(compositeClass);
-	}
-	}
-	}
-
-	private String mountPathFromStack(Collection<String> pathStack) {
-		String pathResult = "";
-		String dotStr = "";
-		for (String pathItem : pathStack) {
-			pathResult += dotStr + pathItem;
-			dotStr = ".";
-		}
-		return pathResult;
-	}
-	
-	private void collectAssociationAndCompositiesMapRecursive(ClassMetadata ownerRootClassMetadata,
-			CompositeType ownerCompositeType, CompositeType compositeType, Stack<String> pathStack,
-			Stack<CompositeType> compositeTypePathStack) {
-		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format("Collecting CompositeType:{0}", compositeType));
-		}
-		Class<?> ownerRootClass;
-		try {
-			ownerRootClass = Class.forName(ownerRootClassMetadata.getEntityName());
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(ownerRootClassMetadata.getEntityName() + " not supported.", e);
-		}
-		String pathFromStack = this.mountPathFromStack(pathStack);
-		AssociationAndComponentPathKey aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass,
-				pathFromStack);
-//		AssociationAndComponentPathKey aacKeyDirect = null;
-//		if (ownerCompositeType != null) {
-//			aacKeyDirect = new AssociationAndComponentPathKey(ownerCompositeType.getReturnedClass(), pathStack.peek());				
-//		} else {
-//			aacKeyDirect = new AssociationAndComponentPathKey(ownerRootClass, pathFromStack);
+//
+//	private void collectAssociationAndCompositiesMap() {
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("collectAssociationAndCompositiesMap()");
 //		}
-//		if (!this.associationAndCompositiesMap.containsKey(aacKeyDirect)) {
-		if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-//			if (!aacKeyDirect.equals(aacKeyFromRoot)) {
-//				AssociationAndComponentPath aacPathFromRoot = new AssociationAndComponentPath();
-//				aacPathFromRoot.setAacKey(aacKeyDirect);
-//				aacPathFromRoot.setCompositePrpPath(pathStack.toArray(new String[pathStack.size()]));
-//				aacPathFromRoot.setCompositeTypePath(compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
-//				aacPathFromRoot.setCompType(compositeType);
-//				aacPathFromRoot.setRelEntity(null);
-//				aacPathFromRoot.setCollType(null);
-//				
-//				this.associationAndCompositiesMap.put(aacKeyFromRoot, aacPathFromRoot);				
+//		for (String entityName : this.config.getSessionFactory().getAllClassMetadata().keySet()) {
+//			ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(entityName);
+//			
+//			Class<?> ownerRootClass;
+//			try {
+//				ownerRootClass = Class.forName(classMetadata.getEntityName());
+//			} catch (ClassNotFoundException e) {
+//				throw new RuntimeException(classMetadata.getEntityName() + " not supported.", e);
 //			}
-			AssociationAndComponentPath aacPath = new AssociationAndComponentPath();
-//			aacPath.setAacKey(aacKeyDirect);
-			aacPath.setAacKey(aacKeyFromRoot);
-			aacPath.setCompositeTypePath(new CompositeType[] { compositeType });
-			aacPath.setCompType(compositeType);
-			aacPath.setRelEntity(null);
-			aacPath.setCollType(null);
-			aacPath.setCompositePrpPath(new String[] { pathStack.peek() });
-//			this.associationAndCompositiesMap.put(aacKeyDirect, aacPath);
-			this.associationAndCompositiesMap.put(aacKeyFromRoot, aacPath);
-			
-			List<Type> allPrps = new ArrayList<>();
-			List<String> allPrpsNames = new ArrayList<>();
-			allPrps.addAll(Arrays.asList(compositeType.getSubtypes()));
-			allPrpsNames.addAll(Arrays.asList(compositeType.getPropertyNames()));
-			for (int i = 0; i < allPrps.size(); i++) {
-				Type subPrpType = allPrps.get(i);
-				String subPrpName = allPrpsNames.get(i);
-				
-				if (subPrpType instanceof CompositeType) {
-					if (logger.isTraceEnabled()) {
-						logger.trace(MessageFormat.format("Recursion on collect CompositeType: {0} -> {1}",
-								compositeType.getReturnedClass().getName(), subPrpName));
-					}
-					pathStack.push(subPrpName);
-					compositeTypePathStack.push((CompositeType) subPrpType);
-					this.collectAssociationAndCompositiesMapRecursive(ownerRootClassMetadata, compositeType,
-							(CompositeType) subPrpType, pathStack, compositeTypePathStack);
-				} else if (subPrpType instanceof EntityType) {
-					EntityType entityType = (EntityType) subPrpType;
-					Stack<String> pathStackRelation = new Stack<String>();
-					pathStackRelation.addAll(pathStack);
-					pathStackRelation.push(subPrpName);
-					String pathStackRelationStr = this.mountPathFromStack(pathStackRelation);
-
-//					if (ownerCompositeType != null) {		
-//						aacKeyDirect = new AssociationAndComponentPathKey(ownerCompositeType.getReturnedClass(), subPrpName);
-//					} else {
-//						aacKeyDirect = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
-//					}					
-					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
-
-					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-//					if (!this.associationAndCompositiesMap.containsKey(aacKeyDirect)) {
-//						if (!aacKeyDirect.equals(aacKeyFromRoot)) {
-						AssociationAndComponentPath relEacPathFromRoot = new AssociationAndComponentPath();
-						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
-						relEacPathFromRoot.setCompositeTypePath(
-								compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
-						relEacPathFromRoot.setCompType(null);
-						relEacPathFromRoot.setRelEntity(entityType);
-						relEacPathFromRoot.setCollType(null);
-						relEacPathFromRoot.setCompositePrpPath(pathStack.toArray(new String[pathStack.size()]));
-						this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPathFromRoot);
-//						}
-//						AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
-//						relEacPath.setAacKey(aacKeyDirect);
-//						relEacPath.setCompositeTypePath(new CompositeType[]{compositeType});
-//						relEacPath.setCompType(null);
-//						relEacPath.setRelEntity(entityType);
-//						relEacPath.setCollType(null);
-//						relEacPath.setCompositePrpPath(new String[]{subPrpName});
-//						this.associationAndCompositiesMap.put(aacKeyDirect, relEacPath);
-				}
-				} else if (subPrpType instanceof CollectionType) {
-					CollectionType collType = (CollectionType) subPrpType;
-					Stack<String> pathStackRelation = new Stack<String>();
-					pathStackRelation.addAll(pathStack);
-					pathStackRelation.push(subPrpName);
-					String pathStackRelationStr = this.mountPathFromStack(pathStackRelation);
-
-//					if (ownerCompositeType != null) {		
-//						aacKeyDirect = new AssociationAndComponentPathKey(ownerCompositeType.getReturnedClass(), subPrpName);
-//					} else {
-//						aacKeyDirect = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
-//					}					
-					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
-					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-//						if (!this.associationAndCompositiesMap.containsKey(aacKeyDirect)) {
-//						if (!aacKeyDirect.equals(aacKeyFromRoot)) {
-						AssociationAndComponentPath relEacPathFromRoot = new AssociationAndComponentPath();
-						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
-						relEacPathFromRoot.setCompositeTypePath(
-								compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
-						relEacPathFromRoot.setCompType(null);
-						relEacPathFromRoot.setRelEntity(null);
-						relEacPathFromRoot.setCollType(collType);
-						relEacPathFromRoot.setCompositePrpPath(pathStack.toArray(new String[pathStack.size()]));
-						this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPathFromRoot);
-//						}
-//						AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
-//						relEacPath.setAacKey(aacKeyDirect);
-//						relEacPath.setCompositeTypePath(new CompositeType[]{compositeType});
-//						relEacPath.setCompType(null);
-//						relEacPath.setRelEntity(null);
-//						relEacPath.setCollType(collType);
-//						relEacPath.setCompositePrpPath(new String[]{subPrpName});
-//						this.associationAndCompositiesMap.put(aacKeyDirect, relEacPath);
-					}
-				}
-			}
-		} else {
-			//maybe it is deprecated!?
-			CompositeType existingComponent = this.associationAndCompositiesMap.get(aacKeyFromRoot).getCompType();
-			boolean isDifferent = false;
-			if (logger.isTraceEnabled()) {
-				logger.trace(MessageFormat.format(
-						"Component already collected, verifying if the definition is the same: {0}", compositeType));
-			}
-			if (existingComponent.getSubtypes().length == compositeType.getSubtypes().length) {
-				for (int i = 0; i < compositeType.getSubtypes().length; i++) {
-					if (existingComponent.getSubtypes()[i].getReturnedClass() != compositeType.getSubtypes()[i]
-							.getReturnedClass()) {
-						isDifferent = true;
-						break;
-					}
-				}
-			} else {
-				if (logger.isTraceEnabled()) {
-					logger.trace(MessageFormat.format(
-							"Component already collected, the both has the same definition, ok: {0}, {1}",
-							existingComponent, compositeType));
-				}
-				isDifferent = true;
-			}
-			if (isDifferent) {
-				throw new RuntimeException(
-						MessageFormat.format("CompositeType's diferentes: {0}, {1}", existingComponent, compositeType));
-			}
-		}
-		pathStack.pop();
-		if (ownerCompositeType != null) {
-			compositeTypePathStack.pop();
-		}
-	}
+//
+//			List<Type> allPrpsAndId = new ArrayList<>();
+//			List<String> allPrpsAndIdNames = new ArrayList<>();
+//			allPrpsAndId.addAll(Arrays.asList(classMetadata.getPropertyTypes()));
+//			allPrpsAndId.add(classMetadata.getIdentifierType());
+//			allPrpsAndIdNames.addAll(Arrays.asList(classMetadata.getPropertyNames()));
+//			allPrpsAndIdNames.add(classMetadata.getIdentifierPropertyName());
+//			for (int i = 0; i < allPrpsAndId.size(); i++) {
+//				Type prpType = allPrpsAndId.get(i);
+//				String prpName = allPrpsAndIdNames.get(i);
+//				AssociationAndComponentPathKey aacKeyFromRoot;
+//				if (prpType instanceof CompositeType) {
+//					Stack<String> pathStack = new Stack<>();
+//					Stack<CompositeType> compositeTypePathStack = new Stack<>();
+//					pathStack.push(prpName);
+//					this.collectAssociationAndCompositiesMapRecursive(classMetadata, null, (CompositeType) prpType,
+//							pathStack, compositeTypePathStack);
+//				} else if (prpType instanceof EntityType) {
+//					EntityType entityType = (EntityType) prpType;
+//
+//					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
+//
+//					AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
+//					relEacPath.setAacKey(aacKeyFromRoot);
+//					relEacPath.setCompositeTypePath(new CompositeType[] {});
+//					relEacPath.setCompType(null);
+//					relEacPath.setRelEntity(entityType);
+//					relEacPath.setCollType(null);
+//					relEacPath.setCompositePrpPath(new String[] {});
+//					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
+//				} else if (prpType instanceof CollectionType) {
+//					CollectionType collType = (CollectionType) prpType;
+//
+//					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
+//
+//					AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
+//					relEacPath.setAacKey(aacKeyFromRoot);
+//					relEacPath.setCompositeTypePath(new CompositeType[] {});
+//					relEacPath.setCompType(null);
+//					relEacPath.setRelEntity(null);
+//					relEacPath.setCollType(collType);
+//					relEacPath.setCompositePrpPath(new String[] {});
+//					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
+//				}
+//			}
+//		}
+//		for (AssociationAndComponentPathKey key : this.associationAndCompositiesMap.keySet()) {
+//			AssociationAndComponentPath aacPath = this.associationAndCompositiesMap.get(key);
+//			if (aacPath.getCompType() != null) {
+//				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getCompType().getReturnedClass();
+//			this.compositiesSet.add(compositeClass);
+//	}
+//	}
+//	}
+//
+//	private String mountPathFromStack(Collection<String> pathStack) {
+//		String pathResult = "";
+//		String dotStr = "";
+//		for (String pathItem : pathStack) {
+//			pathResult += dotStr + pathItem;
+//			dotStr = ".";
+//		}
+//		return pathResult;
+//	}
 
 	@Override
 	public String serializeSignature(SignatureBean signatureBean) {
@@ -520,25 +366,10 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 
 	@Override
-	public SignatureBean generateLazySignature(PersistentCollection persistentCollection) {
-		Pattern rxCollectionRole = Pattern
-				.compile("^" + Pattern.quote(persistentCollection.getOwner().getClass().getName()) + "\\.(.*)");
-		// SessionImplementor ssImplementor = null;
-		// Class ownerClass = persistentCollection.getOwner().getClass();
-		//
-		// if (HibernateProxy.class.isAssignableFrom(ownerClass)) {
-		// ownerClass = ownerClass.getSuperclass();
-		// }
-
-		Matcher matcher = rxCollectionRole.matcher(persistentCollection.getRole());
-		if (!matcher.find()) {
-			throw new RuntimeException(MessageFormat.format(
-					"Collection role nao se encaixa no padrao esperado: ''{0}''", persistentCollection.getRole()));
-		}
-
-		Class<?> ownerClass = persistentCollection.getOwner().getClass();
-		String fieldName = matcher.group(1);
-		Object ownerValue = persistentCollection.getOwner();
+	public SignatureBean generateLazySignature(Collection<?> persistentCollection) {
+		Object ownerValue = this.getHbSupport().getCollectionOwner(persistentCollection);
+		Class<?> ownerClass = ownerValue.getClass();
+		String fieldName = this.getHbSupport().getCollectionFieldName(persistentCollection);
 		Object fieldValue = persistentCollection;
 
 		SignatureBean signatureBean = this.generateLazySignatureForCollRelashionship(ownerClass, fieldName, ownerValue,
@@ -558,45 +389,51 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (!this.isRelationship(ownerClass, fieldName)) {
 			throw new RuntimeException("This is not a relationship: " + ownerClass + "->" + fieldName);
 		}
-		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(ownerClass);
+		//ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(ownerClass);
 		
-		Type prpType = null;
-		if (classMetadata != null) {
-			prpType = classMetadata.getPropertyType(fieldName);
-		} else {
-			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, fieldName);
-			logger.warn(
-					"########## NAO ESTOU CERTO SOBRE ISSO:\nCompositeType componentType = this.compositiesMap.get(key).getCompType();");
-			CompositeType componentType = this.associationAndCompositiesMap.get(aacKey).getCompType();
-			if (componentType == null) {
-				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
-			}
-			
-			int prpIndex = -1;
-			String[] cpsTpArrPrps = componentType.getPropertyNames();
-			for (int i = 0; i < cpsTpArrPrps.length; i++) {
-				if (fieldName.equals(cpsTpArrPrps[i])) {
-					prpIndex = i;
-					break;
-				}
-			}			
-			if (prpIndex == -1) {
-				throw new RuntimeException("fieldName does not exists: " + ownerClass + "->" + fieldName);
-			}
-			
-			prpType = componentType.getSubtypes()[prpIndex];
-		}
+//		//Type prpType = null;
+//		//if (classMetadata != null) {
+//		if (this.getHbSupport().isPersistentClass(ownerClass)) {
+//			//prpType = classMetadata.getPropertyType(fieldName);
+//			//nothing
+//		} else {
+//			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, fieldName);
+//			logger.warn(
+//					"########## NAO ESTOU CERTO SOBRE ISSO:\nCompositeType componentType = this.compositiesMap.get(key).getCompType();");
+//			CompositeType componentType = this.associationAndCompositiesMap.get(aacKey).getCompType();
+//			if (componentType == null) {
+//				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
+//			}
+//			
+//			int prpIndex = -1;
+//			String[] cpsTpArrPrps = componentType.getPropertyNames();
+//			for (int i = 0; i < cpsTpArrPrps.length; i++) {
+//				if (fieldName.equals(cpsTpArrPrps[i])) {
+//					prpIndex = i;
+//					break;
+//				}
+//			}			
+//			if (prpIndex == -1) {
+//				throw new RuntimeException("fieldName does not exists: " + ownerClass + "->" + fieldName);
+//			}
+//			
+//			prpType = componentType.getSubtypes()[prpIndex];
+//		}
 		
-		if (!(prpType instanceof AssociationType)) {
-			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
+		if (!this.getHbSupport().isCollectionRelationship(ownerClass, fieldName)) {
+			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName);
 		}
+//		if (!(prpType instanceof AssociationType)) {
+//			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
+//		}
 
 		SignatureBean signatureBean = null;
 		// AssociationType assType = (AssociationType)
 		// classMetadata.getPropertyType(fieldName);
-		AssociationType assType = (AssociationType) prpType;
+		//AssociationType assType = (AssociationType) prpType;
 		Object idValue = null;
-		if (assType instanceof CollectionType) {
+		//if (assType instanceof CollectionType) {
+//		if (this.getHbSupport().isCollectionRelationship(ownerClass, fieldName)) {
 			if (ownerValue instanceof HibernateProxy) {
 				signatureBean = this.generateLazySignature((HibernateProxy) ownerValue);
 			} else {
@@ -615,12 +452,13 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			signatureBean.setClazz(ownerClass);
 			signatureBean.setIsColl(true);
 			signatureBean.setPropertyName(fieldName);
-		} else {
-			if (fieldValue instanceof HibernateProxy) {
-				signatureBean = this.generateLazySignature((HibernateProxy) fieldValue);
-			} else {
-				signatureBean = this.generateSignature(fieldValue);
-		}
+//		} else {
+//			if (fieldValue instanceof HibernateProxy) {
+//				signatureBean = this.generateLazySignature((HibernateProxy) fieldValue);
+//			} else {
+//				signatureBean = this.generateSignature(fieldValue);
+//			}
+//		}
 
 			// This will cause two signatures for the same instance!?!?!?!?
 			// signatureBean.setIsAssoc(true);
@@ -629,7 +467,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 //			idValue = classMetadata.getIdentifier(fieldValue,
 //					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
 //			signatureBean.setClazz(assType.getReturnedClass());
-		}
+//		}
 		// signatureBean.setEntityName(classMetadata.getEntityName());
 		
 		if (logger.isTraceEnabled()) {
@@ -649,35 +487,36 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		} else {
 			throw new RuntimeException("fieldValue type does not support LazyProperty: " + fieldValue.getClass());
 		}
-		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(ownerClass);
+//		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(ownerClass);
+//
+//		Type prpType = null;
+//		if (classMetadata != null) {
+//			prpType = classMetadata.getPropertyType(fieldName);
+//		} else {
+//			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, fieldName);
+//			CompositeType componentType = this.associationAndCompositiesMap.get(aacKey).getCompType();
+//			if (componentType == null) {
+//				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
+//			}
+//
+//			int prpIndex = -1;
+//			String[] cpsTpArrPrps = componentType.getPropertyNames();
+//			for (int i = 0; i < cpsTpArrPrps.length; i++) {
+//				if (fieldName.equals(cpsTpArrPrps[i])) {
+//					prpIndex = i;
+//					break;
+//				}
+//			}
+//			if (prpIndex == -1) {
+//				throw new RuntimeException("fieldName does not exists: " + ownerClass + "->" + fieldName);
+//			}
+//
+//			prpType = componentType.getSubtypes()[prpIndex];
+//		}
 
-		Type prpType = null;
-		if (classMetadata != null) {
-			prpType = classMetadata.getPropertyType(fieldName);
-		} else {
-			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, fieldName);
-			CompositeType componentType = this.associationAndCompositiesMap.get(aacKey).getCompType();
-			if (componentType == null) {
-				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
-			}
-
-			int prpIndex = -1;
-			String[] cpsTpArrPrps = componentType.getPropertyNames();
-			for (int i = 0; i < cpsTpArrPrps.length; i++) {
-				if (fieldName.equals(cpsTpArrPrps[i])) {
-					prpIndex = i;
-					break;
-				}
-			}
-			if (prpIndex == -1) {
-				throw new RuntimeException("fieldName does not exists: " + ownerClass + "->" + fieldName);
-			}
-
-			prpType = componentType.getSubtypes()[prpIndex];
-		}
-
-		if (prpType instanceof AssociationType) {
-			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
+		//if (prpType instanceof AssociationType) {
+		if (this.getHbSupport().isRelationship(ownerClass, fieldName)) {
+			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName);
 		}
 
 		SignatureBean signatureBean = this.generateSignature(ownerValue);
@@ -694,23 +533,10 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		signatureBean.setClazz(entityClass);
 		signatureBean.setEntityName(entityClass.getName());
 		signatureBean.setPropertyName(null);
-		PlayerStatment playerStatment = new PlayerStatment();
 
-		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(entityClass);
+		Object[] rawKeyValuesFromHbProxy = this.getHbSupport().getRawKeyValuesFromHbProxy(hibernateProxy);
 
-		@SuppressWarnings("deprecation")
-		Object idValue = classMetadata.getIdentifier(hibernateProxy,
-				(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
-		Type hbIdType = classMetadata.getIdentifierType();
-		try {
-			hbIdType.nullSafeSet(playerStatment, idValue, 0,
-					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
-		} catch (HibernateException e) {
-			throw new RuntimeException("This should not happen", e);
-		} catch (SQLException e) {
-			throw new RuntimeException("This should not happen", e);
-		}
-		signatureBean.setRawKeyValues(playerStatment.getInternalValues());
+		signatureBean.setRawKeyValues(rawKeyValuesFromHbProxy);
 		
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
@@ -739,23 +565,10 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		signatureBean.setClazz(entityClass);
 		signatureBean.setEntityName(entityClass.getName());
 		signatureBean.setPropertyName(null);
-		PlayerStatment playerStatment = new PlayerStatment();
-
-		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(entityClass);
-
-		@SuppressWarnings("deprecation")
-		Object idValue = classMetadata.getIdentifier(nonHibernateProxy,
-				(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
-		Type hbIdType = classMetadata.getIdentifierType();
-		try {
-			hbIdType.nullSafeSet(playerStatment, idValue, 0,
-					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
-		} catch (HibernateException e) {
-			throw new RuntimeException("This should not happen", e);
-		} catch (SQLException e) {
-			throw new RuntimeException("This should not happen", e);
-		}
-		signatureBean.setRawKeyValues(playerStatment.getInternalValues());
+		
+		Object[] rawKeyValuesFromHbProxy = this.getHbSupport().getRawKeyValuesFromNonHbProxy(nonHibernateProxy);
+		
+		signatureBean.setRawKeyValues(rawKeyValuesFromHbProxy);
 		
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("generateSignature(Object nonHibernateProxy). signatureBean:\n{0}",
@@ -771,37 +584,42 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.trace(MessageFormat.format("getBySignature(). Begin. \nsignatureBean:\n{0}", signature));
 		}
 		
-		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(signature.getClazz());
+//		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(signature.getClazz());
+//
+//		Type hbIdType = classMetadata.getIdentifierType();
 
-		Type hbIdType = classMetadata.getIdentifierType();
-
-		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''", hbIdType));
-		}
+//		if (logger.isTraceEnabled()) {
+//			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''", hbIdType));
+//		}
 		
 //		Serializable idValue = (Serializable) hbIdType.resolve(signature.getRawKeyValues(),
 //				(SessionImplementor) this.config.getSessionFactory().getCurrentSession(), null);
-		Serializable idValue = null;
-		
-		PlayerResultSet playerResultSet = new PlayerResultSet(signature.getRawKeyValues());
-		try {
-			idValue = (Serializable) hbIdType.nullSafeGet(playerResultSet, playerResultSet.getColumnNames(),
-					(SessionImplementor) this.config.getSessionFactory().getCurrentSession(), null);
-		} catch (HibernateException e) {
-			throw new RuntimeException("This should not happen. prpType: ");
-		} catch (SQLException e) {
-			throw new RuntimeException("This should not happen. prpType: ");
-		}
-		
-		if (idValue.getClass().isArray()) {
-			if (((Object[])idValue).length == 1) {
-				idValue = (Serializable) ((Object[])idValue)[0];
-			}
-		}
-		Object owner = this.config.getSessionFactory().getCurrentSession().get(signature.getClazz(), idValue);
-
+//		Serializable idValue = null;
+//		
+//		PlayerResultSet playerResultSet = new PlayerResultSet(signature.getRawKeyValues());
+//		try {
+//			idValue = (Serializable) hbIdType.nullSafeGet(playerResultSet, playerResultSet.getColumnNames(),
+//					(SessionImplementor) this.config.getSessionFactory().getCurrentSession(), null);
+//		} catch (HibernateException e) {
+//			throw new RuntimeException("This should not happen. prpType: ");
+//		} catch (SQLException e) {
+//			throw new RuntimeException("This should not happen. prpType: ");
+//		}
+//		
+//		if (idValue.getClass().isArray()) {
+//			if (((Object[])idValue).length == 1) {
+//				idValue = (Serializable) ((Object[])idValue)[0];
+//			}
+//		}
+//		Object owner = this.config.getSessionFactory().getCurrentSession().get(signature.getClazz(), idValue);
+		Serializable idValue = this.getHbSupport().getIdValue(signature.getClazz(), signature.getRawKeyValues());
+		Object owner = this.getHbSupport().getById(signature.getClazz(), idValue);
 		Object result = owner;
 
+		if (logger.isTraceEnabled()) {
+			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''", idValue.getClass()));
+		}
+		
 		Type propertyType = null;
 		if (signature.getPropertyName() != null) {
 //			// significa que eh uma collection, mas no futuro podera ser tambem uma
@@ -999,86 +817,12 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 	@Override
 	public boolean isRelationship(Class<?> clazz, String fieldName) {
-		if (clazz == null) {
-			throw new IllegalArgumentException("clazz can not be null");
-		}
-		if (fieldName == null || fieldName.trim().isEmpty()) {
-			throw new IllegalArgumentException("fieldName can not be null");
-		}
-		
-		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(clazz);
-		CompositeType compositeType = null;
-		if (classMetadata == null) {
-			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(clazz, fieldName);
-			compositeType = this.associationAndCompositiesMap.get(aacKey).getCompType();
-			if (compositeType == null) {
-				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz);
-			}
-		}
-		Type prpType = null;
-		if (classMetadata != null) {
-			boolean hasProperty = false;
-			if (fieldName.contains(".")) {
-				hasProperty = true;
-		} else {
-				String[] prpNames = classMetadata.getPropertyNames();
-				for (int i = 0; i < prpNames.length; i++) {
-					String prpNameItem = prpNames[i];
-				if (prpNameItem.equals(fieldName)) {
-						hasProperty = true;
-					break;
-				}
-			}
-		}
-		
-			if (hasProperty) {
-				try {
-					prpType = classMetadata.getPropertyType(fieldName);					
-				} catch (HibernateException he) {
-					throw new RuntimeException(MessageFormat.format("This should not happen for property: {0}.{1}",
-							classMetadata.getEntityName(), fieldName), he);
-				}
-			}			
-//			for (int i = 0; i < classMetadata.getPropertyNames().length; i++) {
-//				String prpNameItem = classMetadata.getPropertyNames()[i];
-//				if (prpNameItem.equals(fieldName)) {
-//					prpType = classMetadata.getPropertyTypes()[i];
-//					break;
-//				}
-//			}			
-		} else {
-			String[] prpNames = compositeType.getPropertyNames();
-			for (int i = 0; i < prpNames.length; i++) {
-				String prpNameItem = prpNames[i];
-				if (prpNameItem.equals(fieldName)) {
-					prpType = compositeType.getSubtypes()[i];
-					break;
-				}
-			}
-		}
-		
-		boolean resultBool = false;
-		if (prpType == null) {
-			resultBool =  false;
-		} else {
-			if (prpType instanceof AssociationType) {
-				resultBool =  true;
-			} else {
-				resultBool =  false;
-			}
-		}
-		
-		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format("isRelationship(). clazz: ''{0}''; fieldName: ''{1}''. return: ", clazz,
-					fieldName, resultBool));
-		}
-		
-		return resultBool;
+		return this.getHbSupport().isRelationship(clazz, fieldName);
 	}
 
 	@Override
 	public boolean isComponent(Class<?> componentClass) {
-		return this.compositiesSet.contains(componentClass);
+		return this.getHbSupport().isComponent(componentClass);
 	}
 
 	@Override
@@ -1141,12 +885,12 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 		if (lastEntityOwner != null && pathList.size() > 0) {
 			String pathStr = this.mountPathFromStack(pathList);
-			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
-					pathStr);
-			if (this.associationAndCompositiesMap.containsKey(aacKey)) {
+//			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
+//					pathStr);
+			if (this.getHbSupport().isComponentOrRelationship(lastEntityOwner.getClass(), pathStr)) {
 				AssociationAndComponentTrackInfo trackInfo = new AssociationAndComponentTrackInfo();
 				trackInfo.setEntityOwner(lastEntityOwner);
-				trackInfo.setEntityAndComponentPath(this.associationAndCompositiesMap.get(aacKey));
+				trackInfo.setEntityAndComponentPath(this.getHbSupport().getAssociationAndComponentOnPath(lastEntityOwner.getClass(), pathStr));
 				return trackInfo;
 			} else {
 				return null;
@@ -1192,18 +936,31 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		String pathStr = null;
 		if (lastEntityOwner != null && pathList.size() > 0) {
 			pathStr = this.mountPathFromStack(pathList);
-			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
-					pathStr);
-			AssociationAndComponentPath entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
-			if (entityAndComponentPath != null) {
-				if (entityAndComponentPath.getRelEntity() != null) {
-					return true;
-				}
+			if (this.getHbSupport().isOneToManyRelationship(lastEntityOwner.getClass(), pathStr)) {
+				return true;
 			}
+//			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
+//					pathStr);
+//			AssociationAndComponentPath entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
+//			if (entityAndComponentPath != null) {
+//				if (entityAndComponentPath.getRelEntity() != null) {
+//					return true;
+//				}
+//			}
 		}
 		return false;
 	}
 
+	protected String mountPathFromStack(Collection<String> pathStack) {
+		String pathResult = "";
+		String dotStr = "";
+		for (String pathItem : pathStack) {
+			pathResult += dotStr + pathItem;
+			dotStr = ".";
+		}
+		return pathResult;
+	}
+	
 	@Override
 	public IDirectRawWriterWrapper needDirectWrite(SignatureBean signature) {
 		JsonSerializer<Object> jsonSerializer = null;
@@ -1390,6 +1147,15 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		Collections.reverse(resultList);
 		return resultList;
 	}	
+	private HbSupport hbSupport;
+	public HbSupport getHbSupport() {
+		return this.hbSupport;
+	}
+	
+	private HibernateVersion hibernateVersion;
+	public HibernateVersion getHibernateVersion() {
+		return this.hibernateVersion;
+	}
 	
 //	@Override
 //	public Stack<String> getCurrentCompositePathStack() {

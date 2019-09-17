@@ -16,7 +16,6 @@ import org.jsonplayback.player.hibernate.PlayerConfig;
 import org.jsonplayback.player.hibernate.PlayerManagerDefault;
 import org.jsonplayback.player.hibernate.PlayerSnapshotSerializer;
 import org.jsonplayback.player.util.NoOpLoggingSystem;
-import org.jsonplayback.player.util.spring.orm.hibernate3.CustomLocalSessionFactoryBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +115,8 @@ public class TestServiceConfigBase {
     	//dataSource.set
     	JDBCDataSource dataSource = new JDBCDataSource();
     	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
-    	CustomLocalSessionFactoryBean customLocalSessionFactoryBean = new CustomLocalSessionFactoryBean();
+    	//CustomLocalSessionFactoryBean customLocalSessionFactoryBean = new CustomLocalSessionFactoryBean();
+    	LocalSessionFactoryBean customLocalSessionFactoryBean = new LocalSessionFactoryBean();
     	customLocalSessionFactoryBean.setDataSource(dataSource);
     	customLocalSessionFactoryBean.setMappingResources(new String[]{
     		"jsonplayback/MasterAEnt.hbm.xml",

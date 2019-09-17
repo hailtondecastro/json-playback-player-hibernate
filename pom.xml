@@ -6,7 +6,7 @@
 
 	<groupId>io.github.hailtondecastro</groupId>
 	<artifactId>json-playback-player-hibernate</artifactId>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.1.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>json-playback-player-hibernate</name>
 	<description>Frameworks and APIs for exchanging/interoperation entity object graph states and their operations (changing fields, collections modifications, etc) between two software layers using json.</description>
@@ -35,19 +35,15 @@
 	</developers>
 
 	<properties>
-		<encoding.default>UTF-8</encoding.default>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
+		<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
 		<version.java.source>1.8</version.java.source>
 		<version.java.target>1.8</version.java.target>
-		<version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
+		<jsonplayback.hbversion3>3.6.10.Final</jsonplayback.hbversion3>
+		<jsonplayback.hbversion4>4.3.11.Final</jsonplayback.hbversion4>
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-core</artifactId>
-			<version>3.6.10.Final</version>
-		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -195,6 +191,27 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<delete
+									file="${project.build.outputDirectory}/environment.properties" />
+								<copy
+									file="src/main/resources/environment.${jsonplayback.classifier}.properties"
+									tofile="${project.build.outputDirectory}/environment.properties" />
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${version.maven.compiler.plugin}</version>
 				<configuration>
@@ -204,11 +221,38 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>${jsonplayback.classifier}</classifier>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<inherited>true</inherited>
 				<artifactId>maven-source-plugin</artifactId>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
 						<goals>
 							<goal>jar</goal>
 						</goals>
@@ -227,13 +271,86 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		
+
+
+
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-antrun-plugin</artifactId>
+										<versionRange>[0.0.0,)</versionRange>
+										<goals>
+											<goal>run</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnIncremental>true</runOnIncremental>
+											<runOnConfiguration>true</runOnConfiguration>
+										</execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+
+		
 	</build>
 
 	<profiles>
 		<profile>
-			<id>travis</id>
+			<id>hb3</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<jsonplayback.classifier>hb3</jsonplayback.classifier>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+					<version>${jsonplayback.hbversion3}</version>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>hb4</id>
+			<properties>
+				<jsonplayback.classifier>hb4</jsonplayback.classifier>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+					<version>${jsonplayback.hbversion4}</version>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+		</profile>
+ 		<profile>
+			<id>travis-hb3</id>
 			<properties>
 				<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+				<jsonplayback.classifier>hb3</jsonplayback.classifier>
+				<jsonplayback.hbversion>4.3.11.Final</jsonplayback.hbversion>
 			</properties>
 			<build>
 				<plugins>
@@ -251,19 +368,6 @@
 								<configuration>
 									<keyname>F4532B1D729C24A899FA83ECD3863F4B2A84E423</keyname>
 								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.9.1</version>
-						<executions>
-							<execution>
-								<id>attach-javadocs</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
 							</execution>
 						</executions>
 					</plugin>

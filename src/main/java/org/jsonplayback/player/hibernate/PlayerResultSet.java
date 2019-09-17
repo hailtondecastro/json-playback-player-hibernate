@@ -28,14 +28,14 @@ public class PlayerResultSet implements ResultSet {
 	private Object[] internalValuesArr = null;
 	private Map<String, Object> internalValuesByNameMap = new LinkedHashMap<>();
 	
-	protected PlayerResultSet(Object[] internalValuesArr) {
+	public PlayerResultSet(Object[] internalValuesArr) {
 		this.internalValuesArr = internalValuesArr;
 		for (int i = 0; i < internalValuesArr.length; i++) {
 			this.internalValuesByNameMap.put("" + i, this.internalValuesArr[i]);
 		}
 	}
 	
-	protected String[] getColumnNames() {
+	public String[] getColumnNames() {
 		return new ArrayList<String>(this.internalValuesByNameMap.keySet()).toArray(new String[this.internalValuesByNameMap.size()]);
 	}
 	

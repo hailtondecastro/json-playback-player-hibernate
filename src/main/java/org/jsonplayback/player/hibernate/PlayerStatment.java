@@ -25,7 +25,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-class PlayerStatment implements PreparedStatement {
+public class PlayerStatment implements PreparedStatement {
 	@SuppressWarnings("rawtypes")
 	private ArrayList<Object> internalValuesList = new ArrayList();
 	public Object[] getInternalValues() {
