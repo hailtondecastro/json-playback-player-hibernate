@@ -8,11 +8,12 @@ before_install:
   - cp settings.template.xml $HOME/.m2/settings.xml
 
 script:
-  - mvn -P travis clean install
+  - mvn -P hb3,travis clean install
+  - mvn -P hb4,travis clean install
     
 deploy:
   provider: script
-  script: mvn -P travis deploy -DskipTests=true
+  script: mvn -P hb3,travis deploy -DskipTests=true && mvn -P hb3,travis deploy -DskipTests=true
   skip_cleanup: true
   on:
     tags: true

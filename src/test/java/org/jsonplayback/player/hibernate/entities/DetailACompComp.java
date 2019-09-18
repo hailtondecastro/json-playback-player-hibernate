@@ -1,13 +1,14 @@
 package org.jsonplayback.player.hibernate.entities;
 
 import javax.persistence.Embeddable;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 
 @Embeddable
 public class DetailACompComp {
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({
 		@JoinColumn(name="DUMMY_COL_DetailACompComp_01"),
 		@JoinColumn(name="DUMMY_COL_DetailACompComp_02")

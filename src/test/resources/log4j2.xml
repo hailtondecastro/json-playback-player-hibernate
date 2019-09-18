@@ -27,11 +27,11 @@
   </Appenders>
  
   <Loggers>
+    <!-- 
     <Logger name="org.hibernate" level="trace">
     </Logger>
     <Logger name="org.hibernate.SQL" level="debug">
     </Logger>
-    <!-- 
     <Logger name="org.hibernate.hql.antlr" level="trace">
     </Logger>
     <Logger name="org.hibernate.type" level="trace">

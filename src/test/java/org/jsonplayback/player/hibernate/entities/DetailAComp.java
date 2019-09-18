@@ -4,6 +4,7 @@ import java.sql.Blob;
 
 import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
@@ -15,7 +16,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Embeddable
 public class DetailAComp {
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({
 		@JoinColumn(name="DUMMY_COL_DetailAComp_01"),
 		@JoinColumn(name="DUMMY_COL_DetailAComp_02")
