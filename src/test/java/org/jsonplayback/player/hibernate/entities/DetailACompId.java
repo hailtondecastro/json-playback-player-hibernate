@@ -2,12 +2,20 @@ package org.jsonplayback.player.hibernate.entities;
 
 import java.io.Serializable;
 
+import javax.persistence.Embeddable;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
+@Embeddable
 public class DetailACompId implements Serializable {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="DUMMY_COL_DetailACompId_01")
 	private MasterAEnt masterA;
 	private Integer subId;
 	public MasterAEnt getMasterA() {

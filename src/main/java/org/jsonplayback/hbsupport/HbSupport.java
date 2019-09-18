@@ -26,6 +26,7 @@ public interface HbSupport {
 	boolean isComponentOrRelationship(Class<?> ownerClass, String pathFromOwner);
 	boolean isComponentByTrack(AssociationAndComponentTrackInfo aacTrackInfo);
 	Serializable getIdValue(Class<?> entityClass, Object[] rawKeyValues);
+	Serializable getIdValue(Object entityInstanceOrProxy);
 	Object getById(Class<?> entityClass, Serializable idValue);
 	AssociationAndComponentPath getAssociationAndComponentOnPath(Class<?> ownerClass, String pathStr);
 }

@@ -1,16 +1,33 @@
 package org.jsonplayback.player.hibernate.entities;
 
-import java.util.Collection;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+
+@Embeddable
 public class MasterBComp {
-	private Collection<DetailAEnt> detailAEntCol;
+	@OneToMany(cascade={}, fetch=FetchType.LAZY) 
+	@OrderBy("DTLA_SUB_ID")
+	@JoinColumns({
+		@JoinColumn(name="DUMMY_COL_MasterBComp_01", columnDefinition="INTEGER"),
+		@JoinColumn(name="DUMMY_COL_MasterBComp_02", columnDefinition="INTEGER"),
+	})
+	private Set<DetailAEnt> detailAEntCol;
+	@Embedded
 	private MasterBCompComp masterBCompComp;
 
-	public Collection<DetailAEnt> getDetailAEntCol() {
+	public Set<DetailAEnt> getDetailAEntCol() {
 		return detailAEntCol;
 	}
 
-	public void setDetailAEntCol(Collection<DetailAEnt> detailAEntCol) {
+	public void setDetailAEntCol(Set<DetailAEnt> detailAEntCol) {
 		this.detailAEntCol = detailAEntCol;
 	}
 

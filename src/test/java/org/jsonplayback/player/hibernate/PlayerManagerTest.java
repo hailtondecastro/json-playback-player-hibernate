@@ -28,13 +28,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.config.jsonplayback.TestServiceConfigBase;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import org.hibernate.criterion.Order;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
@@ -49,7 +50,9 @@ import org.jsonplayback.player.hibernate.entities.MasterBCompId;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
 import org.jsonplayback.player.hibernate.nonentities.DetailAWrapper;
 import org.jsonplayback.player.hibernate.nonentities.MasterAWrapper;
+import org.jsonplayback.player.util.NoOpLoggingSystem;
 import org.jsonplayback.player.util.SqlLogInspetor;
+import org.jsonplayback.player.util.spring.orm.hibernate3.JpbSpringJUnit4ClassRunner;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -60,10 +63,10 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -73,10 +76,32 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes=TestServiceConfigBase.class)
+@RunWith(JpbSpringJUnit4ClassRunner.class)
 @TestExecutionListeners(listeners={DependencyInjectionTestExecutionListener.class})
 public class PlayerManagerTest {
+	static {
+    	System.setProperty("hsqldb.reconfig_logging", "false");
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());
+		org.apache.logging.log4j.Logger loggerL4j2 = org.apache.logging.log4j.LogManager.getLogger(TestServiceConfigBase.class);
+		loggerL4j2.error("log4j 2: Logging test.");
+		loggerL4j2 = org.apache.logging.log4j.LogManager.getLogger(TestServiceConfigBase.class.getName());
+		loggerL4j2.error("log4j 2: Logging test. BY NAME");
+		org.apache.log4j.Logger loggerL4j1 = org.apache.log4j.LogManager.getLogger(TestServiceConfigBase.class);
+		loggerL4j1.error("log4j 1: Logging test.");
+		loggerL4j1 = org.apache.log4j.LogManager.getLogger(TestServiceConfigBase.class.getName());
+		loggerL4j1.error("log4j 1: Logging test. BY NAME");
+		Logger loggerSlf4j = LoggerFactory.getLogger(TestServiceConfigBase.class);
+		loggerSlf4j.error("SLF4J: Logging test.");
+		Log loggerCommon = LogFactory.getLog(TestServiceConfigBase.class);
+		loggerCommon.error("Common logging: Logging test.");
+		java.util.logging.Logger loggerJul = java.util.logging.Logger.getLogger(TestServiceConfigBase.class.getName());
+		loggerJul.log(java.util.logging.Level.SEVERE, "java.util.logging: Logging test.");
+		org.jboss.logging.Logger loggerJboss = org.jboss.logging.Logger.getLogger(TestServiceConfigBase.class);
+		loggerJboss.error("Jboss log manager: Logging test.");
+	}
+	
 	public static final Logger log = LoggerFactory.getLogger(PlayerManagerTest.class);
 	
 	@Autowired
@@ -84,6 +109,7 @@ public class PlayerManagerTest {
 	
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+    	System.out.println("TEST");
     }
     
     @AfterClass
@@ -93,12 +119,27 @@ public class PlayerManagerTest {
     @Autowired
     IPlayerManager manager;
     
+    private void createDataBaseStructures() {
+    	if (this.localSessionFactoryBean != null) {
+    		this.localSessionFactoryBean.dropDatabaseSchema();			
+    		this.localSessionFactoryBean.createDatabaseSchema();   	
+    	} else if (this.localSessionFactoryBean4 != null) {
+    	    SchemaExport export = new SchemaExport(this.localSessionFactoryBean4.getConfiguration());
+    	    export.drop(false, true);
+    	    export.create(false, true);
+    	} else if (this.localSessionFactoryBean5 != null) {
+    	    SchemaExport export = new SchemaExport(this.localSessionFactoryBean5.getConfiguration());
+    	    export.drop(false, true);
+    	    export.create(false, true);    		
+    	}
+    }
+    
     @Before
     public void setUp() throws Exception {
+    	this.createDataBaseStructures();
+    	
     	//System.setProperty("user.timezone", "GMT");
     	java.util.TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-    	this.localSessionFactoryBean.dropDatabaseSchema();			
-		this.localSessionFactoryBean.createDatabaseSchema();
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -108,9 +149,7 @@ public class PlayerManagerTest {
 				Session ss = PlayerManagerTest.this.sessionFactory.getCurrentSession();
 				try {
 					//SchemaExport
-					//tx = ss.beginTransaction();			
-					
-					final Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+					//tx = ss.beginTransaction();
 					
 					//SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 					//sqlLogInspetor.enable();
@@ -224,8 +263,7 @@ public class PlayerManagerTest {
     }
 
     public void setUpCustom(int  masterCount) throws Exception {
-		this.localSessionFactoryBean.dropDatabaseSchema();			
-		this.localSessionFactoryBean.createDatabaseSchema();
+    	this.createDataBaseStructures();
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -351,8 +389,14 @@ public class PlayerManagerTest {
     public void tearDown() throws Exception {
     }
     
-    @Autowired
-    private LocalSessionFactoryBean localSessionFactoryBean; 
+    @Autowired(required=false)
+    private LocalSessionFactoryBean localSessionFactoryBean;
+    
+    @Autowired(required=false)
+    private org.springframework.orm.hibernate4.LocalSessionFactoryBean localSessionFactoryBean4;
+    
+    @Autowired(required=false)
+    private org.springframework.orm.hibernate5.LocalSessionFactoryBean localSessionFactoryBean5;
     
     @Autowired
     PlatformTransactionManager transactionManager;

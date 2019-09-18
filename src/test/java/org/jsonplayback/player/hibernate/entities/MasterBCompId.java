@@ -2,6 +2,9 @@ package org.jsonplayback.player.hibernate.entities;
 
 import java.io.Serializable;
 
+import javax.persistence.Embeddable;
+
+@Embeddable
 public class MasterBCompId implements Serializable {
 	/**
 	 * 

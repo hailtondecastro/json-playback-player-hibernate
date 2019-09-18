@@ -27,6 +27,8 @@
   </Appenders>
  
   <Loggers>
+    <Logger name="org.hibernate" level="trace">
+    </Logger>
     <Logger name="org.hibernate.SQL" level="debug">
     </Logger>
     <!-- 

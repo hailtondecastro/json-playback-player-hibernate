@@ -20,14 +20,14 @@ import org.jsonplayback.player.hibernate.PlayerStatment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Hb3Support extends HbSupportBase {
-	private static Logger logger = LoggerFactory.getLogger(Hb3Support.class);
+public class Hb4Support extends HbSupportBase {
+	private static Logger logger = LoggerFactory.getLogger(Hb4Support.class);
 
 	private IPlayerManager manager;
 	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHbSupport> associationAndCompositiesMap = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
-	public Hb3Support(IPlayerManager manager) {
+	public Hb4Support(IPlayerManager manager) {
 		super(manager);
 		this.manager = manager;
 	}
@@ -57,7 +57,7 @@ public class Hb3Support extends HbSupportBase {
 	@Override
 	public Class<?> resolvePersistentCollectionClass() {
 		try {
-			return Class.forName("org.hibernate.collection.PersistentCollection");
+			return Class.forName("org.hibernate.collection.spi.PersistentCollection");
 		} catch (Throwable e) {
 			throw new RuntimeException("This should not happen", e);
 		}
@@ -83,7 +83,7 @@ public class Hb3Support extends HbSupportBase {
 					PreparedStatement.class.getName(),
 					Object.class.getName(),
 					int.class.getName(),
-					"org.hibernate.engine.SessionImplementor"
+					"org.hibernate.engine.spi.SessionImplementor"
 				},
 				hbIdType,
 				new Object[]{
@@ -94,7 +94,7 @@ public class Hb3Support extends HbSupportBase {
 				}
 			);
 //			hbIdType.nullSafeSet(playerStatment, idValue, 0,
-//					(org.hibernate.engine.SessionImplementor) this.manager.getConfig().getSessionFactory().getCurrentSession());
+//					(org.hibernate.engine.spi.SessionImplementor) this.manager.getConfig().getSessionFactory().getCurrentSession());
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
@@ -114,11 +114,12 @@ public class Hb3Support extends HbSupportBase {
 				this.runByReflection(
 						classMetadata.getClass().getName(),
 						"getIdentifier",
-						new String[]{ Object.class.getName(), "org.hibernate.engine.SessionImplementor"},
+						new String[]{ Object.class.getName(),
+						"org.hibernate.engine.spi.SessionImplementor"},
 						classMetadata,
 						new Object[]{ nonHibernateProxy, this.manager.getConfig().getSessionFactory().getCurrentSession()});
 //		Object idValue = classMetadata.getIdentifier(nonHibernateProxy,
-//				(org.hibernate.engine.SessionImplementor) this.manager.getConfig().getSessionFactory()
+//				(org.hibernate.engine.spi.SessionImplementor) this.manager.getConfig().getSessionFactory()
 //						.getCurrentSession());
 		
 		Type hbIdType = classMetadata.getIdentifierType();
@@ -130,7 +131,7 @@ public class Hb3Support extends HbSupportBase {
 						PreparedStatement.class.getName(),
 						Object.class.getName(),
 						int.class.getName(),
-						"org.hibernate.engine.SessionImplementor"
+						"org.hibernate.engine.spi.SessionImplementor"
 					},
 					hbIdType,
 					new Object[]{
@@ -141,7 +142,7 @@ public class Hb3Support extends HbSupportBase {
 					}
 				);
 //			hbIdType.nullSafeSet(playerStatment, idValue, 0,
-//					(org.hibernate.engine.SessionImplementor) this.manager.getConfig().getSessionFactory().getCurrentSession());
+//					(org.hibernate.engine.spi.SessionImplementor) this.manager.getConfig().getSessionFactory().getCurrentSession());
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
@@ -156,7 +157,7 @@ public class Hb3Support extends HbSupportBase {
 				new String[]{},
 				coll,
 				new Object[]{});
-		//return ((org.hibernate.collection.PersistentCollection)coll).getRole();
+		//return ((org.hibernate.collection.spi.PersistentCollection)coll).getRole();
 	}
 
 	@Override
@@ -180,7 +181,7 @@ public class Hb3Support extends HbSupportBase {
 						new String[] {
 							ResultSet.class.getName(),
 							String[].class.getName(),
-							"org.hibernate.engine.SessionImplementor",
+							"org.hibernate.engine.spi.SessionImplementor",
 							Object.class.getName()
 						},
 						hbIdType,
@@ -216,7 +217,7 @@ public class Hb3Support extends HbSupportBase {
 				(Serializable) this.runByReflection(
 				classMetadata.getClass().getName(),
 				"getIdentifier",
-				new String[]{ Object.class.getName(), "org.hibernate.engine.SessionImplementor"},
+				new String[]{ Object.class.getName(), "org.hibernate.engine.spi.SessionImplementor"},
 				classMetadata,
 				new Object[]{ entityInstanceOrProxy, this.manager.getConfig().getSessionFactory().getCurrentSession()});
 		return idValue;

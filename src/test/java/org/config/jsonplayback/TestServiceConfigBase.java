@@ -4,6 +4,8 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.jsonplayback.player.IPlayerConfig;
@@ -15,6 +17,11 @@ import org.jsonplayback.player.hibernate.PlayerBeanSerializerModifier;
 import org.jsonplayback.player.hibernate.PlayerConfig;
 import org.jsonplayback.player.hibernate.PlayerManagerDefault;
 import org.jsonplayback.player.hibernate.PlayerSnapshotSerializer;
+import org.jsonplayback.player.hibernate.entities.DetailAEnt;
+import org.jsonplayback.player.hibernate.entities.MasterAEnt;
+import org.jsonplayback.player.hibernate.entities.MasterBEnt;
+import org.jsonplayback.player.spring.context.annotation.OnHibernate3;
+import org.jsonplayback.player.spring.context.annotation.OnHibernate4;
 import org.jsonplayback.player.util.NoOpLoggingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +42,10 @@ import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.orm.hibernate3.HibernateTransactionManager;
 import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -76,9 +83,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class TestServiceConfigBase {
 	
 	static {
-    	System.setProperty("hsqldb.reconfig_logging", "false");
-		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());		
 	}
 	
 	@SuppressWarnings("unused")
@@ -96,10 +100,8 @@ public class TestServiceConfigBase {
     
     @SuppressWarnings("deprecation")
 	@Bean
-    public LocalSessionFactoryBean getSessionFactoryBean() {
-    	System.setProperty("hsqldb.reconfig_logging", "false");
-		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());
+	@Conditional(OnHibernate3.class)
+    public LocalSessionFactoryBean getSessionFactoryBean3() {
     	
     	// https://stackoverflow.com/questions/41230234/using-datasource-to-connect-to-sqlite-with-xerial-sqlite-jdbc-driver
     	//SQLiteConfig sqLiteConfig = new SQLiteConfig();
@@ -132,11 +134,47 @@ public class TestServiceConfigBase {
     	
     	return customLocalSessionFactoryBean;
     }
+ 
     
+    @SuppressWarnings("deprecation")
+	@Bean
+	@Conditional(OnHibernate4.class)
+    public org.springframework.orm.hibernate4.LocalSessionFactoryBean getSessionFactoryBean4() {
+    	System.setProperty("hsqldb.reconfig_logging", "false");
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());
+    	
+    	JDBCDataSource dataSource = new JDBCDataSource();
+    	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
+    	//CustomLocalSessionFactoryBean customLocalSessionFactoryBean = new CustomLocalSessionFactoryBean();
+    	org.springframework.orm.hibernate4.LocalSessionFactoryBean customLocalSessionFactoryBean = new org.springframework.orm.hibernate4.LocalSessionFactoryBean();
+    	customLocalSessionFactoryBean.setDataSource(dataSource);
+    	customLocalSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
+    		MasterAEnt.class,
+    		MasterBEnt.class,
+    		DetailAEnt.class
+    	});
+    	Properties hbProperties = new Properties();
+    	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    	//hbProperties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+    	hbProperties.setProperty("format_sql", "true");
+    	customLocalSessionFactoryBean.setHibernateProperties(hbProperties);
+    	customLocalSessionFactoryBean.setDataSource(dataSource);
+    	
+    	return customLocalSessionFactoryBean;
+    }
+ 
     
     @Bean
-    public PlatformTransactionManager transactionManager(SessionFactory sessionFactory) {
-    	return new HibernateTransactionManager(sessionFactory);
+    @Conditional(OnHibernate3.class)
+    public PlatformTransactionManager transactionManager3(SessionFactory sessionFactory) {
+    	return new org.springframework.orm.hibernate3.HibernateTransactionManager(sessionFactory);
+    }
+    
+    @Bean
+    @Conditional(OnHibernate4.class)
+    public PlatformTransactionManager transactionManager4(SessionFactory sessionFactory) {
+    	return new org.springframework.orm.hibernate4.HibernateTransactionManager(sessionFactory);
     }
     
 	@Bean

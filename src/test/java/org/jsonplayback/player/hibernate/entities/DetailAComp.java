@@ -2,15 +2,27 @@ package org.jsonplayback.player.hibernate.entities;
 
 import java.sql.Blob;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+
 import org.jsonplayback.player.hibernate.BlobBase64Serializer;
 import org.jsonplayback.player.hibernate.ByteArrayBase64Serializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+@Embeddable
 public class DetailAComp {
+	@ManyToOne
+	@JoinColumns({
+		@JoinColumn(name="DUMMY_COL_DetailAComp_01"),
+		@JoinColumn(name="DUMMY_COL_DetailAComp_02")
+	})
 	private MasterBEnt masterB;
+	@Embedded
 	private DetailACompComp detailACompComp;
-	private Integer subIdB;
 	private String vcharA;
 	private String vcharB;
 	@JsonSerialize(using=ByteArrayBase64Serializer.class)
@@ -35,12 +47,6 @@ public class DetailAComp {
 	}
 	public void setMasterB(MasterBEnt masterB) {
 		this.masterB = masterB;
-	}
-	public Integer getSubIdB() {
-		return subIdB;
-	}
-	public void setSubIdB(Integer subIdB) {
-		this.subIdB = subIdB;
 	}
 	public String getVcharA() {
 		return vcharA;

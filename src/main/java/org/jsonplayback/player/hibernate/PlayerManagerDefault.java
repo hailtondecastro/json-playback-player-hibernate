@@ -18,31 +18,23 @@ import java.sql.Clob;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.Stack;
 import java.util.function.Function;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
-import org.hibernate.HibernateException;
-import org.hibernate.engine.SessionImplementor;
 //import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.type.AssociationType;
-import org.hibernate.type.CollectionType;
-import org.hibernate.type.CompositeType;
-import org.hibernate.type.EntityType;
-import org.hibernate.type.Type;
+//import org.hibernate.type.Type;
 import org.jsonplayback.hbsupport.Hb3Support;
+import org.jsonplayback.hbsupport.Hb4Support;
 import org.jsonplayback.hbsupport.HbSupport;
 import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
@@ -93,9 +85,6 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	ThreadLocal<Stack<PlayerJsonSerializer>> playerJsonSerializerStepStackTL = new ThreadLocal<Stack<PlayerJsonSerializer>>(); 
 	ThreadLocal<Stack<PlayerMetadatas>> playerMetadatasWritingStackTL = new ThreadLocal<Stack<PlayerMetadatas>>();
 
-//	ThreadLocal<Stack<String>> currentCompositePathStackTL = new ThreadLocal<>();
-//	ThreadLocal<Object> currentCompositeOwner = new ThreadLocal<>();
-
 	@Override
 	public <T> PlayerSnapshot<T> createPlayerSnapshot(T result) {
 		if (logger.isTraceEnabled()) {
@@ -114,16 +103,18 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.debug(MessageFormat.format("configure.  config:\n{0}", config));
 		}
 		this.config = config;
-		this.hibernateVersion = HibernateVersion.valueOf(envPrps.getProperty(HBVERSION));
+		this.hibernateVersion = getHibernateVersionStatic();
 		
 		if (this.hibernateVersion.equals(HibernateVersion.HB3)) {
 			this.hbSupport = new Hb3Support(this);
+		} else if (this.hibernateVersion.equals(HibernateVersion.HB4)) {
+			this.hbSupport = new Hb4Support(this);
 		} else {
-			throw new RuntimeException("hibernate version not supported: " + this.hibernateVersion);
+			throw new RuntimeException(
+				"hibernate version not supported: " +
+				this.hibernateVersion +
+				". Colaborate, help us to support this hibernate version.");
 		}
-//		else if (envPrps.getProperty(HBVERSION).equals("HB3")) {
-//			this.hbSupport = new Hb3Support(this);
-//		}
 		return this;
 	}
 
@@ -138,84 +129,6 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		this.initialed = true;
 		return this;
 	}
-//
-//	private void collectAssociationAndCompositiesMap() {
-//		if (logger.isDebugEnabled()) {
-//			logger.debug("collectAssociationAndCompositiesMap()");
-//		}
-//		for (String entityName : this.config.getSessionFactory().getAllClassMetadata().keySet()) {
-//			ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(entityName);
-//			
-//			Class<?> ownerRootClass;
-//			try {
-//				ownerRootClass = Class.forName(classMetadata.getEntityName());
-//			} catch (ClassNotFoundException e) {
-//				throw new RuntimeException(classMetadata.getEntityName() + " not supported.", e);
-//			}
-//
-//			List<Type> allPrpsAndId = new ArrayList<>();
-//			List<String> allPrpsAndIdNames = new ArrayList<>();
-//			allPrpsAndId.addAll(Arrays.asList(classMetadata.getPropertyTypes()));
-//			allPrpsAndId.add(classMetadata.getIdentifierType());
-//			allPrpsAndIdNames.addAll(Arrays.asList(classMetadata.getPropertyNames()));
-//			allPrpsAndIdNames.add(classMetadata.getIdentifierPropertyName());
-//			for (int i = 0; i < allPrpsAndId.size(); i++) {
-//				Type prpType = allPrpsAndId.get(i);
-//				String prpName = allPrpsAndIdNames.get(i);
-//				AssociationAndComponentPathKey aacKeyFromRoot;
-//				if (prpType instanceof CompositeType) {
-//					Stack<String> pathStack = new Stack<>();
-//					Stack<CompositeType> compositeTypePathStack = new Stack<>();
-//					pathStack.push(prpName);
-//					this.collectAssociationAndCompositiesMapRecursive(classMetadata, null, (CompositeType) prpType,
-//							pathStack, compositeTypePathStack);
-//				} else if (prpType instanceof EntityType) {
-//					EntityType entityType = (EntityType) prpType;
-//
-//					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
-//
-//					AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
-//					relEacPath.setAacKey(aacKeyFromRoot);
-//					relEacPath.setCompositeTypePath(new CompositeType[] {});
-//					relEacPath.setCompType(null);
-//					relEacPath.setRelEntity(entityType);
-//					relEacPath.setCollType(null);
-//					relEacPath.setCompositePrpPath(new String[] {});
-//					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
-//				} else if (prpType instanceof CollectionType) {
-//					CollectionType collType = (CollectionType) prpType;
-//
-//					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
-//
-//					AssociationAndComponentPath relEacPath = new AssociationAndComponentPath();
-//					relEacPath.setAacKey(aacKeyFromRoot);
-//					relEacPath.setCompositeTypePath(new CompositeType[] {});
-//					relEacPath.setCompType(null);
-//					relEacPath.setRelEntity(null);
-//					relEacPath.setCollType(collType);
-//					relEacPath.setCompositePrpPath(new String[] {});
-//					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
-//				}
-//			}
-//		}
-//		for (AssociationAndComponentPathKey key : this.associationAndCompositiesMap.keySet()) {
-//			AssociationAndComponentPath aacPath = this.associationAndCompositiesMap.get(key);
-//			if (aacPath.getCompType() != null) {
-//				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getCompType().getReturnedClass();
-//			this.compositiesSet.add(compositeClass);
-//	}
-//	}
-//	}
-//
-//	private String mountPathFromStack(Collection<String> pathStack) {
-//		String pathResult = "";
-//		String dotStr = "";
-//		for (String pathItem : pathStack) {
-//			pathResult += dotStr + pathItem;
-//			dotStr = ".";
-//		}
-//		return pathResult;
-//	}
 
 	@Override
 	public String serializeSignature(SignatureBean signatureBean) {
@@ -234,13 +147,11 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 
 		signatureBeanJson.setClazzName(signatureBean.getClazz().getName());
-//		signatureBeanJson.setEntityName(signatureBean.getEntityName());
 		signatureBeanJson.setPropertyName(signatureBean.getPropertyName());
 		signatureBeanJson.setRawKeyValues(new String[rawValueList.size()]);
 		signatureBeanJson.setRawKeyTypeNames(new String[rawValueList.size()]);
 		signatureBeanJson.setRawKeyValues(rawValueList.toArray(signatureBeanJson.getRawKeyValues()));
 		signatureBeanJson.setRawKeyTypeNames(rawTypeList.toArray(signatureBeanJson.getRawKeyTypeNames()));
-//		signatureBeanJson.setIsAssoc(signatureBean.getIsAssoc());
 		signatureBeanJson.setIsColl(signatureBean.getIsColl());
 		signatureBeanJson.setIsComp(signatureBean.getIsComp());
 
@@ -355,7 +266,6 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 		signatureBean.setEntityName(signatureBeanJson.getClazzName());
 		signatureBean.setPropertyName(signatureBeanJson.getPropertyName());
-//		signatureBean.setIsAssoc(signatureBeanJson.getIsAssoc());
 		signatureBean.setIsColl(signatureBeanJson.getIsColl());
 		signatureBean.setIsComp(signatureBeanJson.getIsComp());
 		
@@ -389,87 +299,27 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (!this.isRelationship(ownerClass, fieldName)) {
 			throw new RuntimeException("This is not a relationship: " + ownerClass + "->" + fieldName);
 		}
-		//ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(ownerClass);
-		
-//		//Type prpType = null;
-//		//if (classMetadata != null) {
-//		if (this.getHbSupport().isPersistentClass(ownerClass)) {
-//			//prpType = classMetadata.getPropertyType(fieldName);
-//			//nothing
-//		} else {
-//			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, fieldName);
-//			logger.warn(
-//					"########## NAO ESTOU CERTO SOBRE ISSO:\nCompositeType componentType = this.compositiesMap.get(key).getCompType();");
-//			CompositeType componentType = this.associationAndCompositiesMap.get(aacKey).getCompType();
-//			if (componentType == null) {
-//				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
-//			}
-//			
-//			int prpIndex = -1;
-//			String[] cpsTpArrPrps = componentType.getPropertyNames();
-//			for (int i = 0; i < cpsTpArrPrps.length; i++) {
-//				if (fieldName.equals(cpsTpArrPrps[i])) {
-//					prpIndex = i;
-//					break;
-//				}
-//			}			
-//			if (prpIndex == -1) {
-//				throw new RuntimeException("fieldName does not exists: " + ownerClass + "->" + fieldName);
-//			}
-//			
-//			prpType = componentType.getSubtypes()[prpIndex];
-//		}
 		
 		if (!this.getHbSupport().isCollectionRelationship(ownerClass, fieldName)) {
 			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName);
 		}
-//		if (!(prpType instanceof AssociationType)) {
-//			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
-//		}
 
 		SignatureBean signatureBean = null;
-		// AssociationType assType = (AssociationType)
-		// classMetadata.getPropertyType(fieldName);
-		//AssociationType assType = (AssociationType) prpType;
-		Object idValue = null;
-		//if (assType instanceof CollectionType) {
-//		if (this.getHbSupport().isCollectionRelationship(ownerClass, fieldName)) {
-			if (ownerValue instanceof HibernateProxy) {
-				signatureBean = this.generateLazySignature((HibernateProxy) ownerValue);
-			} else {
-				signatureBean = this.generateSignature(ownerValue);
-			}
-//			signatureBean.setIsAssoc(true);
-			if (ownerValue == null) {
-				throw new IllegalArgumentException(
-						"ownerValue can not be null em caso de CollectionType: " + ownerClass + "->" + fieldName);
-			}
-			// if collection is not loaded "collType.getKeyOfOwner" is inconsistent (null)
-			// on hb-3
-//			CollectionType collType = (CollectionType) assType;
-//			idValue = collType.getKeyOfOwner(ownerValue,
-//					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
-			signatureBean.setClazz(ownerClass);
-			signatureBean.setIsColl(true);
-			signatureBean.setPropertyName(fieldName);
-//		} else {
-//			if (fieldValue instanceof HibernateProxy) {
-//				signatureBean = this.generateLazySignature((HibernateProxy) fieldValue);
-//			} else {
-//				signatureBean = this.generateSignature(fieldValue);
-//			}
-//		}
-
-			// This will cause two signatures for the same instance!?!?!?!?
-			// signatureBean.setIsAssoc(true);
-
-//			classMetadata = this.config.getSessionFactory().getClassMetadata(assType.getReturnedClass());
-//			idValue = classMetadata.getIdentifier(fieldValue,
-//					(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
-//			signatureBean.setClazz(assType.getReturnedClass());
-//		}
-		// signatureBean.setEntityName(classMetadata.getEntityName());
-		
+		if (ownerValue instanceof HibernateProxy) {
+			signatureBean = this.generateLazySignature((HibernateProxy) ownerValue);
+		} else {
+			signatureBean = this.generateSignature(ownerValue);
+		}
+		if (ownerValue == null) {
+			throw new IllegalArgumentException(
+					"ownerValue can not be null em caso de CollectionType: " + ownerClass + "->" + fieldName);
+		}
+		// if collection is not loaded "collType.getKeyOfOwner" is inconsistent (null)
+		// on hb-3
+		signatureBean.setClazz(ownerClass);
+		signatureBean.setIsColl(true);
+		signatureBean.setPropertyName(fieldName);
+	
 		if (logger.isTraceEnabled()) {
 			logger.trace(
 					MessageFormat.format("generateLazySignatureForRelashionship().signatureBean:\n{0}", signatureBean));
@@ -487,32 +337,6 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		} else {
 			throw new RuntimeException("fieldValue type does not support LazyProperty: " + fieldValue.getClass());
 		}
-//		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(ownerClass);
-//
-//		Type prpType = null;
-//		if (classMetadata != null) {
-//			prpType = classMetadata.getPropertyType(fieldName);
-//		} else {
-//			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, fieldName);
-//			CompositeType componentType = this.associationAndCompositiesMap.get(aacKey).getCompType();
-//			if (componentType == null) {
-//				throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName + ": " + prpType);
-//			}
-//
-//			int prpIndex = -1;
-//			String[] cpsTpArrPrps = componentType.getPropertyNames();
-//			for (int i = 0; i < cpsTpArrPrps.length; i++) {
-//				if (fieldName.equals(cpsTpArrPrps[i])) {
-//					prpIndex = i;
-//					break;
-//				}
-//			}
-//			if (prpIndex == -1) {
-//				throw new RuntimeException("fieldName does not exists: " + ownerClass + "->" + fieldName);
-//			}
-//
-//			prpType = componentType.getSubtypes()[prpIndex];
-//		}
 
 		//if (prpType instanceof AssociationType) {
 		if (this.getHbSupport().isRelationship(ownerClass, fieldName)) {
@@ -583,35 +407,6 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("getBySignature(). Begin. \nsignatureBean:\n{0}", signature));
 		}
-		
-//		ClassMetadata classMetadata = this.config.getSessionFactory().getClassMetadata(signature.getClazz());
-//
-//		Type hbIdType = classMetadata.getIdentifierType();
-
-//		if (logger.isTraceEnabled()) {
-//			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''", hbIdType));
-//		}
-		
-//		Serializable idValue = (Serializable) hbIdType.resolve(signature.getRawKeyValues(),
-//				(SessionImplementor) this.config.getSessionFactory().getCurrentSession(), null);
-//		Serializable idValue = null;
-//		
-//		PlayerResultSet playerResultSet = new PlayerResultSet(signature.getRawKeyValues());
-//		try {
-//			idValue = (Serializable) hbIdType.nullSafeGet(playerResultSet, playerResultSet.getColumnNames(),
-//					(SessionImplementor) this.config.getSessionFactory().getCurrentSession(), null);
-//		} catch (HibernateException e) {
-//			throw new RuntimeException("This should not happen. prpType: ");
-//		} catch (SQLException e) {
-//			throw new RuntimeException("This should not happen. prpType: ");
-//		}
-//		
-//		if (idValue.getClass().isArray()) {
-//			if (((Object[])idValue).length == 1) {
-//				idValue = (Serializable) ((Object[])idValue)[0];
-//			}
-//		}
-//		Object owner = this.config.getSessionFactory().getCurrentSession().get(signature.getClazz(), idValue);
 		Serializable idValue = this.getHbSupport().getIdValue(signature.getClazz(), signature.getRawKeyValues());
 		Object owner = this.getHbSupport().getById(signature.getClazz(), idValue);
 		Object result = owner;
@@ -620,38 +415,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''", idValue.getClass()));
 		}
 		
-		Type propertyType = null;
+		//Type propertyType = null;
 		if (signature.getPropertyName() != null) {
-//			// significa que eh uma collection, mas no futuro podera ser tambem uma
-//			// propriedade lazy, como um blob por exemplo!
-//			Type prpType = classMetadata.getPropertyType(signature.getPropertyName());
-//			if (logger.isWarnEnabled()) {
-//				logger.warn(MessageFormat
-//						.format("getBySignature(). propery Type: ''{0}''. We are inferring this is an 'one to many'"
-//								+ " relationship because propertyName is not null, on the"
-//								+ " future this will not be always true, there will exists"
-//								+ " non collection lazy properties like Blob's for instance.", prpType));
-//			}
-//			Collection resultColl = null;
-//			if (prpType instanceof CollectionType) {
-//				if (prpType instanceof SetType) {
-//					resultColl = new LinkedHashSet<>();
-//				} else if (prpType instanceof ListType) {
-//					throw new RuntimeException("Not supported. prpType: " + prpType);
-//				} else if (prpType instanceof BagType) {
-//					throw new RuntimeException("Not supported. prpType: " + prpType);
-//				} else {
-//					throw new RuntimeException("This should not happen. prpType: " + prpType);
-//				}
-//			} else {
-//				throw new RuntimeException("This should not happen. prpType: " + prpType);
-//			}
-//			Collection persistentCollection = (Collection) classMetadata.getPropertyValue(owner,
-//					signature.getPropertyName(),
-//					this.config.getSessionFactory().getCurrentSession().getEntityMode());
-//			for (Object item : persistentCollection) {
-//				resultColl.add(item);
-//			}
 			try {
 				result = PropertyUtils.getNestedProperty(owner, signature.getPropertyName());
 			} catch (Exception e) {
@@ -690,8 +455,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 
 		@SuppressWarnings("deprecation")
-		Object idValue = this.config.getSessionFactory().getClassMetadata(entityClass).getIdentifier(object,
-				(SessionImplementor) this.config.getSessionFactory().getCurrentSession());
+		Object idValue = this.getHbSupport().getIdValue(object);
 		return idValue;
 	}
 	
@@ -846,9 +610,6 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 	@Override
 	public IReplayable prepareReplayable(Tape tape) {
-//		throw new RuntimeException("");
-//		this.temporaryConfigurationTL.set(newConfig);
-//		return null;
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("prepareReplayable(). tape:\n {0}'", tape));
 		}
@@ -1060,7 +821,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 	private <O> void registerComponentOwnerPriv(O owner, String propertyName, Object owned) {
 		if (owned == null) {
-			throw new RuntimeException("propertyFunc can not returm null!");
+			throw new RuntimeException("propertyFunc can not return null!");
 		}
 		IdentityRefKey identityRefKey = new IdentityRefKey(owned);
 		Class<O> ownerClass;
@@ -1157,16 +918,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		return this.hibernateVersion;
 	}
 	
-//	@Override
-//	public Stack<String> getCurrentCompositePathStack() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public Object getCurrentCompositeOwner() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
+	public static HibernateVersion getHibernateVersionStatic() {
+		return HibernateVersion.valueOf(envPrps.getProperty(HBVERSION));
+	}
 }
-/*gerando conflito*/
