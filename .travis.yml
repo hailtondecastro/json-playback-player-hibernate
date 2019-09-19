@@ -10,10 +10,11 @@ before_install:
 script:
   - mvn -P hb3,travis clean install
   - mvn -P hb4,travis clean install
+  - mvn -P hb5,travis clean install
     
 deploy:
   provider: script
-  script: mvn -P hb3,travis deploy -DskipTests=true && mvn -P hb4,travis deploy -DskipTests=true
+  script: mvn -P hb3,travis deploy -DskipTests=true && mvn -P hb4,travis deploy -DskipTests=true && mvn -P hb5,travis deploy -DskipTests=true
   skip_cleanup: true
   on:
     tags: true

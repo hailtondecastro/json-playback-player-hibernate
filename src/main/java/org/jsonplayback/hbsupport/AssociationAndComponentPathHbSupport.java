@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
+import org.hibernate.type.EntityType;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,7 +16,13 @@ public class AssociationAndComponentPathHbSupport extends AssociationAndComponen
 	private CompositeType[] compositeTypePath;
 	private CollectionType collType;
 	private CompositeType compType;	
-	
+	private EntityType relEntity;
+	public EntityType getRelEntity() {
+		return relEntity;
+	}
+	public void setRelEntity(EntityType relEntity) {
+		this.relEntity = relEntity;
+	}
 	public CompositeType getCompType() {
 		return compType;
 	}

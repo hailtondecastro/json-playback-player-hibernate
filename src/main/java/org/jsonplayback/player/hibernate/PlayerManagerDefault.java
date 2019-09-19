@@ -35,6 +35,7 @@ import org.hibernate.proxy.HibernateProxy;
 //import org.hibernate.type.Type;
 import org.jsonplayback.hbsupport.Hb3Support;
 import org.jsonplayback.hbsupport.Hb4Support;
+import org.jsonplayback.hbsupport.Hb5Support;
 import org.jsonplayback.hbsupport.HbSupport;
 import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
@@ -109,6 +110,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			this.hbSupport = new Hb3Support(this);
 		} else if (this.hibernateVersion.equals(HibernateVersion.HB4)) {
 			this.hbSupport = new Hb4Support(this);
+		} else if (this.hibernateVersion.equals(HibernateVersion.HB5)) {
+			this.hbSupport = new Hb5Support(this);
 		} else {
 			throw new RuntimeException(
 				"hibernate version not supported: " +
@@ -441,7 +444,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean isPersistentClass(Class clazz) {
-		return this.config.getSessionFactory().getClassMetadata(clazz) != null;
+		return this.getHbSupport().isPersistentClass(clazz);
 	}
 
 	@Override

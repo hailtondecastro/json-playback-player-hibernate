@@ -29,4 +29,9 @@ public interface HbSupport {
 	Serializable getIdValue(Object entityInstanceOrProxy);
 	Object getById(Class<?> entityClass, Serializable idValue);
 	AssociationAndComponentPath getAssociationAndComponentOnPath(Class<?> ownerClass, String pathStr);
+	Object runByReflection(String classStr, String methodName, String[] argsClassStrArr, Object instance,
+			Object[] argsValues);
+	Object instanciteByReflection(String classStr, String[] argsClassStrArr, Object[] argsValues);
+	Class<?> correctClass(String name);
+	boolean testCollectionStyle(Class<?> ownerClass, String prpName, CollectionStyle style);
 }

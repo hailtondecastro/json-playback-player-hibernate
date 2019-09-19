@@ -6,7 +6,7 @@
 
 	<groupId>io.github.hailtondecastro</groupId>
 	<artifactId>json-playback-player-hibernate</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
+	<version>0.2.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>json-playback-player-hibernate</name>
 	<description>Frameworks and APIs for exchanging/interoperation entity object graph states and their operations (changing fields, collections modifications, etc) between two software layers using json.</description>
@@ -41,6 +41,8 @@
 		<version.java.target>1.8</version.java.target>
 		<jsonplayback.hbversion3>3.6.10.Final</jsonplayback.hbversion3>
 		<jsonplayback.hbversion4>4.3.11.Final</jsonplayback.hbversion4>
+		<jsonplayback.hbversion5>5.4.5.Final</jsonplayback.hbversion5>
+		<jsonplayback.hbversion6>6.0.0.Alpha2</jsonplayback.hbversion6>
 	</properties>
 
 	<dependencies>
@@ -92,31 +94,37 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>4.3.7.RELEASE</version>
+			<version>${jsonplayback.spring.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>4.3.7.RELEASE</version>
+			<version>${jsonplayback.spring.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-			<version>4.3.7.RELEASE</version>
+			<version>${jsonplayback.spring.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
-			<version>1.5.2.RELEASE</version>
+			<version>${jsonplayback.springboot.version}</version>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-autoconfigure</artifactId>
-			<version>1.5.2.RELEASE</version>
+			<version>${jsonplayback.springboot.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -129,7 +137,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-logging</artifactId>
-			<version>1.5.2.RELEASE</version>
+			<version>${jsonplayback.springboot.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -253,46 +261,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<inherited>true</inherited>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.7</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<autoReleaseAfterClose>true</autoReleaseAfterClose>
-				</configuration>
-			</plugin>
 		</plugins>
-		
-
-
 
 		<pluginManagement>
 			<plugins>
@@ -327,9 +296,6 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
-
-
-		
 	</build>
 
 	<profiles>
@@ -340,6 +306,8 @@
 			</activation>
 			<properties>
 				<jsonplayback.classifier>hb3</jsonplayback.classifier>
+				<jsonplayback.springboot.version>1.5.2.RELEASE</jsonplayback.springboot.version>
+				<jsonplayback.spring.version>4.3.7.RELEASE</jsonplayback.spring.version>
 			</properties>
 			<dependencies>
 				<dependency>
@@ -354,6 +322,8 @@
 			<id>hb4</id>
 			<properties>
 				<jsonplayback.classifier>hb4</jsonplayback.classifier>
+				<jsonplayback.springboot.version>1.5.2.RELEASE</jsonplayback.springboot.version>
+				<jsonplayback.spring.version>4.3.7.RELEASE</jsonplayback.spring.version>
 			</properties>
 			<dependencies>
 				<dependency>
@@ -363,6 +333,42 @@
 					<optional>true</optional>
 				</dependency>
 			</dependencies>
+		</profile>
+		<profile>
+			<id>hb5</id>
+			<properties>
+				<jsonplayback.classifier>hb5</jsonplayback.classifier>
+				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
+				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+					<version>${jsonplayback.hbversion5}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>hb6</id>
+			<properties>
+				<jsonplayback.classifier>hb6</jsonplayback.classifier>
+				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
+				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>io.github.hailtondecastro</groupId>
+					<artifactId>json-playback-player-hb3-dummy</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+					<version>${jsonplayback.hbversion6}</version>
+				</dependency>
+			</dependencies>
+			
 		</profile>
  		<profile>
 			<id>travis</id>
@@ -387,6 +393,42 @@
 								</configuration>
 							</execution>
 						</executions>
+					</plugin>
+					<plugin>
+						<inherited>true</inherited>
+						<artifactId>maven-source-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9.1</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.7</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>ossrh</serverId>
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>

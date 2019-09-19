@@ -1,10 +1,7 @@
 package org.jsonplayback.hbsupport;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.PreparedStatement;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,39 +16,46 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.persistence.criteria.CriteriaBuilder.In;
-
 import org.hibernate.HibernateException;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.AssociationType;
+import org.hibernate.type.BagType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
+import org.hibernate.type.ListType;
+import org.hibernate.type.MapType;
+import org.hibernate.type.SetType;
+//import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPathKey;
 import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
-import org.jsonplayback.player.hibernate.PlayerResultSet;
-import org.jsonplayback.player.hibernate.PlayerStatment;
+import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.util.ClassUtil;
 
 public abstract class HbSupportBase implements HbSupport {
 	private static Logger logger = LoggerFactory.getLogger(HbSupportBase.class);
 
 	private IPlayerManager manager;
 	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHbSupport> associationAndCompositiesMap = new HashMap<>();
+	private Map<String, ClassMetadata> persistentClasses = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	public HbSupportBase(IPlayerManager manager) {
 		this.manager = manager;
 		this.persistentCollecitonClass = this.resolvePersistentCollectionClass();
+		
+		this.primitiveTypes = new HashMap<>();
+		this.primitiveTypes.put(int.class.getName(), int.class);
+		this.primitiveTypes.put(boolean.class.getName(), boolean.class);
+		this.primitiveTypes.put(long.class.getName(), long.class);
 	}
-
+	private Map<String, Class<?>> primitiveTypes;
+	
 	protected Class<?> persistentCollecitonClass;
 
 	@Override
@@ -239,13 +243,18 @@ public abstract class HbSupportBase implements HbSupport {
 		}
 	}
 
+	public Map<String,ClassMetadata> getAllClassMetadata() {
+		return this.manager.getConfig().getSessionFactory().getAllClassMetadata();		
+	}
+	
 	@Override
 	public void collectAssociationAndCompositiesMap() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("collectAssociationAndCompositiesMap()");
 		}
-		for (String entityName : this.manager.getConfig().getSessionFactory().getAllClassMetadata().keySet()) {
-			ClassMetadata classMetadata = this.manager.getConfig().getSessionFactory().getClassMetadata(entityName);
+		this.persistentClasses = this.getAllClassMetadata();
+		for (String entityName : this.persistentClasses.keySet()) {
+			ClassMetadata classMetadata = this.persistentClasses.get(entityName);
 
 			Class<?> ownerRootClass;
 			try {
@@ -328,7 +337,7 @@ public abstract class HbSupportBase implements HbSupport {
 			throw new IllegalArgumentException("fieldName can not be null");
 		}
 
-		ClassMetadata classMetadata = this.manager.getConfig().getSessionFactory().getClassMetadata(clazz);
+		ClassMetadata classMetadata = this.persistentClasses.get(clazz.getName());
 		CompositeType compositeType = null;
 		if (classMetadata == null) {
 			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(clazz, fieldName);
@@ -393,7 +402,7 @@ public abstract class HbSupportBase implements HbSupport {
 
 	@Override
 	public boolean isPersistentClass(Class<?> clazz) {
-		if (this.manager.getConfig().getSessionFactory().getClassMetadata(clazz) != null) {
+		if (this.persistentClasses.containsKey(clazz.getName())) {
 			return true;
 		} else {
 			return false;
@@ -448,6 +457,28 @@ public abstract class HbSupportBase implements HbSupport {
 			throw new RuntimeException("This should not happen. prpType: ");
 		}
 	}
+	
+	@Override
+	public boolean testCollectionStyle(Class<?> ownerClass, String prpName, CollectionStyle style) {
+		ClassMetadata classMetadata = this.persistentClasses.get(ownerClass.getName());
+		if (classMetadata != null) {
+			Type prpType = classMetadata.getPropertyType(prpName);
+			if (prpType instanceof CollectionType) {
+				if (style == CollectionStyle.SET && prpType instanceof SetType) {
+					return true;
+				} else if (style == CollectionStyle.BAG && prpType instanceof BagType) {
+					return true;
+				} else if (style == CollectionStyle.LIST && prpType instanceof ListType) {
+					return true;
+				} else if (style == CollectionStyle.MAP && prpType instanceof MapType) {
+					return true;
+				}
+			} else { 
+				return false;
+			}
+		}
+		return false;
+	}
 
 	@Override
 	public boolean isComponentOrRelationship(Class<?> ownerClass, String pathFromOwner) {
@@ -455,31 +486,18 @@ public abstract class HbSupportBase implements HbSupport {
 		return this.associationAndCompositiesMap.containsKey(aacKey);
 	}
 	
-	protected Object runByReflection(String classStr, String methodName, String[] argsClassStrArr, Object instance, Object[] argsValues) {
-		Class<?> clazz;
-		try {
-			clazz = Class.forName(classStr);
-			Class<?>[] argsClassArr = new Class<?>[argsClassStrArr.length];
-			for (int i = 0; i < argsClassStrArr.length; i++) {
-				argsClassArr[i] = this.correctClass(argsClassStrArr[i]);
-			}
-			Method method = clazz.getMethod(methodName, argsClassArr);
-			return method.invoke(instance, argsValues);
-		} catch (Throwable e) {
-			throw new RuntimeException(
-					"This should not happen. " + classStr + ", " + methodName + ", " + Arrays.toString(argsClassStrArr), e);
-		}
+	@Override
+	public Object runByReflection(String classStr, String methodName, String[] argsClassStrArr, Object instance, Object[] argsValues) {
+		return ReflectionUtil.runByReflection(classStr, methodName, argsClassStrArr, instance, argsValues);
 	}
 	
-	protected Class<?> correctClass(String name) {
-		if (name == int.class.getName()) {
-			return int.class;
-		} else {
-			try {
-				return Class.forName(name);
-			} catch (Throwable e) {
-				throw new RuntimeException("This should not happen.", e);
-			}
-		}
+	@Override
+	public Object instanciteByReflection(String classStr, String[] argsClassStrArr, Object[] argsValues) {
+		return ReflectionUtil.instanciteByReflection(classStr, argsClassStrArr, argsValues);
+	}
+	
+	@Override
+	public Class<?> correctClass(String name) {
+		return ReflectionUtil.correctClass(name);
 	}
 }

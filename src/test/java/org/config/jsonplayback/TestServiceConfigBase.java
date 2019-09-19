@@ -4,8 +4,6 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.jsonplayback.player.IPlayerConfig;
@@ -22,7 +20,10 @@ import org.jsonplayback.player.hibernate.entities.MasterAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate3;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate4;
+import org.jsonplayback.player.spring.context.annotation.OnHibernate5;
+import org.jsonplayback.player.spring.context.annotation.OnHibernate6;
 import org.jsonplayback.player.util.NoOpLoggingSystem;
+import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.XADataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.ErrorMvcAutoConfiguration;
 import org.springframework.boot.context.TypeExcludeFilter;
 import org.springframework.boot.jackson.JsonComponentModule;
 import org.springframework.boot.logging.LoggingSystem;
@@ -46,10 +46,11 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Classe de configuracao base para todas (por enquanto) outras classes de
@@ -68,7 +69,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 		DataSourceTransactionManagerAutoConfiguration.class,
 		// veja
 		// https://stackoverflow.com/questions/38747548/spring-boot-disable-error-mapping
-		ErrorMvcAutoConfiguration.class, JpaRepositoriesAutoConfiguration.class, 
+		JpaRepositoriesAutoConfiguration.class,
 		DataSourceAutoConfiguration.class, 
 		HibernateJpaAutoConfiguration.class, 
 		DataSourceTransactionManagerAutoConfiguration.class, 
@@ -77,6 +78,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 		CassandraDataAutoConfiguration.class,
 		XADataSourceAutoConfiguration.class
 		})
+@EnableTransactionManagement
 @ComponentScan(basePackages = { "org.jsonplayback" }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
@@ -99,57 +101,122 @@ public class TestServiceConfigBase {
     ApplicationContext applicationContext;
     
     @SuppressWarnings("deprecation")
-	@Bean
+	@Bean("localSessionFactoryBean3")
 	@Conditional(OnHibernate3.class)
-    public LocalSessionFactoryBean getSessionFactoryBean3() {
-    	
-    	// https://stackoverflow.com/questions/41230234/using-datasource-to-connect-to-sqlite-with-xerial-sqlite-jdbc-driver
-    	//SQLiteConfig sqLiteConfig = new SQLiteConfig();
-    	//sqLiteConfig.setDateStringFormat("yyyy-MM-dd");
-    	//Properties sqlitePropeties = sqLiteConfig.toProperties();
-    	//sqlitePropeties.setProperty(Pragma.DATE_STRING_FORMAT.pragmaName, "yyyy-MM-dd HH:mm:ss");
-    	//sqlitePropeties.setProperty(Pragma.DATE_STRING_FORMAT.pragmaName, "yyyy-MM-dd");
-    	//SQLiteDataSource dataSource = new org.sqlite.SQLiteDataSource(sqLiteConfig);
-    	//dataSource.setUrl("jdbc:sqlite:target/test-classes/jsHbSupersync/js-hb-super-sync.s3db");
-    	//dataSource.setUrl("jdbc:sqlite:target/test-classes/jsHbSupersync/js-hb-super-sync.db");
-    	//dataSource.setUrl("jdbc:sqlite:src/test/resources/jsHbSupersync/js-hb-super-sync.s3db");
-    	//dataSource.setUrl("jdbc:sqlite:memory");
-    	//dataSource.set
+    public Object getSessionFactoryBean3() {
+    //public LocalSessionFactoryBean getSessionFactoryBean3() {
     	JDBCDataSource dataSource = new JDBCDataSource();
     	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
-    	//CustomLocalSessionFactoryBean customLocalSessionFactoryBean = new CustomLocalSessionFactoryBean();
-    	LocalSessionFactoryBean customLocalSessionFactoryBean = new LocalSessionFactoryBean();
-    	customLocalSessionFactoryBean.setDataSource(dataSource);
-    	customLocalSessionFactoryBean.setMappingResources(new String[]{
-    		"jsonplayback/MasterAEnt.hbm.xml",
-    		"jsonplayback/MasterBEnt.hbm.xml",
-    		"jsonplayback/DetailAEnt.hbm.xml"
-    	});
+    	Object localSessionFactoryBean = ReflectionUtil.instanciteByReflection("org.springframework.orm.hibernate3.LocalSessionFactoryBean", new String[]{}, new Object[]{});
+    	ReflectionUtil.runByReflection(
+    		"org.springframework.orm.hibernate3.LocalSessionFactoryBean",
+    		"setDataSource",
+			new String[]{"javax.sql.DataSource"},
+			localSessionFactoryBean,
+			new Object[]{dataSource});
+    	ReflectionUtil.runByReflection(
+			"org.springframework.orm.hibernate3.LocalSessionFactoryBean",
+			"setMappingResources",
+			new String[]{String[].class.getName()},
+			localSessionFactoryBean,
+			new Object[]{
+				new String[]{
+					"jsonplayback/MasterAEnt.hbm.xml",
+					"jsonplayback/MasterBEnt.hbm.xml",
+					"jsonplayback/DetailAEnt.hbm.xml"
+				}
+			}
+		);
     	Properties hbProperties = new Properties();
     	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-    	//hbProperties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
     	hbProperties.setProperty("format_sql", "true");
-    	customLocalSessionFactoryBean.setHibernateProperties(hbProperties);
-    	customLocalSessionFactoryBean.setDataSource(dataSource);
+    	ReflectionUtil.runByReflection(
+			"org.springframework.orm.hibernate3.LocalSessionFactoryBean",
+			"setHibernateProperties",
+			new String[]{"java.util.Properties"},
+			localSessionFactoryBean,
+			new Object[]{hbProperties}
+		);
     	
-    	return customLocalSessionFactoryBean;
+    	
+//    	LocalSessionFactoryBean localSessionFactoryBean = new LocalSessionFactoryBean();
+//    	localSessionFactoryBean.setDataSource(dataSource);
+//    	localSessionFactoryBean.setMappingResources(new String[]{
+//    		"jsonplayback/MasterAEnt.hbm.xml",
+//    		"jsonplayback/MasterBEnt.hbm.xml",
+//    		"jsonplayback/DetailAEnt.hbm.xml"
+//    	});
+//    	Properties hbProperties = new Properties();
+//    	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+//    	hbProperties.setProperty("format_sql", "true");
+//    	localSessionFactoryBean.setHibernateProperties(hbProperties);
+    	
+    	return localSessionFactoryBean;
     }
  
-    
-    @SuppressWarnings("deprecation")
-	@Bean
+    @Bean("localSessionFactoryBean4")
 	@Conditional(OnHibernate4.class)
-    public org.springframework.orm.hibernate4.LocalSessionFactoryBean getSessionFactoryBean4() {
-    	System.setProperty("hsqldb.reconfig_logging", "false");
-		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());
+    public Object getSessionFactoryBean4() {
+    //public org.springframework.orm.hibernate4.LocalSessionFactoryBean getSessionFactoryBean4() {
+    	JDBCDataSource dataSource = new JDBCDataSource();
+    	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
+    	
+    	Object localSessionFactoryBean = ReflectionUtil.instanciteByReflection("org.springframework.orm.hibernate4.LocalSessionFactoryBean", new String[]{}, new Object[]{});
+    	ReflectionUtil.runByReflection(
+    		"org.springframework.orm.hibernate4.LocalSessionFactoryBean",
+    		"setDataSource",
+			new String[]{"javax.sql.DataSource"},
+			localSessionFactoryBean,
+			new Object[]{dataSource});
+    	ReflectionUtil.runByReflection(
+			"org.springframework.orm.hibernate4.LocalSessionFactoryBean",
+			"setAnnotatedClasses",
+			new String[]{Class[].class.getName()},
+			localSessionFactoryBean,
+			new Object[]{
+				new Class<?>[]{
+		    		MasterAEnt.class,
+		    		MasterBEnt.class,
+		    		DetailAEnt.class
+		    	}
+			}
+		);
+    	Properties hbProperties = new Properties();
+    	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    	hbProperties.setProperty("format_sql", "true");
+    	ReflectionUtil.runByReflection(
+			"org.springframework.orm.hibernate4.LocalSessionFactoryBean",
+			"setHibernateProperties",
+			new String[]{"java.util.Properties"},
+			localSessionFactoryBean,
+			new Object[]{hbProperties}
+		);
+    	
+//    	org.springframework.orm.hibernate4.LocalSessionFactoryBean localSessionFactoryBean = new org.springframework.orm.hibernate4.LocalSessionFactoryBean();
+//    	localSessionFactoryBean.setDataSource(dataSource);
+//    	localSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
+//    		MasterAEnt.class,
+//    		MasterBEnt.class,
+//    		DetailAEnt.class
+//    	});
+//    	Properties hbProperties = new Properties();
+//    	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+//    	hbProperties.setProperty("format_sql", "true");
+//    	localSessionFactoryBean.setHibernateProperties(hbProperties);
+    	
+    	return localSessionFactoryBean;
+    }
+ 
+    @Bean("localSessionFactoryBean5")
+	@Conditional(OnHibernate5.class)
+    public org.springframework.orm.hibernate5.LocalSessionFactoryBean getSessionFactoryBean5() {
     	
     	JDBCDataSource dataSource = new JDBCDataSource();
     	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
     	//CustomLocalSessionFactoryBean customLocalSessionFactoryBean = new CustomLocalSessionFactoryBean();
-    	org.springframework.orm.hibernate4.LocalSessionFactoryBean customLocalSessionFactoryBean = new org.springframework.orm.hibernate4.LocalSessionFactoryBean();
-    	customLocalSessionFactoryBean.setDataSource(dataSource);
-    	customLocalSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
+    	org.springframework.orm.hibernate5.LocalSessionFactoryBean localSessionFactoryBean = new org.springframework.orm.hibernate5.LocalSessionFactoryBean();
+    	localSessionFactoryBean.setDataSource(dataSource);
+    	localSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
     		MasterAEnt.class,
     		MasterBEnt.class,
     		DetailAEnt.class
@@ -158,23 +225,67 @@ public class TestServiceConfigBase {
     	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
     	//hbProperties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
     	hbProperties.setProperty("format_sql", "true");
-    	customLocalSessionFactoryBean.setHibernateProperties(hbProperties);
-    	customLocalSessionFactoryBean.setDataSource(dataSource);
+    	localSessionFactoryBean.setHibernateProperties(hbProperties);
+    	localSessionFactoryBean.setDataSource(dataSource);
     	
-    	return customLocalSessionFactoryBean;
+    	return localSessionFactoryBean;
     }
- 
-    
-    @Bean
-    @Conditional(OnHibernate3.class)
-    public PlatformTransactionManager transactionManager3(SessionFactory sessionFactory) {
-    	return new org.springframework.orm.hibernate3.HibernateTransactionManager(sessionFactory);
+
+    @Bean("localSessionFactoryBean6")
+	@Conditional(OnHibernate6.class)
+    public org.springframework.orm.hibernate5.LocalSessionFactoryBean getSessionFactoryBean6() {
+    	
+    	JDBCDataSource dataSource = new JDBCDataSource();
+    	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
+    	//CustomLocalSessionFactoryBean customLocalSessionFactoryBean = new CustomLocalSessionFactoryBean();
+    	org.springframework.orm.hibernate5.LocalSessionFactoryBean localSessionFactoryBean = new org.springframework.orm.hibernate5.LocalSessionFactoryBean();
+    	localSessionFactoryBean.setDataSource(dataSource);
+    	localSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
+    		MasterAEnt.class,
+    		MasterBEnt.class,
+    		DetailAEnt.class
+    	});
+    	Properties hbProperties = new Properties();
+    	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    	//hbProperties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+    	hbProperties.setProperty("format_sql", "true");
+    	localSessionFactoryBean.setHibernateProperties(hbProperties);
+    	localSessionFactoryBean.setDataSource(dataSource);
+    	
+    	return localSessionFactoryBean;
     }
     
     @Bean
     @Conditional(OnHibernate4.class)
     public PlatformTransactionManager transactionManager4(SessionFactory sessionFactory) {
-    	return new org.springframework.orm.hibernate4.HibernateTransactionManager(sessionFactory);
+    	return (PlatformTransactionManager) ReflectionUtil.instanciteByReflection(
+        		"org.springframework.orm.hibernate4.HibernateTransactionManager",
+        		new String[]{"org.hibernate.SessionFactory"}, 
+        		new Object[]{sessionFactory});
+    	//return new org.springframework.orm.hibernate4.HibernateTransactionManager(sessionFactory);
+    }
+    
+    @Bean
+    @Conditional(OnHibernate3.class)
+    public PlatformTransactionManager transactionManager3(SessionFactory sessionFactory) {
+    	return (PlatformTransactionManager) ReflectionUtil.instanciteByReflection(
+    		"org.springframework.orm.hibernate3.HibernateTransactionManager",
+    		new String[]{"org.hibernate.SessionFactory"}, 
+    		new Object[]{sessionFactory});
+    	//return new org.springframework.orm.hibernate3.HibernateTransactionManager(sessionFactory);
+    }
+
+    
+    @Bean
+    @Conditional(OnHibernate5.class)
+    public PlatformTransactionManager transactionManager5(SessionFactory sessionFactory) {
+    	return new org.springframework.orm.hibernate5.HibernateTransactionManager(sessionFactory);
+    }
+    
+    @Bean
+    @Conditional(OnHibernate6.class)
+    public PlatformTransactionManager transactionManager6(SessionFactory sessionFactory) {
+    	return new org.springframework.orm.hibernate5.HibernateTransactionManager(sessionFactory);
     }
     
 	@Bean
@@ -217,8 +328,8 @@ public class TestServiceConfigBase {
 		ObjectMapper mapperOriginal = mappingJackson2HttpMessageConverter.getObjectMapper();
 		ObjectMapper mapperNovo = builder.build();
 		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(new PlayerBasicClassIntrospector()));
-//		mapperNovo.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-//		mapperNovo.enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
+		mapperNovo.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		mapperNovo.enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
 		if (mapperOriginal != mapperNovo) {
 			logger.warn("(mapperOriginal != mapperNovo) apos org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.build()");
 		}

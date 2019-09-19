@@ -516,7 +516,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 							currPropertyWriter.getBeanPropertyDefinition().getInternalName(),
 							currPropertyWriter.getCurrOwner(),
 							valueToSerialize);					
-					} else if (aacTrackInfo.getEntityAndComponentPath().getRelEntity() != null) {
+					} else if (this.manager.getHbSupport().isPersistentClass(aacTrackInfo.getEntityOwner().getClass())) {
 						signatureBean = this.manager.generateSignature(valueToSerialize);	
 					} else {
 						throw new RuntimeException("This should not happen");

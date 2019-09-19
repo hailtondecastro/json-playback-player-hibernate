@@ -22,14 +22,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.config.jsonplayback.TestServiceConfigBase;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -50,7 +49,7 @@ import org.jsonplayback.player.hibernate.entities.MasterBCompId;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
 import org.jsonplayback.player.hibernate.nonentities.DetailAWrapper;
 import org.jsonplayback.player.hibernate.nonentities.MasterAWrapper;
-import org.jsonplayback.player.util.NoOpLoggingSystem;
+import org.jsonplayback.player.util.ReflectionUtil;
 import org.jsonplayback.player.util.SqlLogInspetor;
 import org.jsonplayback.player.util.spring.orm.hibernate3.JpbSpringJUnit4ClassRunner;
 import org.junit.After;
@@ -63,8 +62,8 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.logging.LoggingSystem;
-import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
@@ -81,25 +80,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 @TestExecutionListeners(listeners={DependencyInjectionTestExecutionListener.class})
 public class PlayerManagerTest {
 	static {
-    	System.setProperty("hsqldb.reconfig_logging", "false");
-		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());
-		org.apache.logging.log4j.Logger loggerL4j2 = org.apache.logging.log4j.LogManager.getLogger(TestServiceConfigBase.class);
-		loggerL4j2.error("log4j 2: Logging test.");
-		loggerL4j2 = org.apache.logging.log4j.LogManager.getLogger(TestServiceConfigBase.class.getName());
-		loggerL4j2.error("log4j 2: Logging test. BY NAME");
-		org.apache.log4j.Logger loggerL4j1 = org.apache.log4j.LogManager.getLogger(TestServiceConfigBase.class);
-		loggerL4j1.error("log4j 1: Logging test.");
-		loggerL4j1 = org.apache.log4j.LogManager.getLogger(TestServiceConfigBase.class.getName());
-		loggerL4j1.error("log4j 1: Logging test. BY NAME");
-		Logger loggerSlf4j = LoggerFactory.getLogger(TestServiceConfigBase.class);
-		loggerSlf4j.error("SLF4J: Logging test.");
-		Log loggerCommon = LogFactory.getLog(TestServiceConfigBase.class);
-		loggerCommon.error("Common logging: Logging test.");
-		java.util.logging.Logger loggerJul = java.util.logging.Logger.getLogger(TestServiceConfigBase.class.getName());
-		loggerJul.log(java.util.logging.Level.SEVERE, "java.util.logging: Logging test.");
-		org.jboss.logging.Logger loggerJboss = org.jboss.logging.Logger.getLogger(TestServiceConfigBase.class);
-		loggerJboss.error("Jboss log manager: Logging test.");
 	}
 	
 	public static final Logger log = LoggerFactory.getLogger(PlayerManagerTest.class);
@@ -119,18 +99,131 @@ public class PlayerManagerTest {
     @Autowired
     IPlayerManager manager;
     
-    private void createDataBaseStructures() {
-    	if (this.localSessionFactoryBean != null) {
-    		this.localSessionFactoryBean.dropDatabaseSchema();			
-    		this.localSessionFactoryBean.createDatabaseSchema();   	
-    	} else if (this.localSessionFactoryBean4 != null) {
-    	    SchemaExport export = new SchemaExport(this.localSessionFactoryBean4.getConfiguration());
-    	    export.drop(false, true);
-    	    export.create(false, true);
-    	} else if (this.localSessionFactoryBean5 != null) {
-    	    SchemaExport export = new SchemaExport(this.localSessionFactoryBean5.getConfiguration());
-    	    export.drop(false, true);
-    	    export.create(false, true);    		
+    @SuppressWarnings("unchecked")
+	private void createDataBaseStructures() {
+    	
+    	if (this.getLocalSessionFactoryBean3() != null) {
+    		ReflectionUtil.runByReflection(
+    			"org.springframework.orm.hibernate3.LocalSessionFactoryBean",
+    			"dropDatabaseSchema", 
+    			new String[]{},
+    			this.getLocalSessionFactoryBean3(),
+    			new Object[]{}
+    		);
+    		ReflectionUtil.runByReflection(
+    			"org.springframework.orm.hibernate3.LocalSessionFactoryBean",
+    			"createDatabaseSchema", 
+    			new String[]{},
+    			this.getLocalSessionFactoryBean3(),
+    			new Object[]{}
+    		);
+//    		this.localSessionFactoryBean.dropDatabaseSchema();			
+//    		this.localSessionFactoryBean.createDatabaseSchema();   	
+    	} else if (this.getLocalSessionFactoryBean4() != null) {
+    		Object configuration =
+    			ReflectionUtil.runByReflection(
+        			"org.springframework.orm.hibernate4.LocalSessionFactoryBean",
+        			"getConfiguration",
+        			new String[]{},
+        			this.getLocalSessionFactoryBean4(),
+        			new Object[]{});
+    		SchemaExport export =
+    			(SchemaExport) ReflectionUtil
+	    				.instanciteByReflection(
+	    					"org.hibernate.tool.hbm2ddl.SchemaExport",
+	    					new String[]{"org.hibernate.cfg.Configuration"},
+	    					new Object[]{configuration});
+    		((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    			"org.hibernate.tool.hbm2ddl.SchemaExport",
+    			"drop",
+    			new String[]{ boolean.class.getName(), boolean.class.getName() },
+    			export,
+    			new Object[]{ false, true });
+    		((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+        			"org.hibernate.tool.hbm2ddl.SchemaExport",
+        			"create",
+        			new String[]{ boolean.class.getName(), boolean.class.getName() },
+        			export,
+        			new Object[]{ false, true });
+//    		SchemaExport export = new SchemaExport(this.localSessionFactoryBean4.getConfiguration());
+//    	    export.drop(false, true);
+//    	    export.create(false, true);
+    	} else if (this.getLocalSessionFactoryBean5Or6() != null) {
+    		Object configuration = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+				this.getLocalSessionFactoryBean5Or6().getClass().getName(),
+    			"getConfiguration",
+    			new String[]{},
+    			this.getLocalSessionFactoryBean5Or6(),
+    			new Object[]{}
+        	);
+    		Object standardServiceRegistryBuilder = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+				configuration.getClass().getName(),
+    			"getStandardServiceRegistryBuilder",
+    			new String[]{},
+    			configuration,
+    			new Object[]{}
+        	);
+    		Object standardServiceRegistry = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+				"org.hibernate.boot.registry.StandardServiceRegistryBuilder",
+    			"build",
+    			new String[]{},
+    			standardServiceRegistryBuilder,
+    			new Object[]{}
+        	);
+    		Object metadataSources = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+				this.getLocalSessionFactoryBean5Or6().getClass().getName(),
+    			"getMetadataSources",
+    			new String[]{},
+    			this.getLocalSessionFactoryBean5Or6(),
+    			new Object[]{}
+        	);
+    		Object hb5Metadata = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    			"org.hibernate.boot.MetadataSources",
+    			"buildMetadata",
+    			new String[]{"org.hibernate.boot.registry.StandardServiceRegistry"},
+    			metadataSources,
+    			new Object[]{standardServiceRegistry}
+        	);
+    		Object export = ReflectionUtil.instanciteByReflection(
+   				"org.hibernate.tool.hbm2ddl.SchemaExport",
+    			new String[]{},
+    			new Object[]{}
+    		);
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			Class<Enum> targetTypeClass = (Class<Enum>) ((IPlayerManagerImplementor)this.manager).getHbSupport().correctClass("org.hibernate.tool.schema.TargetType");
+    		((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+				"org.hibernate.tool.hbm2ddl.SchemaExport",
+				"drop",
+				new String[]{
+					java.util.EnumSet.class.getName(),
+					"org.hibernate.boot.Metadata"
+				},
+				export,
+				new Object[]{
+					EnumSet.of(Enum.valueOf(targetTypeClass, "DATABASE")),
+					hb5Metadata
+				}
+	    	);
+			((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+				"org.hibernate.tool.hbm2ddl.SchemaExport",
+				"create",
+				new String[]{
+					java.util.EnumSet.class.getName(),
+					"org.hibernate.boot.Metadata"
+				},
+				export,
+				new Object[]{
+					EnumSet.of(Enum.valueOf(targetTypeClass, "DATABASE")),
+					hb5Metadata
+				}
+	    	);
+    		
+//    		org.hibernate.boot.registry.StandardServiceRegistry standardServiceRegistry = this.localSessionFactoryBean5.getConfiguration().getStandardServiceRegistryBuilder().build();
+//    		MetadataSources metadataSources = this.localSessionFactoryBean5.getMetadataSources();
+//    		Metadata hb5Metadata = metadataSources.buildMetadata(standardServiceRegistry);
+//    		SchemaExport export = new SchemaExport();
+//    		export.drop(EnumSet.of(TargetType.DATABASE), hb5Metadata);
+//    		export.create(EnumSet.of(TargetType.DATABASE), hb5Metadata);    		
     	}
     }
     
@@ -389,14 +482,47 @@ public class PlayerManagerTest {
     public void tearDown() throws Exception {
     }
     
-    @Autowired(required=false)
-    private LocalSessionFactoryBean localSessionFactoryBean;
+    @Autowired
+    ApplicationContext applicationContext;
     
-    @Autowired(required=false)
-    private org.springframework.orm.hibernate4.LocalSessionFactoryBean localSessionFactoryBean4;
+//    @Autowired(required=false)
+//    @Qualifier("&localSessionFactoryBean3")
+//    private Object localSessionFactoryBean;
+////    private LocalSessionFactoryBean localSessionFactoryBean;
+    private Object getLocalSessionFactoryBean3() {
+    	if (this.applicationContext.containsBean("&localSessionFactoryBean3")) {
+    		return this.applicationContext.getBean("&localSessionFactoryBean3");    		
+    	} else {
+    		return null;
+    	}
+    }
     
-    @Autowired(required=false)
-    private org.springframework.orm.hibernate5.LocalSessionFactoryBean localSessionFactoryBean5;
+//    //@Autowired(required=false)
+//    @Autowired
+//    @Qualifier("&localSessionFactoryBean4")
+//    private Object localSessionFactoryBean4;
+//    //private org.springframework.orm.hibernate4.LocalSessionFactoryBean localSessionFactoryBean4;
+    private Object getLocalSessionFactoryBean4() {
+    	if (this.applicationContext.containsBean("&localSessionFactoryBean4")) {
+    		return this.applicationContext.getBean("&localSessionFactoryBean4");    		
+    	} else {
+    		return null;
+    	}
+    }
+    
+//    @Autowired(required=false)
+//    @Qualifier("&localSessionFactoryBean5")
+//    private org.springframework.orm.hibernate5.LocalSessionFactoryBean localSessionFactoryBean5;
+    private Object getLocalSessionFactoryBean5Or6() {
+    	if (this.applicationContext.containsBean("&localSessionFactoryBean5")) {
+    		return this.applicationContext.getBean("&localSessionFactoryBean5");    		
+    	} else if (this.applicationContext.containsBean("&localSessionFactoryBean6")) {
+    		return this.applicationContext.getBean("&localSessionFactoryBean6");    		
+    	} else {
+    		return null;
+    	}
+    }
+    
     
     @Autowired
     PlatformTransactionManager transactionManager;
@@ -1681,8 +1807,6 @@ public class PlayerManagerTest {
 		}
 	}
 
-	
-	
 	@Test
 	public void detailAWithoutMasterBTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
@@ -1690,7 +1814,6 @@ public class PlayerManagerTest {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
 		
-		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailAWithoutMasterBTest_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
@@ -1699,9 +1822,7 @@ public class PlayerManagerTest {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
-				//SchemaExport
-				
-				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				Session ss = PlayerManagerTest.this.sessionFactory.getCurrentSession();
 				
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
