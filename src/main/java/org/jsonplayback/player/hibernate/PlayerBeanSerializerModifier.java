@@ -88,7 +88,7 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 							.loadBeanPropertyDefinition(prpDef).loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsPersistent(isPersistent)
 							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
-				} else if (this.managerImplementor.isRelationship(beanClass, prpDef.getInternalName())) {
+				} else if (this.managerImplementor.getHbSupport().isCollectionRelationship(beanClass, prpDef.getInternalName())) {
 					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
 							.configManager(managerImplementor).loadRelationshipOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)

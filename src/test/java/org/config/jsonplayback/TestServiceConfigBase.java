@@ -95,7 +95,7 @@ public class TestServiceConfigBase {
     	System.setProperty("hsqldb.reconfig_logging", "false");
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
 		System.setProperty(LoggingSystem.class.getName(), NoOpLoggingSystem.class.getName());
-    }    
+    }
     
     @Autowired
     ApplicationContext applicationContext;

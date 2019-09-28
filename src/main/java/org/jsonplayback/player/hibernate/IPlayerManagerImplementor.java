@@ -18,8 +18,6 @@ public interface IPlayerManagerImplementor extends IPlayerManager {
 	SignatureBean generateLazySignature(HibernateProxy hibernateProxy);
 
 	SignatureBean generateSignature(Object nonHibernateProxy);
-
-	boolean isRelationship(Class<?> clazz, String fieldName);
 	
 	Long getCurrId();
 
@@ -67,5 +65,4 @@ public interface IPlayerManagerImplementor extends IPlayerManager {
 	List<OwnerAndProperty> getRegisteredComponentOwnerList(Object instance);
 	
 	public HbSupport getHbSupport();
-	HibernateVersion getHibernateVersion();
 }

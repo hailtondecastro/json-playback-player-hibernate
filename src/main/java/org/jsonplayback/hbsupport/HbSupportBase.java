@@ -1,5 +1,6 @@
 package org.jsonplayback.hbsupport;
 
+import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.text.MessageFormat;
@@ -8,18 +9,19 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.hibernate.HibernateException;
+import javax.persistence.EntityManager;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.hibernate.Session;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.type.AssociationType;
 import org.hibernate.type.BagType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
@@ -40,9 +42,9 @@ import org.slf4j.LoggerFactory;
 public abstract class HbSupportBase implements HbSupport {
 	private static Logger logger = LoggerFactory.getLogger(HbSupportBase.class);
 
-	private IPlayerManager manager;
+	protected IPlayerManager manager;
 	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHbSupport> associationAndCompositiesMap = new HashMap<>();
-	private Map<String, ClassMetadata> persistentClasses = new HashMap<>();
+	protected Map<String, ClassMetadata> persistentClasses = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	public HbSupportBase(IPlayerManager manager) {
@@ -64,7 +66,7 @@ public abstract class HbSupportBase implements HbSupport {
 	}
 
 	@Override
-	public abstract boolean isCollectionLazyUnitialized(Object coll);
+	public abstract boolean isCollectionLazyUnitialized(Object coll, Object owner, String pathFromOwner);
 	
 	public abstract Class<?> resolvePersistentCollectionClass();
 	
@@ -72,25 +74,25 @@ public abstract class HbSupportBase implements HbSupport {
 		return persistentCollecitonClass;
 	}
 
-	@Override
-	public abstract Object getCollectionOwner(Object coll);
+//	@Override
+//	public abstract Object getCollectionOwner(Object coll);
 
-	@Override
-	public String getCollectionFieldName(Object coll) {
-		Pattern rxCollectionRole = Pattern
-				.compile("^" + Pattern.quote(this.getCollectionOwner(coll).getClass().getName()) + "\\.(.*)");
-
-		String role = this.getCollectionGetRole(coll);
-		Matcher matcher = rxCollectionRole.matcher(role);
-		if (!matcher.find()) {
-			throw new RuntimeException(
-					MessageFormat.format("Collection role doesn't matches the expected pattern: ''{0}''", role));
-		}
-
-		// Class<?> ownerClass = this.getCollectionOwner(coll).getClass();
-		String fieldName = matcher.group(1);
-		return fieldName;
-	}
+//	@Override
+//	public String getCollectionFieldName(Object coll) {
+//		Pattern rxCollectionRole = Pattern
+//				.compile("^" + Pattern.quote(this.getCollectionOwner(coll).getClass().getName()) + "\\.(.*)");
+//
+//		String role = this.getCollectionGetRole(coll);
+//		Matcher matcher = rxCollectionRole.matcher(role);
+//		if (!matcher.find()) {
+//			throw new RuntimeException(
+//					MessageFormat.format("Collection role doesn't matches the expected pattern: ''{0}''", role));
+//		}
+//
+//		// Class<?> ownerClass = this.getCollectionOwner(coll).getClass();
+//		String fieldName = matcher.group(1);
+//		return fieldName;
+//	}
 
 	@Override
 	public abstract  Object[] getRawKeyValuesFromHbProxy(Object hibernateProxy);
@@ -242,17 +244,25 @@ public abstract class HbSupportBase implements HbSupport {
 			compositeTypePathStack.pop();
 		}
 	}
-
-	public Map<String,ClassMetadata> getAllClassMetadata() {
-		return this.manager.getConfig().getSessionFactory().getAllClassMetadata();		
+	
+	@SuppressWarnings("unchecked")
+	protected Map<String,ClassMetadata> getAllClassMetadata() {
+		return (Map<String, ClassMetadata>) this.runByReflection(
+				"org.hibernate.SessionFactory",
+				"getAllClassMetadata",
+				new String[]{},
+				this.manager.getConfig().getSessionFactory(),
+				new Object[]{});
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void collectAssociationAndCompositiesMap() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("collectAssociationAndCompositiesMap()");
 		}
 		this.persistentClasses = this.getAllClassMetadata();
+		
 		for (String entityName : this.persistentClasses.keySet()) {
 			ClassMetadata classMetadata = this.persistentClasses.get(entityName);
 
@@ -327,78 +337,78 @@ public abstract class HbSupportBase implements HbSupport {
 		this.associationAndCompositiesMap.clear();
 		this.collectAssociationAndCompositiesMap();
 	}
-
-	@Override
-	public boolean isRelationship(Class<?> clazz, String fieldName) {
-		if (clazz == null) {
-			throw new IllegalArgumentException("clazz can not be null");
-		}
-		if (fieldName == null || fieldName.trim().isEmpty()) {
-			throw new IllegalArgumentException("fieldName can not be null");
-		}
-
-		ClassMetadata classMetadata = this.persistentClasses.get(clazz.getName());
-		CompositeType compositeType = null;
-		if (classMetadata == null) {
-			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(clazz, fieldName);
-			compositeType = this.associationAndCompositiesMap.get(aacKey).getCompType();
-			if (compositeType == null) {
-				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz);
-			}
-		}
-		Type prpType = null;
-		if (classMetadata != null) {
-			boolean hasProperty = false;
-			if (fieldName.contains(".")) {
-				hasProperty = true;
-			} else {
-				String[] prpNames = classMetadata.getPropertyNames();
-				for (int i = 0; i < prpNames.length; i++) {
-					String prpNameItem = prpNames[i];
-					if (prpNameItem.equals(fieldName)) {
-						hasProperty = true;
-						break;
-					}
-				}
-			}
-
-			if (hasProperty) {
-				try {
-					prpType = classMetadata.getPropertyType(fieldName);
-				} catch (HibernateException he) {
-					throw new RuntimeException(MessageFormat.format("This should not happen for property: {0}.{1}",
-							classMetadata.getEntityName(), fieldName), he);
-				}
-			}		
-		} else {
-			String[] prpNames = compositeType.getPropertyNames();
-			for (int i = 0; i < prpNames.length; i++) {
-				String prpNameItem = prpNames[i];
-				if (prpNameItem.equals(fieldName)) {
-					prpType = compositeType.getSubtypes()[i];
-					break;
-				}
-			}
-		}
-
-		boolean resultBool = false;
-		if (prpType == null) {
-			resultBool = false;
-		} else {
-			if (prpType instanceof AssociationType) {
-				resultBool = true;
-			} else {
-				resultBool = false;
-			}
-		}
-
-		if (logger.isTraceEnabled()) {
-			logger.trace(MessageFormat.format("isRelationship(). clazz: ''{0}''; fieldName: ''{1}''. return: ", clazz,
-					fieldName, resultBool));
-		}
-
-		return resultBool;
-	}
+//
+//	@Override
+//	public boolean isRelationship(Class<?> clazz, String fieldName) {
+//		if (clazz == null) {
+//			throw new IllegalArgumentException("clazz can not be null");
+//		}
+//		if (fieldName == null || fieldName.trim().isEmpty()) {
+//			throw new IllegalArgumentException("fieldName can not be null");
+//		}
+//
+//		ClassMetadata classMetadata = this.persistentClasses.get(clazz.getName());
+//		CompositeType compositeType = null;
+//		if (classMetadata == null) {
+//			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(clazz, fieldName);
+//			compositeType = this.associationAndCompositiesMap.get(aacKey).getCompType();
+//			if (compositeType == null) {
+//				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz);
+//			}
+//		}
+//		Type prpType = null;
+//		if (classMetadata != null) {
+//			boolean hasProperty = false;
+//			if (fieldName.contains(".")) {
+//				hasProperty = true;
+//			} else {
+//				String[] prpNames = classMetadata.getPropertyNames();
+//				for (int i = 0; i < prpNames.length; i++) {
+//					String prpNameItem = prpNames[i];
+//					if (prpNameItem.equals(fieldName)) {
+//						hasProperty = true;
+//						break;
+//					}
+//				}
+//			}
+//
+//			if (hasProperty) {
+//				try {
+//					prpType = classMetadata.getPropertyType(fieldName);
+//				} catch (HibernateException he) {
+//					throw new RuntimeException(MessageFormat.format("This should not happen for property: {0}.{1}",
+//							classMetadata.getEntityName(), fieldName), he);
+//				}
+//			}		
+//		} else {
+//			String[] prpNames = compositeType.getPropertyNames();
+//			for (int i = 0; i < prpNames.length; i++) {
+//				String prpNameItem = prpNames[i];
+//				if (prpNameItem.equals(fieldName)) {
+//					prpType = compositeType.getSubtypes()[i];
+//					break;
+//				}
+//			}
+//		}
+//
+//		boolean resultBool = false;
+//		if (prpType == null) {
+//			resultBool = false;
+//		} else {
+//			if (prpType instanceof AssociationType) {
+//				resultBool = true;
+//			} else {
+//				resultBool = false;
+//			}
+//		}
+//
+//		if (logger.isTraceEnabled()) {
+//			logger.trace(MessageFormat.format("isRelationship(). clazz: ''{0}''; fieldName: ''{1}''. return: ", clazz,
+//					fieldName, resultBool));
+//		}
+//
+//		return resultBool;
+//	}
 
 	@Override
 	public boolean isPersistentClass(Class<?> clazz) {
@@ -421,7 +431,7 @@ public abstract class HbSupportBase implements HbSupport {
 	}
 
 	@Override
-	public boolean isOneToManyRelationship(Class<?> ownerClass, String pathFromOwner) {
+	public boolean isManyToOneRelationship(Class<?> ownerClass, String pathFromOwner) {
 		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
 		AssociationAndComponentPathHbSupport entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
 		if (entityAndComponentPath != null) {
@@ -432,14 +442,14 @@ public abstract class HbSupportBase implements HbSupport {
 	}
 
 	@Override
-	public abstract Serializable getIdValue(Class<?> entityClass, Object[] rawKeyValues);
+	public abstract Object getIdValue(Class<?> entityClass, Object[] rawKeyValues);
 	
 	@Override
-	public abstract Serializable getIdValue(Object entityInstanceOrProxy);
+	public abstract Object getIdValue(Object entityInstanceOrProxy);
 
 	@Override
-	public Object getById(Class<?> entityClass, Serializable idValue) {
-		return this.manager.getConfig().getSessionFactory().getCurrentSession().get(entityClass, idValue);
+	public Object getById(Class<?> entityClass, Object idValue) {
+		return this.manager.getConfig().getSessionFactory().getCurrentSession().get(entityClass, (Serializable) idValue);
 	}
 
 	@Override
@@ -486,18 +496,63 @@ public abstract class HbSupportBase implements HbSupport {
 		return this.associationAndCompositiesMap.containsKey(aacKey);
 	}
 	
-	@Override
 	public Object runByReflection(String classStr, String methodName, String[] argsClassStrArr, Object instance, Object[] argsValues) {
 		return ReflectionUtil.runByReflection(classStr, methodName, argsClassStrArr, instance, argsValues);
 	}
 	
-	@Override
 	public Object instanciteByReflection(String classStr, String[] argsClassStrArr, Object[] argsValues) {
 		return ReflectionUtil.instanciteByReflection(classStr, argsClassStrArr, argsValues);
 	}
 	
-	@Override
 	public Class<?> correctClass(String name) {
 		return ReflectionUtil.correctClass(name);
+	}
+	
+	@Override
+	public <R> CriteriaCompat<R> createCriteria(EntityManager em, Class<R> clazz) {
+		return new CriteriaCompatBase<>(em,  clazz);
+	}
+	
+	@Override
+	public <R> CriteriaCompat<R> createCriteria(Session session, Class<R> clazz) {
+		return new CriteriaCompatBase<>(session,  clazz);
+	}
+	
+	@Override
+	public void processNewInstantiate(Class<?> instType, Object instValue) {
+		ClassMetadata classMetadata = this.persistentClasses.get(instType.getName());
+		if (classMetadata != null) {
+			PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(instType);
+			for (int i = 0; i < propertyDescriptors.length; i++) {
+				PropertyDescriptor propertyDescriptorItem = propertyDescriptors[i];
+				if (!("class".equals(propertyDescriptorItem.getName()))) {
+					Type prpType = classMetadata.getPropertyType(propertyDescriptorItem.getName());
+					Collection resultColl = null;
+					if (prpType instanceof CollectionType) {
+						if (prpType instanceof SetType) {
+							resultColl = new LinkedHashSet<>();
+						} else if (prpType instanceof ListType) {
+							throw new RuntimeException("Not supported. prpType: " + prpType);
+						} else if (prpType instanceof BagType) {
+							throw new RuntimeException("Not supported. prpType: " + prpType);
+						} else {
+							throw new RuntimeException("This should not happen. prpType: " + prpType);
+						}
+						try {
+							PropertyUtils.setProperty(instValue, propertyDescriptorItem.getName(), resultColl);
+						} catch (Exception e) {
+							throw new RuntimeException("This should not happen. prpType: " + prpType, e);
+						}
+					} else {
+						// non one-to-many
+					}
+				}
+			}
+		}		
+	}
+	
+	@Override
+	public String getPlayerObjectIdPrpName(Class clazz) {
+		return this.persistentClasses.get(clazz.getName()).getIdentifierPropertyName();
 	}
 }

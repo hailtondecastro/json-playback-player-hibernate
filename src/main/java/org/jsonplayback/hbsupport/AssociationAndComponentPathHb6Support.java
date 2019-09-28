@@ -1,19 +1,21 @@
 package org.jsonplayback.hbsupport;
 
-import org.hibernate.type.CollectionType;
-import org.hibernate.type.CompositeType;
+import javax.persistence.metamodel.EmbeddableType;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.PluralAttribute.CollectionType;
+
 import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
 
-public abstract class AssociationAndComponentPathHb6Support extends AssociationAndComponentPath {
-	private CompositeType[] compositeTypePath;
+public class AssociationAndComponentPathHb6Support extends AssociationAndComponentPath {
+	private EmbeddableType<?>[] compositeTypePath;
 	private CollectionType collType;
-	private CompositeType compType;	
-	
-	public CompositeType getCompType() {
-		return compType;
+	private EmbeddableType<?> compType;
+	private EntityType<?> relEntity;
+	public EmbeddableType<?>[] getCompositeTypePath() {
+		return compositeTypePath;
 	}
-	public void setCompType(CompositeType compType) {
-		this.compType = compType;
+	public void setCompositeTypePath(EmbeddableType<?>[] compositeTypePath) {
+		this.compositeTypePath = compositeTypePath;
 	}
 	public CollectionType getCollType() {
 		return collType;
@@ -21,10 +23,16 @@ public abstract class AssociationAndComponentPathHb6Support extends AssociationA
 	public void setCollType(CollectionType collType) {
 		this.collType = collType;
 	}
-	public CompositeType[] getCompositeTypePath() {
-		return compositeTypePath;
+	public EmbeddableType<?> getCompType() {
+		return compType;
 	}
-	public void setCompositeTypePath(CompositeType[] compositeTypePath) {
-		this.compositeTypePath = compositeTypePath;
+	public void setCompType(EmbeddableType<?> compType) {
+		this.compType = compType;
+	}
+	public EntityType<?> getRelEntity() {
+		return relEntity;
+	}
+	public void setRelEntity(EntityType<?> relEntity) {
+		this.relEntity = relEntity;
 	}
 }

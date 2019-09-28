@@ -34,7 +34,10 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.jsonplayback.hbsupport.HbSupport;
+import org.jsonplayback.hbsupport.OrderCompat;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
@@ -133,13 +136,13 @@ public class PlayerManagerTest {
 	    					"org.hibernate.tool.hbm2ddl.SchemaExport",
 	    					new String[]{"org.hibernate.cfg.Configuration"},
 	    					new Object[]{configuration});
-    		((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    		ReflectionUtil.runByReflection(
     			"org.hibernate.tool.hbm2ddl.SchemaExport",
     			"drop",
     			new String[]{ boolean.class.getName(), boolean.class.getName() },
     			export,
     			new Object[]{ false, true });
-    		((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    		ReflectionUtil.runByReflection(
         			"org.hibernate.tool.hbm2ddl.SchemaExport",
         			"create",
         			new String[]{ boolean.class.getName(), boolean.class.getName() },
@@ -149,35 +152,35 @@ public class PlayerManagerTest {
 //    	    export.drop(false, true);
 //    	    export.create(false, true);
     	} else if (this.getLocalSessionFactoryBean5Or6() != null) {
-    		Object configuration = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    		Object configuration = ReflectionUtil.runByReflection(
 				this.getLocalSessionFactoryBean5Or6().getClass().getName(),
     			"getConfiguration",
     			new String[]{},
     			this.getLocalSessionFactoryBean5Or6(),
     			new Object[]{}
         	);
-    		Object standardServiceRegistryBuilder = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    		Object standardServiceRegistryBuilder = ReflectionUtil.runByReflection(
 				configuration.getClass().getName(),
     			"getStandardServiceRegistryBuilder",
     			new String[]{},
     			configuration,
     			new Object[]{}
         	);
-    		Object standardServiceRegistry = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    		Object standardServiceRegistry = ReflectionUtil.runByReflection(
 				"org.hibernate.boot.registry.StandardServiceRegistryBuilder",
     			"build",
     			new String[]{},
     			standardServiceRegistryBuilder,
     			new Object[]{}
         	);
-    		Object metadataSources = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    		Object metadataSources = ReflectionUtil.runByReflection(
 				this.getLocalSessionFactoryBean5Or6().getClass().getName(),
     			"getMetadataSources",
     			new String[]{},
     			this.getLocalSessionFactoryBean5Or6(),
     			new Object[]{}
         	);
-    		Object hb5Metadata = ((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+    		Object hb5Metadata = ReflectionUtil.runByReflection(
     			"org.hibernate.boot.MetadataSources",
     			"buildMetadata",
     			new String[]{"org.hibernate.boot.registry.StandardServiceRegistry"},
@@ -190,8 +193,8 @@ public class PlayerManagerTest {
     			new Object[]{}
     		);
 			@SuppressWarnings({ "unchecked", "rawtypes" })
-			Class<Enum> targetTypeClass = (Class<Enum>) ((IPlayerManagerImplementor)this.manager).getHbSupport().correctClass("org.hibernate.tool.schema.TargetType");
-    		((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+			Class<Enum> targetTypeClass = (Class<Enum>) ReflectionUtil.correctClass("org.hibernate.tool.schema.TargetType");
+    		ReflectionUtil.runByReflection(
 				"org.hibernate.tool.hbm2ddl.SchemaExport",
 				"drop",
 				new String[]{
@@ -204,7 +207,7 @@ public class PlayerManagerTest {
 					hb5Metadata
 				}
 	    	);
-			((IPlayerManagerImplementor)this.manager).getHbSupport().runByReflection(
+			ReflectionUtil.runByReflection(
 				"org.hibernate.tool.hbm2ddl.SchemaExport",
 				"create",
 				new String[]{
@@ -717,6 +720,7 @@ public class PlayerManagerTest {
 			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			PlayerManagerTest.this.manager.startJsonWriteIntersept();
+			HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 				
 				@Override
@@ -729,8 +733,8 @@ public class PlayerManagerTest {
 					sqlLogInspetor.enable();
 					
 					@SuppressWarnings("unchecked")
-					List<MasterAEnt> masterAEntList = ss.createCriteria(MasterAEnt.class)
-						.addOrder(Order.asc("id")).list();
+					List<MasterAEnt> masterAEntList = hbSupport.createCriteria(ss, MasterAEnt.class)
+						.addOrder(OrderCompat.asc("id")).list();
 					
 					PlayerManagerTest.this.manager
 						.overwriteConfigurationTemporarily(
@@ -885,6 +889,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -898,10 +903,9 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterBEnt> masterBEntList = 
-						ss
-							.createCriteria(MasterBEnt.class)
-							.addOrder(Order.asc("compId.idA"))
-							.addOrder(Order.asc("compId.idB")).list();
+						hbSupport.createCriteria(ss, MasterBEnt.class)
+							.addOrder(OrderCompat.asc("compId.idA"))
+							.addOrder(OrderCompat.asc("compId.idB")).list();
 				
 				PlayerManagerTest
 					.this
@@ -973,6 +977,8 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -986,10 +992,9 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						ss
-							.createCriteria(DetailAEnt.class)
-							.addOrder(Order.asc("compId.masterA.id"))
-							.addOrder(Order.asc("compId.subId")).list();
+						hbSupport.createCriteria(ss, DetailAEnt.class)
+							.addOrder(OrderCompat.asc("compId.masterA.id"))
+							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
 				List<DetailACompId> detailACompIdList = new ArrayList<>();
 				for (DetailAEnt detailAEnt : detailAEntList) {
@@ -1067,6 +1072,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1080,10 +1086,9 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						ss
-							.createCriteria(DetailAEnt.class)
-							.addOrder(Order.asc("compId.masterA.id"))
-							.addOrder(Order.asc("compId.subId")).list();
+						hbSupport.createCriteria(ss, DetailAEnt.class)
+							.addOrder(OrderCompat.asc("compId.masterA.id"))
+							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
 				List<DetailACompId> detailACompIdList = new ArrayList<>();
 				for (DetailAEnt detailAEnt : detailAEntList) {
@@ -1162,6 +1167,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1175,10 +1181,9 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						ss
-							.createCriteria(DetailAEnt.class)
-							.addOrder(Order.asc("compId.masterA.id"))
-							.addOrder(Order.asc("compId.subId")).list();
+						hbSupport.createCriteria(ss, DetailAEnt.class)
+							.addOrder(OrderCompat.asc("compId.masterA.id"))
+							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
 				List<DetailACompComp> detailACompIdList = new ArrayList<>();
 				for (DetailAEnt detailAEnt : detailAEntList) {
@@ -1260,6 +1265,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1273,10 +1279,9 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						ss
-							.createCriteria(DetailAEnt.class)
-							.addOrder(Order.asc("compId.masterA.id"))
-							.addOrder(Order.asc("compId.subId")).list();
+						hbSupport.createCriteria(ss, DetailAEnt.class)
+							.addOrder(OrderCompat.asc("compId.masterA.id"))
+							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
 				List<DetailACompComp> detailACompIdList = new ArrayList<>();
 				for (DetailAEnt detailAEnt : detailAEntList) {
@@ -1356,6 +1361,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1369,10 +1375,9 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterBEnt> masterBEntList = 
-						ss
-							.createCriteria(MasterBEnt.class)
-							.addOrder(Order.asc("compId.idA"))
-							.addOrder(Order.asc("compId.idB")).list();
+						hbSupport.createCriteria(ss, MasterBEnt.class)
+							.addOrder(OrderCompat.asc("compId.idA"))
+							.addOrder(OrderCompat.asc("compId.idB")).list();
 				List<Map<String, Map<String, MasterBEnt>>> masterBEntBizarreList = new ArrayList<>();
 				
 				for (MasterBEnt masterB : masterBEntList) {
@@ -1713,6 +1718,7 @@ public class PlayerManagerTest {
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
+		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1726,9 +1732,8 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterAEnt> masterAEntList = 
-						ss
-							.createCriteria(MasterAEnt.class)
-							.addOrder(Order.asc("id")).list();
+						hbSupport.createCriteria(ss, MasterAEnt.class)
+							.addOrder(OrderCompat.asc("id")).list();
 				List<MasterAWrapper> masterAWrapperList = new ArrayList<>();
 				for (MasterAEnt masterAEnt : masterAEntList) {
 					MasterAWrapper masterAWrapper = new MasterAWrapper();

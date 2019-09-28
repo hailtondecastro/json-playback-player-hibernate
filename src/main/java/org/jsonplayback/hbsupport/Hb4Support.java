@@ -23,17 +23,15 @@ import org.slf4j.LoggerFactory;
 public class Hb4Support extends HbSupportBase {
 	private static Logger logger = LoggerFactory.getLogger(Hb4Support.class);
 
-	private IPlayerManager manager;
 	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHbSupport> associationAndCompositiesMap = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	public Hb4Support(IPlayerManager manager) {
 		super(manager);
-		this.manager = manager;
 	}
 
 	@Override
-	public boolean isCollectionLazyUnitialized(Object coll) {
+	public boolean isCollectionLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner) {
 		return !((boolean)super.runByReflection(
 				super.getPersistentCollecitonClass().getName(),
 				"wasInitialized",
@@ -43,16 +41,16 @@ public class Hb4Support extends HbSupportBase {
 		//return !((org.hibernate.collection.PersistentCollection)coll).wasInitialized();
 	}
 
-	@Override
-	public Object getCollectionOwner(Object coll) {
-		return super.runByReflection(
-				super.getPersistentCollecitonClass().getName(),
-				"getOwner",
-				new String[]{},
-				coll,
-				new Object[]{});
-		//return ((org.hibernate.collection.PersistentCollection)coll).getOwner();
-	}
+//	@Override
+//	public Object getCollectionOwner(Object coll) {
+//		return super.runByReflection(
+//				super.getPersistentCollecitonClass().getName(),
+//				"getOwner",
+//				new String[]{},
+//				coll,
+//				new Object[]{});
+//		//return ((org.hibernate.collection.PersistentCollection)coll).getOwner();
+//	}
 	
 	@Override
 	public Class<?> resolvePersistentCollectionClass() {
@@ -67,7 +65,7 @@ public class Hb4Support extends HbSupportBase {
 	public Object[] getRawKeyValuesFromHbProxy(Object hibernateProxy) {
 		Class entityClass = hibernateProxy.getClass().getSuperclass();
 
-		ClassMetadata classMetadata = this.manager.getConfig().getSessionFactory().getClassMetadata(entityClass);
+		ClassMetadata classMetadata = this.getAllClassMetadata().get(entityClass.getName());
 		PlayerStatment playerStatment = new PlayerStatment();
 
 		Object idValue = this.getIdValue(hibernateProxy);
@@ -107,7 +105,7 @@ public class Hb4Support extends HbSupportBase {
 			throw new RuntimeException("nonHibernateProxy instanceof HibernateProxy: " + nonHibernateProxy);
 		}
 		Class entityClass = nonHibernateProxy.getClass();
-		ClassMetadata classMetadata = this.manager.getConfig().getSessionFactory().getClassMetadata(entityClass);
+		ClassMetadata classMetadata = this.persistentClasses.get(entityClass.getName());
 		PlayerStatment playerStatment = new PlayerStatment();
 		
 		Object idValue = 
@@ -161,8 +159,8 @@ public class Hb4Support extends HbSupportBase {
 	}
 
 	@Override
-	public Serializable getIdValue(Class<?> entityClass, Object[] rawKeyValues) {
-		ClassMetadata classMetadata = this.manager.getConfig().getSessionFactory().getClassMetadata(entityClass);
+	public Object getIdValue(Class<?> entityClass, Object[] rawKeyValues) {
+		ClassMetadata classMetadata = this.getAllClassMetadata().get(entityClass.getName());
 
 		Type hbIdType = classMetadata.getIdentifierType();
 
@@ -170,7 +168,7 @@ public class Hb4Support extends HbSupportBase {
 			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''", hbIdType));
 		}
 		
-		Serializable idValue = null;
+		Object idValue = null;
 		
 		PlayerResultSet playerResultSet = new PlayerResultSet(rawKeyValues);
 		try {
@@ -203,14 +201,14 @@ public class Hb4Support extends HbSupportBase {
 	}
 	
 	@Override
-	public Serializable getIdValue(Object entityInstanceOrProxy) {
+	public Object getIdValue(Object entityInstanceOrProxy) {
 		Class<?> entityClass = null;
 		if (entityInstanceOrProxy instanceof HibernateProxy) {
 			entityClass = (Class<?>) entityInstanceOrProxy.getClass().getSuperclass();
 		} else {
 			entityClass = (Class<?>) entityInstanceOrProxy.getClass();
 		}
-		ClassMetadata classMetadata = this.manager.getConfig().getSessionFactory().getClassMetadata(entityClass);
+		ClassMetadata classMetadata = this.getAllClassMetadata().get(entityClass.getName());
 		PlayerStatment playerStatment = new PlayerStatment();
 		
 		Serializable idValue = 

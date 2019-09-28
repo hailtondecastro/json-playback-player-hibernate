@@ -6,6 +6,7 @@ import java.sql.Clob;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -451,7 +452,12 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 		} else if (this.manager.getHbSupport().isPersistentCollection(valueToSerialize)) {
 			//PersistentCollection pcvalue = (PersistentCollection) valueToSerialize;
 			//if (this.manager.getConfig().isSerialiseBySignatureAllRelationship() || !pcvalue.wasInitialized()) {
-			if (this.manager.getConfig().isSerialiseBySignatureAllRelationship() || this.manager.getHbSupport().isCollectionLazyUnitialized(valueToSerialize)) {
+			if (this.manager.getConfig().isSerialiseBySignatureAllRelationship()
+					|| this.manager.getHbSupport().isCollectionLazyUnitialized(
+							valueToSerialize, 
+							aacTrackInfo.getEntityOwner(), 
+							this.mountPathFromStack(aacTrackInfo.getEntityAndComponentPath().getCompositePrpPath()))
+					) {
 				gen.writeStartObject();
 				PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 				backendMetadatas.setIsLazyUninitialized(true);
@@ -660,7 +666,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 					this.manager.getPlayerBeanPropertyWriterStepStack().push(playerBeanPropertyWriter);
 					
 					if (this.manager.isPersistentClass(ownerAndProperty.getOwner().getClass())) {
-						Object hbId = this.manager.getHibernateObjectId(ownerAndProperty.getOwner());
+						Object hbId = this.manager.getPlayerObjectId(ownerAndProperty.getOwner());
 						PlayerMetadatas dammyMetadatas = new PlayerMetadatas();
 						dammyMetadatas.setPlayerObjectId(hbId);
 						this.manager.getPlayerMetadatasWritingStack().push(dammyMetadatas);
@@ -702,7 +708,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 					}
 					
 					if (this.manager.isPersistentClass(ownerAndProperty.getOwner().getClass())) {
-						Object hbId = this.manager.getHibernateObjectId(ownerAndProperty.getOwner());
+						Object hbId = this.manager.getPlayerObjectId(ownerAndProperty.getOwner());
 						PlayerMetadatas dammyMetadatas = this.manager.getPlayerMetadatasWritingStack().pop();
 						if (hbId != dammyMetadatas.getPlayerObjectId()) {
 							throw new RuntimeException("This should not happen!");	
@@ -728,5 +734,19 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 	@Override
 	public String toString() {
 		return "PlayerJsonSerializer for " + this.delegate;
+	}
+	
+	protected String mountPathFromStack(String[] pathStack) {
+		return this.mountPathFromStack(Arrays.asList(pathStack));
+	}
+	
+	protected String mountPathFromStack(Collection<String> pathStack) {
+		String pathResult = "";
+		String dotStr = "";
+		for (String pathItem : pathStack) {
+			pathResult += dotStr + pathItem;
+			dotStr = ".";
+		}
+		return pathResult;
 	}
 }

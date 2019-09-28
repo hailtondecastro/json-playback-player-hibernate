@@ -3,35 +3,37 @@ package org.jsonplayback.hbsupport;
 import java.io.Serializable;
 import java.sql.Connection;
 
+import javax.persistence.EntityManager;
+
+import org.hibernate.Session;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
 import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
 
 public interface HbSupport {
 	boolean isPersistentCollection(Object coll);
-	boolean isCollectionLazyUnitialized(Object coll);
+	boolean isCollectionLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner);
 	boolean isHibernateProxyLazyUnitialized(Object hProxy);
 	Connection getConnection();
-	Object getCollectionOwner(Object coll);
-	String getCollectionFieldName(Object coll);
+//	Object getCollectionOwner(Object coll);
+//	String getCollectionFieldName(Object coll);
 	String getCollectionGetRole(Object coll);
 	Object[] getRawKeyValuesFromHbProxy(Object hibernateProxy);
 	Object[] getRawKeyValuesFromNonHbProxy(Object nonHibernateProxy);
 	void collectAssociationAndCompositiesMap();
 	void init();
 	boolean isComponent(Class<?> componentClass);
-	boolean isPersistentClass(Class<?> componentClass);
-	boolean isRelationship(Class<?> clazz, String fieldName);
+	boolean isPersistentClass(Class<?> clazz);
 	boolean isCollectionRelationship(Class<?> ownerClass, String pathFromOwner);
-	boolean isOneToManyRelationship(Class<?> ownerClass, String pathFromOwner);
+	boolean isManyToOneRelationship(Class<?> ownerClass, String pathFromOwner);
 	boolean isComponentOrRelationship(Class<?> ownerClass, String pathFromOwner);
 	boolean isComponentByTrack(AssociationAndComponentTrackInfo aacTrackInfo);
-	Serializable getIdValue(Class<?> entityClass, Object[] rawKeyValues);
-	Serializable getIdValue(Object entityInstanceOrProxy);
-	Object getById(Class<?> entityClass, Serializable idValue);
+	Object getIdValue(Class<?> entityClass, Object[] rawKeyValues);
+	Object getIdValue(Object entityInstanceOrProxy);
+	Object getById(Class<?> entityClass, Object idValue);
 	AssociationAndComponentPath getAssociationAndComponentOnPath(Class<?> ownerClass, String pathStr);
-	Object runByReflection(String classStr, String methodName, String[] argsClassStrArr, Object instance,
-			Object[] argsValues);
-	Object instanciteByReflection(String classStr, String[] argsClassStrArr, Object[] argsValues);
-	Class<?> correctClass(String name);
 	boolean testCollectionStyle(Class<?> ownerClass, String prpName, CollectionStyle style);
+	<R> CriteriaCompat<R> createCriteria(Session session, Class<R> clazz);
+	<R> CriteriaCompat<R> createCriteria(EntityManager em, Class<R> clazz);
+	void processNewInstantiate(Class<?> instType, Object instValue);
+	String getPlayerObjectIdPrpName(Class clazz);
 }

@@ -1,0 +1,25 @@
+package org.jsonplayback.hbsupport;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+
+public class InputForPrmExCB<R, P> {
+	EntityManager entityManager;
+	CriteriaBuilder criteriaBuilder;
+	CriteriaQuery<R> query;
+	P parameterValue;
+	public EntityManager getEntityManager() {
+		return entityManager;
+	}
+	public CriteriaBuilder getCriteriaBuilder() {
+		return criteriaBuilder;
+	}
+	public CriteriaQuery<R> getQuery() {
+		return query;
+	}
+	public P getParameterValue() {
+		return parameterValue;
+	}
+	
+}

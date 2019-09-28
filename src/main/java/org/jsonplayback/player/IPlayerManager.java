@@ -2,6 +2,7 @@ package org.jsonplayback.player;
 
 import java.util.function.Function;
 
+import org.jsonplayback.player.hibernate.HibernateVersion;
 import org.jsonplayback.player.hibernate.PlayerManagerDefault;
 
 public interface IPlayerManager {
@@ -29,7 +30,7 @@ public interface IPlayerManager {
 	@SuppressWarnings("rawtypes")
 	boolean isNeverSigned(Class clazz);
 
-	Object getHibernateObjectId(Object object);
+	Object getPlayerObjectId(Object object);
 
 	IPlayerConfig getConfig();
 
@@ -78,5 +79,6 @@ public interface IPlayerManager {
 	
 	<O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc);
 	<O, T> IPlayerManager registerComponentOwner(Class<O> ownerClass, T targetOwned, Function<O, T> propertyFunc);
+	HibernateVersion getHibernateVersion();
 }
 /*gerando conflito*/

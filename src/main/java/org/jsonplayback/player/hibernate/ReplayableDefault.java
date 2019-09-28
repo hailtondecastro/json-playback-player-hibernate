@@ -84,9 +84,9 @@ public class ReplayableDefault implements IReplayable {
 	private Tape tape = null;
 	private boolean replayed = false;
 
-	private IPlayerManager manager;
+	private IPlayerManagerImplementor manager;
 	
-	public ReplayableDefault configManager(IPlayerManager manager) {
+	public ReplayableDefault configManager(IPlayerManagerImplementor manager) {
 		this.manager = manager;
 		return this;
 	}
@@ -177,35 +177,7 @@ public class ReplayableDefault implements IReplayable {
 				}
 				Object ownerValue = action.resolveOwnerValue(this.manager, creationRefMap);
 				
-				ClassMetadata classMetadata = this.manager.getConfig().getSessionFactory().getClassMetadata(action.resolveOwnerPlayerType(manager, creationRefMap));
-				if (classMetadata != null) {
-					PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(action.resolveOwnerPlayerType(manager, creationRefMap));
-					for (int i = 0; i < propertyDescriptors.length; i++) {
-						PropertyDescriptor propertyDescriptorItem = propertyDescriptors[i];
-						if (!("class".equals(propertyDescriptorItem.getName()))) {
-							Type prpType = classMetadata.getPropertyType(propertyDescriptorItem.getName());
-							Collection resultColl = null;
-							if (prpType instanceof CollectionType) {
-								if (prpType instanceof SetType) {
-									resultColl = new LinkedHashSet<>();
-								} else if (prpType instanceof ListType) {
-									throw new RuntimeException("Not supported. prpType: " + prpType);
-								} else if (prpType instanceof BagType) {
-									throw new RuntimeException("Not supported. prpType: " + prpType);
-								} else {
-									throw new RuntimeException("This should not happen. prpType: " + prpType);
-								}
-								try {
-									PropertyUtils.setProperty(ownerValue, propertyDescriptorItem.getName(), collection);
-								} catch (Exception e) {
-									throw new RuntimeException("This should not happen. prpType: " + prpType, e);
-								}
-							} else {
-								// non one-to-many
-							}
-						}
-					}
-				}				
+				this.manager.getHbSupport().processNewInstantiate(action.getResolvedOwnerPlayerType(), ownerValue);
 				
 				break;
 			case SAVE:
