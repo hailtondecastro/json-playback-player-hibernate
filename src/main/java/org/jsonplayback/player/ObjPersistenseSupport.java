@@ -1,4 +1,4 @@
-package org.jsonplayback.hbsupport;
+package org.jsonplayback.player;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -6,10 +6,12 @@ import java.sql.Connection;
 import javax.persistence.EntityManager;
 
 import org.hibernate.Session;
+import org.jsonplayback.hbsupport.CollectionStyle;
+import org.jsonplayback.hbsupport.CriteriaCompat;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
 import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
 
-public interface HbSupport {
+public interface ObjPersistenseSupport {
 	boolean isPersistentCollection(Object coll);
 	boolean isCollectionLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner);
 	boolean isHibernateProxyLazyUnitialized(Object hProxy);

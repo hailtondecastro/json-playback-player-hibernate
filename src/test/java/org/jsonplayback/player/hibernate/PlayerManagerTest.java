@@ -36,8 +36,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.jsonplayback.hbsupport.HbSupport;
 import org.jsonplayback.hbsupport.OrderCompat;
+import org.jsonplayback.player.ObjPersistenseSupport;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
@@ -720,7 +720,7 @@ public class PlayerManagerTest {
 			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			PlayerManagerTest.this.manager.startJsonWriteIntersept();
-			HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+			ObjPersistenseSupport objPersistenseSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 				
 				@Override
@@ -733,7 +733,7 @@ public class PlayerManagerTest {
 					sqlLogInspetor.enable();
 					
 					@SuppressWarnings("unchecked")
-					List<MasterAEnt> masterAEntList = hbSupport.createCriteria(ss, MasterAEnt.class)
+					List<MasterAEnt> masterAEntList = objPersistenseSupport.createCriteria(ss, MasterAEnt.class)
 						.addOrder(OrderCompat.asc("id")).list();
 					
 					PlayerManagerTest.this.manager
@@ -889,7 +889,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenseSupport objPersistenseSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -903,7 +903,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterBEnt> masterBEntList = 
-						hbSupport.createCriteria(ss, MasterBEnt.class)
+						objPersistenseSupport.createCriteria(ss, MasterBEnt.class)
 							.addOrder(OrderCompat.asc("compId.idA"))
 							.addOrder(OrderCompat.asc("compId.idB")).list();
 				
@@ -977,7 +977,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenseSupport objPersistenseSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
@@ -992,7 +992,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						hbSupport.createCriteria(ss, DetailAEnt.class)
+						objPersistenseSupport.createCriteria(ss, DetailAEnt.class)
 							.addOrder(OrderCompat.asc("compId.masterA.id"))
 							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
@@ -1072,7 +1072,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenseSupport objPersistenseSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1086,7 +1086,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						hbSupport.createCriteria(ss, DetailAEnt.class)
+						objPersistenseSupport.createCriteria(ss, DetailAEnt.class)
 							.addOrder(OrderCompat.asc("compId.masterA.id"))
 							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
@@ -1167,7 +1167,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenseSupport objPersistenseSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1181,7 +1181,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						hbSupport.createCriteria(ss, DetailAEnt.class)
+						objPersistenseSupport.createCriteria(ss, DetailAEnt.class)
 							.addOrder(OrderCompat.asc("compId.masterA.id"))
 							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
@@ -1265,7 +1265,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenseSupport objPersistenseSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1279,7 +1279,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						hbSupport.createCriteria(ss, DetailAEnt.class)
+						objPersistenseSupport.createCriteria(ss, DetailAEnt.class)
 							.addOrder(OrderCompat.asc("compId.masterA.id"))
 							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
@@ -1361,7 +1361,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenseSupport objPersistenseSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1375,7 +1375,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterBEnt> masterBEntList = 
-						hbSupport.createCriteria(ss, MasterBEnt.class)
+						objPersistenseSupport.createCriteria(ss, MasterBEnt.class)
 							.addOrder(OrderCompat.asc("compId.idA"))
 							.addOrder(OrderCompat.asc("compId.idB")).list();
 				List<Map<String, Map<String, MasterBEnt>>> masterBEntBizarreList = new ArrayList<>();
@@ -1718,7 +1718,7 @@ public class PlayerManagerTest {
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenseSupport objPersistenseSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1732,7 +1732,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterAEnt> masterAEntList = 
-						hbSupport.createCriteria(ss, MasterAEnt.class)
+						objPersistenseSupport.createCriteria(ss, MasterAEnt.class)
 							.addOrder(OrderCompat.asc("id")).list();
 				List<MasterAWrapper> masterAWrapperList = new ArrayList<>();
 				for (MasterAEnt masterAEnt : masterAEntList) {

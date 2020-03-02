@@ -35,6 +35,7 @@ import org.hibernate.type.CompositeType;
 import org.hibernate.type.ListType;
 import org.hibernate.type.MapType;
 import org.hibernate.type.SetType;
+import org.jsonplayback.player.ObjPersistenseSupport;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPathKey;
@@ -43,7 +44,7 @@ import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Hb6Support implements HbSupport {
+public class Hb6Support implements ObjPersistenseSupport {
 	private static Logger logger = LoggerFactory.getLogger(Hb6Support.class);
 
 	protected IPlayerManager manager;
