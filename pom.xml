@@ -349,6 +349,7 @@
 				</dependency>
 			</dependencies>
 		</profile>
+		<!-- 
 		<profile>
 			<id>hb6</id>
 			<properties>
@@ -369,6 +370,7 @@
 				</dependency>
 			</dependencies>			
 		</profile>
+		 -->
  		<profile>
 			<id>travis</id>
 			<properties>
