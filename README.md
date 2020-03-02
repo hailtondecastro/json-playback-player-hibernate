@@ -68,6 +68,8 @@ Framework for integrate entity object graph operations (field, collections modif
   $ git config --local user.email hailtondecastro@gmail.com
   $ # between every commit and push:
   $ git commit --amend --reset-author --no-edit -S
+  $ # or, for all non pushed commit's
+  $ git rebase --exec 'git commit --amend --no-edit -n --no-verify -S'
   $ # Run this and submit the content to [Add new GPG keys](https://github.com/settings/gpg/new):
   $ gpg --armor --export 2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F
   ```
