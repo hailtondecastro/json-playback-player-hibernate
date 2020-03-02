@@ -145,7 +145,7 @@ Framework for integrate entity object graph operations (field, collections modif
   $ gpg --export-secret-keys F4532B1D729C24A899FA83ECD3863F4B2A84E423 > travis.gpg
   $ gpg --armor --export     F4532B1D729C24A899FA83ECD3863F4B2A84E423 > travis.gpg.pub
   $ gpg --send-keys
-  ```
+  ```    
   Update pom.xml:
   ```xml
 					<plugin>
@@ -177,3 +177,5 @@ Framework for integrate entity object graph operations (field, collections modif
       - GPG_PASSPHRASE: Passphare used for [travis.gpg](#user-content-working-with-pgp-signatures-centralsonatypeorg);
       - SONATYPE_USER: Generated user on [https://oss.sonatype.org -> Profile -> User Token](https://oss.sonatype.org/#profile;User%20Token);
       - SONATYPE_PASSWORD: Generated password on [https://oss.sonatype.org -> Profile -> User Token](https://oss.sonatype.org/#profile;User%20Token).
+      
+  Attemption: If you are using character other then [a-z0-1] then replace by regular expression '([^a-z0-9])' by '\\$1', with no quote.
