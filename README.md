@@ -146,6 +146,26 @@ Framework for integrate entity object graph operations (field, collections modif
   $ gpg --armor --export     F4532B1D729C24A899FA83ECD3863F4B2A84E423 > travis.gpg.pub
   $ gpg --send-keys
   ```
+  Update pom.xml:
+  ```xml
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+								<configuration>
+									<keyname>584A811A6F2547609E2A5F304B8D861E3E8D8C8B</keyname>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+  ```
   Commit and push 'travis.gpg' and 'travis.gpg.pub'.  
   References:
   - [Requirements](https://central.sonatype.org/pages/requirements.html)
