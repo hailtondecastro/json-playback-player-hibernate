@@ -1,6 +1,19 @@
 # js-playback-backend-hibernate
 Framework for integrate entity object graph operations (field, collections modifications, etc) between backend and frontend.
 
+### Deprecated for the benefit of foo [json-playback-player-java](https://github.com/hailtondecastro/json-playback-player-java)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
 ### Source control, developer and build/ci environment.
 
 #### Github commits (developer environment)
